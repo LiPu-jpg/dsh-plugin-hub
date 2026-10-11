@@ -65,10 +65,10 @@ DSH Plugin Hub is a **community plugin marketplace for DeepSeek Harness**: an op
 
 ## Join the User Group · Feedback
 
-Questions, feature ideas or just want to talk plugins? Scan the QR code to join the DSH Plugin Hub user group — report issues, share suggestions, and improve the hub with the community. The current QR code is valid until October 10, 2026, and will be refreshed once it expires.
+Questions, feature ideas or just want to talk plugins? Scan the QR code to join the DSH Plugin Hub user group — report issues, share suggestions, and improve the hub with the community. The current QR code is valid until October 18, 2026, and will be refreshed once it expires.
 
 <p align="center">
-  <img src="https://api.dsh-plugin.org/images/dsh-plugin-user-group-qr.png?v=4" alt="DSH Plugin Hub user group QR code" width="250" height="250">
+  <img src="https://api.dsh-plugin.org/images/dsh-plugin-user-group-qr.png?v=2026-10-18" alt="DSH Plugin Hub user group QR code" width="250" height="250">
 </p>
 
 ## Feature Highlights
