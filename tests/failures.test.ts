@@ -321,6 +321,53 @@ test('classifyFailure: a dependency missing from the registry is an environment 
   assert.equal(classifyFailure('npm error 404 Not Found - GET https://registry.npmjs.org/foo - Not found'), 'pnpmMissingDep')
 })
 
+test('classifyFailure: a version missing from the install registry is an environment issue (issue #175), not a plugin issue', () => {
+  // #175：反查包名走设置里的 npmRegistry，实际安装沿用本机 ~/.npmrc 的源；镜像滞后于官方时
+  // 就会出现「解析挑到新版本 → 安装源里没有」—— 与插件作者无关，不能落 repo 兜底推给作者仓库
+  const msg = [
+    '[ERR_PNPM_NO_MATCHING_VERSION] No matching version found for @caob23/dsh-browser-control@1.0.10',
+    'while fetching it from https://registry.npmmirror.com/',
+    'dsh: plugin command failed; diagnostics: /x/.plugin-manager/logs/operation-Xn3nTz/pnpm.log',
+  ].join('\n')
+  assert.equal(classifyFailure(msg), 'registryVersionStale')
+  assert.notEqual(classifyFailure(msg), 'repo')
+  // npm 通道的 ETARGET / 描述句（无 ERR_ 前缀）同样归到这里
+  assert.equal(classifyFailure('npm error code ETARGET\nnpm error notarget No matching version found for foo@9.9.9'), 'registryVersionStale')
+  assert.equal(classifyFailure('No matching version found for dsh-plugin@1.9.9'), 'registryVersionStale')
+})
+
+test('classifyFailure: the 24h release-age gate (ERR_PNPM_NO_MATURE_MATCHING_VERSION) is a policy issue (issue #175), not a plugin issue', () => {
+  // #175 补充：dsh profile 自带 minimumReleaseAge=1440，刚发布的版本被包龄闸门拦下时报这个码 ——
+  // 那是 dsh 自己的供应链策略在正常工作，不是任何人的错，不能落 repo 变成作者邮箱里的工单
+  const msg = [
+    '[ERR_PNPM_NO_MATURE_MATCHING_VERSION] 1 version does not meet the minimumReleaseAge constraint:',
+    '  @caob23/dsh-browser-control@1.0.14 was published at 2026-10-12T14:02:49.910Z, within the minimumReleaseAge cutoff (2026-10-11T14:25:47.400Z)',
+    'dsh: plugin command failed; diagnostics: /x/.plugin-manager/logs/operation-Xn3nTz/pnpm.log',
+  ].join('\n')
+  assert.equal(classifyFailure(msg), 'pnpmPolicy')
+  assert.notEqual(classifyFailure(msg), 'repo')
+})
+
+test('pnpmPolicyHintOf: minimumReleaseAge via ERR_PNPM_NO_MATURE_MATCHING_VERSION yields the exact retry time', async () => {
+  const { pnpmPolicyHintOf, releaseAgeRetryAfter } = await import('../src/client/logic/failures.ts')
+  const msg = '[ERR_PNPM_NO_MATURE_MATCHING_VERSION] 1 version does not meet the minimumReleaseAge constraint:\n'
+    + '  @caob23/dsh-browser-control@1.0.14 was published at 2026-10-12T14:02:49.910Z, within the minimumReleaseAge cutoff'
+  assert.equal(pnpmPolicyHintOf(msg), 'failPnpmReleaseAgeHint')
+  assert.equal(releaseAgeRetryAfter(msg), '2026-10-13T14:02Z')
+})
+
+test('classifyFailure: a dangling local (link:) dependency in the profile is an environment issue (issue #172), not a plugin issue', () => {
+  const msg = [
+    '[ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND] Could not install from "C:\\Users\\23812\\.dsh\\Documents\\deepseek-harness\\default-workspace\\dsh-menu-opaque" as it does not exist.',
+    'This error happened while installing a direct dependency of C:\\Users\\23812\\.dsh\\profiles\\desktop',
+    'dsh: plugin command failed; diagnostics: C:\\Users\\23812\\.dsh\\profiles\\desktop\\.plugin-manager\\logs\\operation-cuaKvy\\pnpm.log',
+  ].join('\n')
+  assert.equal(classifyFailure(msg), 'pnpmLinkedDirMissing')
+  assert.notEqual(classifyFailure(msg), 'repo')
+  // 无 ERR_ 前缀、只有描述句时同样归到这里
+  assert.equal(classifyFailure('Could not install from "/tmp/gone-plugin" as it does not exist'), 'pnpmLinkedDirMissing')
+})
+
 test('classifyFailure: the host tail alone (lowercase `command failed`) is not a prepare failure', () => {
   // 宿主尾部提示是小写的 `dsh: plugin command failed`，只是「这条命令失败了」的通用说明，
   // 不算构建脚本失败

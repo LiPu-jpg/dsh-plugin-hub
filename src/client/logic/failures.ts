@@ -151,7 +151,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'repo'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'repo'
 
 /** Match the pnpm error code, not a generic mention of checksum or integrity. */
 function missingTarballIntegrity(message: string): boolean {
@@ -174,7 +174,7 @@ export function releaseAgeRetryAfter(message: string): string | null {
  */
 export function pnpmPolicyHintOf(message: string): 'failPnpmTarballIntegrityHint' | 'failPnpmReleaseAgeHint' | 'failPnpmPolicyHint' {
   if (missingTarballIntegrity(message)) return 'failPnpmTarballIntegrityHint'
-  if (/ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|Minimum release age/i.test(message)
+  if (/ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge/i.test(message)
       && releaseAgeRetryAfter(message) !== null) {
     return 'failPnpmReleaseAgeHint'
   }
@@ -227,6 +227,15 @@ export function pnpmPolicyHintParams(message: string): Record<string, string> {
  * - pnpmMissingDep：profile 里留着一条指向 registry 上不存在的包的依赖，pnpm 解析时收到 404
  *   （`ERR_PNPM_FETCH_404` / `Not Found - 404`）—— 该 profile 的任何安装都会先卡在这条依赖上
  *   → 提示按包名删掉该条目后重试（404 的包通常不是正在安装的插件，故不引导提 Issue）
+ * - registryVersionStale：实际执行安装的那个源里没有这个版本（`ERR_PNPM_NO_MATCHING_VERSION` /
+ *   `ETARGET` / `No matching version found`）—— 常见于镜像滞后（反查包名走设置里的 npmRegistry、
+ *   实际安装沿用本机 ~/.npmrc 的源，官方已发布而镜像还没同步），或版本号写错
+ *   → 提示对齐设置里的源与本机 ~/.npmrc、或那一次显式走官方源 / 用离线包后重试
+ *   （与插件作者无关，故不引导提 Issue）
+ * - pnpmLinkedDirMissing：profile 里留着一条指向不存在目录的本地依赖（`ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND`
+ *   / `Could not install from "<path>" as it does not exist`）—— 常见于 link:/本地路径装过开发中的插件、
+ *   之后目录被删或移动，pnpm 每次解析 profile 依赖都会先卡在它上面
+ *   → 提示删掉 profile 里那条悬空的本地依赖条目后重试（与插件作者无关，故不引导提 Issue）
  * - fileLocked：pnpm 无法替换 profile 里被其他进程占用的文件（Windows `os error 32`
  *   「另一个程序正在使用此文件」/ `EBUSY` / `resource busy or locked`）—— 通常是宿主进程或
  *   杀毒软件实时扫描持有句柄 → 提示完全退出宿主后重试
@@ -299,11 +308,12 @@ export function classifyFailure(message: string): FailureKind {
   // 用「整行以它结尾」来区隔 pnpm 的真实报错：pnpm 的形态后面一定跟着 dsh 的上下文
   // （如 `untrusted origin\ndsh: pnpm failed in profile directory …`），不会被本规则命中
   if (/(^|\n)untrusted origin\s*$/.test(message)) return 'originRejected'
-  // pnpm 供应链安全策略拦截（缺少 tarball 校验值 / minimumReleaseAge 拒收「刚发布」的包 /
+  // pnpm 供应链安全策略拦截（缺少 tarball 校验值 / minimumReleaseAge 拒收「刚发布」的包 ——
+  // 两个错误码形态 ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION 与 ERR_PNPM_NO_MATURE_MATCHING_VERSION /
   // untrusted origin 来源不受信任）：pnpm 在、也连得上，纯粹是本机策略不放行 ——
   // 装任何「新发布/非信任来源」的插件都会同样失败。
   // 必须在 pnpmIgnoredBuild 之前 —— 该策略优先于「构建脚本被白名单拦截」，且两者都不引导提 Issue。
-  if (missingTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|Minimum release age|untrusted origin/i.test(message)) return 'pnpmPolicy'
+  if (missingTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge|untrusted origin/i.test(message)) return 'pnpmPolicy'
   // profile 里留着指向旧版本 dsh-plugin 的 patch 声明（ERR_PNPM_UNUSED_PATCH /
   // `The following patches were not used: dsh-plugin@1.4.2`）：本机 pnpm 配置与本次解析到的版本
   // 对不上，pnpm 出于安全直接中止整次安装 —— 任何插件都装不进来 → 提示删条目后重试。
@@ -355,6 +365,18 @@ export function classifyFailure(message: string): FailureKind {
   // （两个形态：pnpm 的 `[ERR_PNPM_FETCH_404] GET <url>: Not Found - 404` 与 npm 的
   //   `npm error 404 Not Found - GET <url> - Not found`）
   if (/ERR_PNPM_FETCH_404|404 Not Found|Not Found - 404/i.test(message)) return 'pnpmMissingDep'
+  // 要装的版本在「实际执行安装的那个源」里查不到（ERR_PNPM_NO_MATCHING_VERSION / ETARGET /
+  // `No matching version found for <pkg>@<ver>`）：与 FETCH_404 同属「registry 侧的缺失」，
+  // 但更常见的是**镜像滞后** —— 反查包名走的是设置里的 npmRegistry，实际安装却沿用本机
+  // ~/.npmrc 的源，官方源刚发布、镜像还没同步时就会命中；
+  // 也可能只是版本号写错。都不是插件作者的问题，不能落 repo 兜底推给作者仓库。
+  // 与 404 一样必须在 pluginPrepare 之前判定（尾部往往只有通用的 `dsh: plugin command failed`）。
+  if (/\bERR_PNPM_NO_MATCHING_VERSION\b|\bETARGET\b|No matching version found/i.test(message)) return 'registryVersionStale'
+  // profile 里留着一条指向**不存在目录**的本地依赖（link: / file:）（ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND /
+  // `Could not install from "<path>" as it does not exist`）—— 常见于用 `dsh plugin add <本地路径>`
+  // 或 link: 装过开发中的插件，之后那个目录被删除/移动。pnpm 每次解析 profile 依赖都会先卡在它上面，
+  // 与本次要装的插件无关，不是插件作者的问题。必须在 pluginPrepare 之前判定。
+  if (/\bERR_PNPM_LINKED_PKG_DIR_NOT_FOUND\b|Could not install from .+ as it does not exist/i.test(message)) return 'pnpmLinkedDirMissing'
   // 再判 prepare 实际执行失败：只有构建脚本真的跑挂了才是插件问题。
   // `Command failed` 区分大小写 —— 只匹配 pnpm 包装出的报错，不匹配宿主那句小写的
   // `dsh: plugin command failed`（那只是「这条命令失败了」的通用说明）。

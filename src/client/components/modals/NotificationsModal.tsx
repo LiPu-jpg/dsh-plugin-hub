@@ -314,6 +314,18 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         h('div', { className: styles.failPrepareHint }, t('failPnpmMissingDepHint')),
                       ])
                     }
+                    if (kind === 'registryVersionStale') {
+                      // 要装的版本在「实际执行安装的那个源」里查不到（ERR_PNPM_NO_MATCHING_VERSION / ETARGET）：
+                      // 常见于镜像滞后 —— 反查包名走设置里的 npmRegistry，实际安装沿用本机 ~/.npmrc 的源；
+                      // 也可能只是版本号写错。与插件作者无关 —— 给对齐源 / 显式走官方源 / 离线包指引，不引导提 Issue
+                      return h('div', { className: styles.failPrepareHint }, t('failRegistryVersionStaleHint'))
+                    }
+                    if (kind === 'pnpmLinkedDirMissing') {
+                      // profile 里留着指向不存在目录的本地依赖（ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND）：
+                      // 常见于 link:/本地路径装过开发中的插件、之后目录被删；与本次要装的插件无关
+                      // —— 给删除悬空条目的指引，不引导提 Issue
+                      return h('div', { className: styles.failPrepareHint }, t('failPnpmLinkedDirMissingHint'))
+                    }
                     if (kind === 'fileLocked') {
                       // profile 里的文件被其他进程占用（Windows os error 32）：通常是宿主或杀毒软件
                       // 持有句柄 —— 给出完全退出宿主的指引，不引导提 Issue
