@@ -67,10 +67,12 @@ export declare function startPluginMutation(options: {
     installChannel?: 'npm' | 'git' | 'dsh';
 }): InstallTask;
 /**
- * 安装后校验已装包的入口文件（package.json 的 main / exports["."].default）是否真实存在。
- * git: 分发常不提交构建产物（lib/ 等），pnpm 装完没有报错，但宿主重启加载插件树时会
- * ERR_MODULE_NOT_FOUND 直接崩溃、网页打不开 —— 这里在登记「待重启」前就把这类残缺包拦下。
- * 返回 { name, missing }：name 为空表示无法定位目标包（跳过校验）；missing 为缺失的入口路径。
+ * 安装后校验已装包里 package.json 声明的文件（main / exports["."].default 与
+ * dsh.bundle.patch）是否真实存在。git: 分发常不提交构建产物（lib/ 等），pnpm 装完没有
+ * 报错，但宿主重启加载插件树时会 ERR_MODULE_NOT_FOUND 直接崩溃、网页打不开 —— 这里在
+ * 登记「待重启」前就把这类残缺包拦下。没有声明过的文件不在这里追究：没声明入口的
+ * bundle 包（只挂技能）本来就不需要入口，宿主读的是它的 package.json 与声明的补丁。
+ * 返回 { name, missing }：name 为空表示无法定位目标包（跳过校验）；missing 为缺失文件的路径。
  */
 export declare function verifyInstalledEntry(profile: string, target: string): {
     name: string | null;
