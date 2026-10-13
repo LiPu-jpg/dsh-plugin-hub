@@ -54,8 +54,8 @@ pids_on_port() {
 build_plugin() {
   [[ "$SKIP_BUILD" -eq 1 ]] && { echo "[restart-dev] skipping build (--skip-build)"; return 0; }
   echo "[restart-dev] building plugin (server + client)…"
-  (cd "$REPO_DIR" && npm run build:server && npm run build:client) \
-    || { echo "[restart-dev] build failed — aborting" >&2; exit 1; }
+  (cd "$REPO_DIR" && npm run build:server >/dev/null 2>&1 && npm run build:client >/dev/null 2>&1) \
+    || { echo "[restart-dev] build failed — rerun 'npm run build' to see errors" >&2; exit 1; }
   echo "[restart-dev] build done."
 }
 
@@ -124,7 +124,7 @@ sync_profile_plugin() {
 }
 
 start_fresh() {
-  nohup dsh web --port "$PORT" --no-open >>"$LOG_FILE" 2>&1 &
+  nohup dsh web --port "$PORT" >>"$LOG_FILE" 2>&1 &
   local pid=$!
   echo "[restart-dev] starting dsh web (pid $pid) on port $PORT"
   for _ in $(seq 1 67); do # up to 20s
