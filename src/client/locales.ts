@@ -315,6 +315,8 @@ export const zh = {
   failHubIssueBig: '反馈给插件中心排查',
   // 未知失败兜底：不归到插件作者，引导到插件中心仓库排查
   failUnclassifiedHint: '安装失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。',
+  // 插件中心自身状态类消息（插件未安装 / 不在此处卸载 / 已在队列中）：已安装列表与实读快照不同步，非插件问题，不引导提 Issue
+  failHubStateHint: '插件列表状态已过期：该插件已不在已安装列表中（或已在队列中，或不在此处卸载）。这不是插件本身的问题 —— 请刷新页面后重试。',
   // prepare 构建脚本实际执行失败（git 分发缺子模块/构建产物）：插件打包分发问题，应提 Issue
   failPrepareHint: '该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。',
   // 安装前预检 / 装后校验拦截（[packaging]）：git 分发缺插件需要的文件（入口 / 补丁 mount 的入口 / bundle 补丁）= 插件未适配官方默认安装方式
@@ -713,6 +715,8 @@ export const en = {
   failHubIssueBig: 'Report to the Plugin Hub for triage',
   // Unknown-failure fallback: not routed to the plugin author, but to the hub repo for triage
   failUnclassifiedHint: 'The install failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.',
+  // The hub's own state-guard messages (plugin not installed / cannot be uninstalled here / already queued): the installed list is out of sync with the live snapshot — not a plugin issue, no issue prompt
+  failHubStateHint: 'The plugin list is out of date: this plugin is no longer in the installed list (or is already queued, or cannot be uninstalled here). This is not a plugin problem — refresh the page and retry.',
   // prepare script actually failed (git tarball misses submodules/build output): a packaging issue of the plugin itself — file an issue
   failPrepareHint: 'This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.',
   // Pre-install / post-install guard hit ([packaging]): git distribution lacks a file the package needs (entry / entry a patch mounts / bundle patch) = not adapted to the official default install method

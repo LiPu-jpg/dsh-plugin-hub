@@ -63,6 +63,7 @@ function reasonTitleOf(kind: FailureKind): string {
     case 'pnpmIgnoredBuild': return 'build scripts blocked by pnpm allowlist'
     case 'pluginPrepare': return 'plugin distribution incomplete'
     case 'network': return 'network failure on the user side'
+    case 'hubState': return 'stale install state in the plugin hub'
     case 'hub': return 'install failed (cause unclassified)'
     default: return 'plugin install failed'
   }

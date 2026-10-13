@@ -497,6 +497,11 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                   title: t('failIssueHint'),
                 }, t('failIssueBig')) : null,
               ])
+              : failureKind === 'hubState'
+              ? h('div', null, [
+                // 插件中心的列表状态已过期（安装器自身守卫消息）：不是插件问题、也不是 bug，只给可行动提示，不引导提 Issue
+                h('div', { className: styles.failPrepareHint }, t('failHubStateHint')),
+              ])
               : h('div', null, [
                 // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
                 failureKind === 'pnpmIgnoredBuild'

@@ -377,6 +377,12 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         }, t('failIssueBig')) : null,
                       ])
                     }
+                    if (kind === 'hubState') {
+                      // 插件中心的列表状态已过期（安装器自身守卫消息）：非插件问题、也不是 bug，只给可行动提示，不引导提 Issue
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failHubStateHint')),
+                      ])
+                    }
                     // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
                     return h('div', null, [
                       kind === 'pnpmIgnoredBuild'

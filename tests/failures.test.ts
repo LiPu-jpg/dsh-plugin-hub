@@ -303,6 +303,16 @@ test('classifyFailure: the browser "Failed to fetch" on the host request is an e
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
 })
 
+test('classifyFailure: hub state-guard messages are hubState, not plugin-side (issue #187)', () => {
+  // 这些字符串由本服务的守卫发出（未安装 / 不在此处卸载 / 已在队列中），不是 CLI 输出、也不是插件问题
+  assert.equal(classifyFailure('plugin is not installed'), 'hubState')
+  assert.equal(classifyFailure('plugin cannot be uninstalled here'), 'hubState')
+  assert.equal(classifyFailure('already queued: some-plugin'), 'hubState')
+  // 不能被误判成插件侧（会去提作者 Issue），也不是未知兜底
+  assert.notEqual(classifyFailure('plugin is not installed'), 'pluginPrepare')
+  assert.notEqual(classifyFailure('plugin is not installed'), 'hub')
+})
+
 test('classifyFailure: a dependency missing from the registry is an environment issue (issue #73), not a plugin issue', () => {
   // profile 里既存依赖 dsh-our-free-model 在 npm 上不存在：pnpm 解析依赖时先卡在它上面，
   // 日志尾部只有宿主那句通用的 `dsh: plugin command failed`
