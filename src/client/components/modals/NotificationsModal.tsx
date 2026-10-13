@@ -20,7 +20,7 @@ import type { EnvInfo, Translate } from '../../types.ts'
 import type { NotificationRecord } from '../../logic/failures.ts'
 import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
 import type { PendingRestart, QueueTask } from '../../hooks/useTaskQueue.ts'
-import { pluginIssueUrl, pluginSiteUrl } from '../../logic/urls.ts'
+import { pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { CloseIcon } from '../ui/icons.tsx'
 import { ConfirmDialog } from './ConfirmDialog.tsx'
 
@@ -263,13 +263,13 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         t(v ? 'failNpmTooLowV' : 'failNpmTooLow', v ? { v } : undefined))
                     }
                     if (kind === 'dshMissing') {
-                      // 找不到 dsh 命令（Win「不是内部或外部命令」/ POSIX「command not found」/ spawn ENOENT）：
-                      // 本机 DeepSeek Harness 未正确安装或 dsh 不在 PATH，不是插件问题 —— 直接给环境修复指引，不引导提 Issue
+                      // 找不到 dsh 命令：本机 DeepSeek Harness 未正确安装或 dsh 不在 PATH，
+                      // 不是插件问题 —— 直接给环境修复指引，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failDshMissingHint'))
                     }
                     if (kind === 'gitMissing') {
-                      // 找不到 git 命令（Win「'git' is not recognized」/ POSIX「git: command not found」/ spawn ENOENT）：
-                      // 本机 Git 未安装或不在 PATH，不是插件问题 —— 直接给环境修复指引，不引导提 Issue
+                      // 找不到 git 命令：本机 Git 未安装或不在 PATH，不是插件问题 ——
+                      // 直接给环境修复指引，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failGitMissingHint'))
                     }
                     if (kind === 'pnpmMissing') {
@@ -332,7 +332,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       return h('div', { className: styles.failPrepareHint }, t('failFileLockedHint'))
                     }
                     if (kind === 'accessDenied') {
-                      // profile 里的文件被系统拒绝写入（Windows os error 5「拒绝访问」/ EPERM / EACCES）：
+                      // profile 里的文件被系统拒绝写入（os error 5 / EPERM / EACCES）：
                       // 占用、只读属性、目录 ACL 或杀软拦截 —— 给退出宿主 + 检查权限的指引，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failAccessDeniedHint'))
                     }
@@ -363,13 +363,11 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         }, t('failNetworkRunDiag')) : null,
                       ])
                     }
-                    if (kind === 'pluginPrepare' || kind === 'pnpmIgnoredBuild') {
+                    if (kind === 'pluginPrepare') {
                       // [packaging]（预检/装后校验拦截：git 分发缺产物）与
-                      // prepare 构建脚本实际执行失败 / 原生依赖构建被 pnpm 拦截：都是插件打包分发问题 —— 先说明原因，按钮在下方提交
+                      // prepare 构建脚本实际执行失败：唯一确有证据的插件打包分发问题 —— 引导到插件仓库提 Issue
                       return h('div', null, [
-                        h('div', { className: styles.failPrepareHint }, kind === 'pnpmIgnoredBuild'
-                          ? t('failIgnoredBuild')
-                          : /\[packaging\]/i.test(r.message) ? t('failPackagingHint') : t('failPrepareHint')),
+                        h('div', { className: styles.failPrepareHint }, /\[packaging\]/i.test(r.message) ? t('failPackagingHint') : t('failPrepareHint')),
                         r.repo && shownRepo ? h('a', {
                           className: styles.failBigIssue,
                           href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
@@ -379,13 +377,19 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         }, t('failIssueBig')) : null,
                       ])
                     }
-                    return r.repo && shownRepo ? h('a', {
-                      className: styles.failBigIssue,
-                      href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
-                      target: '_blank',
-                      rel: 'noopener noreferrer',
-                      title: t('failIssueHint'),
-                    }, t('failIssueBig')) : null
+                    // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
+                    return h('div', null, [
+                      kind === 'pnpmIgnoredBuild'
+                        ? h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild'))
+                        : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint')),
+                      h('a', {
+                        className: styles.failBigIssue,
+                        href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts),
+                        target: '_blank',
+                        rel: 'noopener noreferrer',
+                        title: t('failHubIssueHint'),
+                      }, t('failHubIssueBig')),
+                    ])
                   })(),
                 ),
               ),

@@ -51,7 +51,7 @@ function SegBtn({ active, onClick, label, icon }: {
   }, label, icon)
 }
 
-function InstalledRow({ item, t, langKey, canReveal, revealLabel, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }: {
+function InstalledRow({ item, t, langKey, canReveal, revealLabel, pendingRestart, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }: {
   item: InstalledItem
   t: Translate
   langKey: LocaleId
@@ -59,6 +59,8 @@ function InstalledRow({ item, t, langKey, canReveal, revealLabel, onOpenDetail, 
   canReveal: boolean
   /** 打开目录按钮文案（macOS = 在 Finder 中显示，Linux = 在文件夹中显示） */
   revealLabel: string
+  /** 是否在服务端待重启列表里（装完未重启）；区分「待重启」与「已重启仍加载失败」 */
+  pendingRestart: boolean
   onOpenDetail: (item: InstalledItem) => void
   /** 在系统文件管理器里定位安装目录（macOS Finder / Linux 文件管理器） */
   onReveal: (item: InstalledItem) => void
@@ -89,17 +91,19 @@ function InstalledRow({ item, t, langKey, canReveal, revealLabel, onOpenDetail, 
     // 第一行：状态点 + 名称/版本/更新徽标 + 行尾来源标签列 + 右侧固定操作按钮组
     h('div', { className: styles.rowTitleLine },
       // 运行状态点：绿 = 已加载进 loader；橙 = 待重启（装完未挂载的 dsh 插件）；
-      // 灰 = 非 dsh 插件（如官方示例项目，宿主不加载，无需重启）
+      // 灰 = 未激活（声明是 dsh 插件但宿主加载失败，重启无效）或非 dsh 插件（示例项目）
       h('span', {
         className: item.loaded ? styles.statusDot
-          : item.dshCapable ? `${styles.statusDot} ${styles.statusPending}`
+          : item.dshCapable && pendingRestart ? `${styles.statusDot} ${styles.statusPending}`
             : `${styles.statusDot} ${styles.statusInactive}`,
         title: item.loaded ? t('statusRunning')
-          : item.dshCapable ? t('statusPending')
-            : t('exampleHint'),
+          : item.dshCapable && pendingRestart ? t('statusPending')
+            : item.dshCapable ? t('statusInactive')
+              : t('exampleHint'),
         'aria-label': item.loaded ? t('statusRunning')
-          : item.dshCapable ? t('statusPending')
-            : t('exampleHint'),
+          : item.dshCapable && pendingRestart ? t('statusPending')
+            : item.dshCapable ? t('statusInactive')
+              : t('exampleHint'),
       }),
       // 主信息：名称 + 已装版本 + 有更新徽标（flex 撑满，超长省略）
       h('div', { className: styles.rowMain },
@@ -121,8 +125,9 @@ function InstalledRow({ item, t, langKey, canReveal, revealLabel, onOpenDetail, 
       }, isCustom ? t('manualInstall') : t('hubInstall')),
       // 行操作：重启（dsh 插件待重启时）/ 详情 / 更新（有更新时）/ 卸载 —— 按钮点击不触发行打开详情
       h('div', { className: styles.rowActions },
-        // 装完未挂载的 dsh 插件：给「重启」入口，点了宿主重启后插件即生效；非 dsh 插件不提示（重启无用）
-        !item.loaded && item.dshCapable
+        // 装完未挂载、且在待重启列表里的 dsh 插件：给「重启」入口，点了宿主重启后插件即生效；
+        // 已重启但仍加载失败（不在待重启列表）不显示「重启」，改为灰点「未激活」
+        !item.loaded && item.dshCapable && pendingRestart
           ? h('button', {
             className: styles.rowRestart,
             type: 'button',
@@ -174,18 +179,21 @@ function InstalledRow({ item, t, langKey, canReveal, revealLabel, onOpenDetail, 
 }
 
 /** 行列表：单个已安装列表（自定义安装与目录插件混排，靠徽标区分）。 */
-function RowList({ items, t, langKey, canReveal, revealLabel, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }: {
+function RowList({ items, t, langKey, canReveal, revealLabel, pendingRestarts, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }: {
   items: InstalledItem[]
   t: Translate
   langKey: LocaleId
   canReveal: boolean
   revealLabel: string
+  /** 待重启的 owner/repo 集合；用于区分「待重启」与「已重启仍加载失败」 */
+  pendingRestarts: string[]
   onOpenDetail: (item: InstalledItem) => void
   onReveal: (item: InstalledItem) => void
   onUpdate: (item: InstalledItem) => void
   onUninstall: (item: InstalledItem) => void
   onRestart: () => void
 }) {
+  const pendingSet = new Set(pendingRestarts.map((r) => r.toLowerCase()))
   return h('ul', { className: styles.list },
     items.map((item) => h(InstalledRow, {
       key: item.name,
@@ -194,6 +202,7 @@ function RowList({ items, t, langKey, canReveal, revealLabel, onOpenDetail, onRe
       langKey,
       canReveal,
       revealLabel,
+      pendingRestart: item.repo !== null && pendingSet.has(item.repo.toLowerCase()),
       onOpenDetail,
       onReveal,
       onUpdate,
@@ -203,12 +212,14 @@ function RowList({ items, t, langKey, canReveal, revealLabel, onOpenDetail, onRe
   )
 }
 
-export function InstalledView({ items, t, langKey, platform, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }: {
+export function InstalledView({ items, t, langKey, platform, pendingRestarts, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }: {
   items: InstalledItem[]
   t: Translate
   langKey: LocaleId
   /** 宿主系统平台（node process.platform）：支持文件管理器定位（macOS / Linux）时行内显示打开目录按钮 */
   platform: string
+  /** 待重启的 owner/repo 集合；用于区分「待重启」与「已重启仍加载失败」 */
+  pendingRestarts: string[]
   onOpenDetail: (item: InstalledItem) => void
   onReveal: (item: InstalledItem) => void
   /** 更新：仅目录插件且有更新时触发（自定义安装无目录信号可比） */
@@ -275,6 +286,7 @@ export function InstalledView({ items, t, langKey, platform, onOpenDetail, onRev
     t, langKey,
     canReveal: platform === 'darwin' || platform === 'win32' || platform === 'linux',
     revealLabel: platform === 'darwin' ? t('revealFolder') : t('openFolder'),
+    pendingRestarts,
     onOpenDetail, onReveal, onUpdate, onUninstall, onRestart,
   }
 

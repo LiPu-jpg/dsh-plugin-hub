@@ -124,7 +124,7 @@ sync_profile_plugin() {
 }
 
 start_fresh() {
-  nohup dsh web --port "$PORT" >>"$LOG_FILE" 2>&1 &
+  nohup dsh web --port "$PORT" --no-open >>"$LOG_FILE" 2>&1 &
   local pid=$!
   echo "[restart-dev] starting dsh web (pid $pid) on port $PORT"
   for _ in $(seq 1 67); do # up to 20s
@@ -137,6 +137,9 @@ start_fresh() {
         curl -s -o /dev/null --max-time 15 "http://127.0.0.1:$PORT" \
           || echo "[restart-dev] warning: port is up but HTTP check failed — see $LOG_FILE" >&2
       fi
+      # 等宿主完全稳定后再退出：启动早期父 shell 立即退出会连带终止 dsh web
+      #（前台/手动 nohup 均需此缓冲，否则端口已监听但进程随后消失）。
+      sleep 8
       return
     fi
     sleep 0.3
@@ -146,8 +149,20 @@ start_fresh() {
   exit 1
 }
 
+# 清理 DSH 全局写锁残留：强杀进程时，credentials 写锁（atomic-write）可能留下
+# 0 字节空锁文件（正常应含 PID）。空锁无法被 takeover，会让下次启动在
+# withFileLock 上超时（issue #246 同类）。启动新进程前清掉，确保干净拿锁。
+clear_stale_locks() {
+  local lock="$HOME/.dsh/.credentials.yaml.lock"
+  if [[ -f "$lock" ]]; then
+    rm -f "$lock"
+    echo "[restart-dev] cleared stale credentials lock"
+  fi
+}
+
 full_reload() {
   stop_existing
+  clear_stale_locks
   sync_profile_plugin
   start_fresh
 }

@@ -31,7 +31,7 @@ export const zh = {
   retry: '重试',
   install: '安装',
   // AI 识别可能需要命令行辅助的插件（webInstallable=false）：仍可尝试一键安装，失败时复制命令去 dsh 终端
-  cliOnlyHint: '此插件可能需命令行辅助，失败时复制上方命令到 dsh 终端',
+  cliOnlyHint: '此插件需在命令行安装（网页端无法代执行），请复制上方命令到终端运行',
   failedCopyHint: '安装失败。请复制上方安装命令到 dsh 终端手动执行（原生依赖构建脚本可能需要人工放行，如 pnpm approve-builds）',
   toastCopied: '安装命令已复制，去 dsh 终端粘贴即可安装',
   installed: '已安装',
@@ -92,6 +92,7 @@ export const zh = {
   statusLabel: '安装状态',
   statusRunning: '运行中',
   statusPending: '待重启',
+  statusInactive: '未激活（宿主加载失败，可能不是有效的 dsh 插件）',
   exampleLabel: 'DeepSeek Harness 内置示例项目',
   exampleHint: 'DeepSeek Harness 内置示例项目：不是插件市场的 dsh 插件，宿主不会加载它，无需重启',
   restart: '重启',
@@ -309,12 +310,17 @@ export const zh = {
   failCopy: '复制完整错误信息',
   failIssueHint: '带着错误日志去作者仓库一键提交 Issue（正文含官网收录链接）',
   failIssueBig: '一键提交 BUG 到 GitHub Issue 为开源作贡献',
+  // 非插件侧失败（未知原因 / pnpm allowBuilds 拦截）改为引导到插件中心仓库排查
+  failHubIssueHint: '此失败已被判定为环境或插件中心自身问题（非插件作者问题），带着错误日志到插件中心仓库一键提交 Issue',
+  failHubIssueBig: '反馈给插件中心排查',
+  // 未知失败兜底：不归到插件作者，引导到插件中心仓库排查
+  failUnclassifiedHint: '安装失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。',
   // prepare 构建脚本实际执行失败（git 分发缺子模块/构建产物）：插件打包分发问题，应提 Issue
   failPrepareHint: '该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。',
   // 安装前预检 / 装后校验拦截（[packaging]）：git 分发缺构建产物、入口文件不存在 = 插件未适配官方默认安装方式
   failPackagingHint: '该插件不支持官方默认安装方式：其 git 分发缺少构建产物（package.json 声明的入口文件在仓库中不存在），说明作者未适配官方安装流程。请到作者仓库提交 Issue 反馈，请其提交构建产物、改用预构建 release `.tgz` 直链（`releases/download/<tag>/<asset>.tgz`），或发布完整的 npm 版。',
-  // 原生依赖构建脚本被 pnpm 默认拦截（如 node-pty 的 ERR_PNPM_IGNORED_BUILDS）：只影响带原生模块的插件，属插件依赖打包问题，应提 Issue
-  failIgnoredBuild: '该插件或其依赖需要执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截导致安装失败（如原生模块 node-pty、或 git 安装时插件的 prepare 脚本）—— 其他插件不受影响，属该插件的依赖/打包问题。建议向作者仓库一键反馈，请作者改用预编译版本（如 node-pty-prebuilt-multiarch）或移除安装期构建。',
+  // 原生依赖构建脚本被 pnpm 默认拦截（如 node-pty 的 ERR_PNPM_IGNORED_BUILDS）：不单独算插件问题，引导到插件中心仓库排查
+  failIgnoredBuild: '该插件或其依赖需要执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截导致安装失败（如原生模块 node-pty、或 git 安装时插件的 prepare 脚本）。这不一定是插件自身的问题（也可能是插件中心反查失败后回退到 git 安装所致），请先反馈给插件中心排查；若确认为插件依赖问题，可建议作者改用预编译版本（如 node-pty-prebuilt-multiarch）或移除安装期构建。',
   // npm arborist 内部崩溃（edgesOut）＋ 本机 npm 版本过低：npm 自身已知缺陷，不是插件问题，升级 npm 即可
   failNpmTooLow: '怀疑本机 npm 版本过低：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
   failNpmTooLowV: '本机 npm 版本过低（当前 v{v}）：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
@@ -346,7 +352,7 @@ export const zh = {
   failPnpmTarballIntegrityHint: 'pnpm 报 ERR_PNPM_MISSING_TARBALL_INTEGRITY：锁文件中的 tarball 条目没有校验值，无法验证下载的包。先查看完整日志，完全退出 DeepSeek Harness，并检查、备份当前 profile 的 package.json、pnpm-lock.yaml 和 pnpm-workspace.yaml。确认依赖来源后，将 pnpm-lock.yaml 改名保留，再通过同一 DSH 安装器安装适配当前宿主版本的插件，重新生成锁文件。重建会重新解析 profile 依赖，请核对新旧版本；保持完整性校验开启。',
   failPnpmPolicyHint: '安装器调用 pnpm 时被其供应链安全策略拦截——装任何插件都会撞墙，不是插件本身的问题。分两种情况处理：① 提示「Minimum release age」（ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION）：包发布还不满 24 小时，pnpm 11 出于安全会拒收这种刚发布的新包。可在 pnpm 配置（pnpm-workspace.yaml）里加 minimumReleaseAge: 0 豁免，或等满 24 小时后重试。② 提示「untrusted origin」（ERR_PNPM_UNTRUSTED_ORIGIN）：依赖来源不被本机 pnpm 信任，通常是该 profile 里之前用 github: 或非官方 npm 源装过插件，锁文件记录了不受信任的来源。请删除该 profile 目录下的 node_modules 与 pnpm-lock.yaml 后重新安装（可先到「系统日志」或 ~/.dsh/profiles/<profile>/hub.log 查看完整报错）。',
   // minimumReleaseAge 专属：从报错里算出确切的可重试时刻（{time}），让用户知道「何时能再装」，
-  // 而不是笼统地让等 24 小时（见 issue #121）
+  // 而不是笼统地让等 24 小时
   failPnpmReleaseAgeHint: '安装器调用 pnpm 时被其供应链安全策略拦住了，任何插件装进这个 profile 都会先撞上它——与插件本身无关。原因是这个包发布还不满 24 小时，pnpm 11 出于安全会拒收刚发布的新包，这段时间内该 profile 的安装与卸载都会被拦下。可重试时间：{time}（即该包发布满 24 小时后）。如确需立刻安装，可在 profile 目录（~/.dsh/profiles/<profile>）的 pnpm-workspace.yaml 里加 minimumReleaseAge: 0 豁免，但这会放宽整个 profile 的供应链保护。',
   // 自定义安装三卡片入口的渠道名（报错/日志溯源：本次安装从哪个入口发起）
   installChannelNpm: 'NPM 包',
@@ -422,7 +428,7 @@ export const en = {
   install: 'Install',
   // AI-flagged plugins that may need command-line help (webInstallable=false): one-click install still allowed,
   // on failure the user is guided to copy the command into the dsh terminal
-  cliOnlyHint: 'This plugin may need command-line help; if it fails, copy the command above and run it in your dsh terminal',
+  cliOnlyHint: 'This plugin must be installed from the command line (it cannot be run from the web UI) — copy the command above and run it in your terminal',
   failedCopyHint: 'Install failed. Copy the command above and run it manually in your dsh terminal (native build scripts may need manual approval, e.g. pnpm approve-builds)',
   toastCopied: 'Install command copied — paste it in your dsh terminal',
   installed: 'Installed',
@@ -481,6 +487,7 @@ export const en = {
   statusLabel: 'Status',
   statusRunning: 'Running',
   statusPending: 'Restart pending',
+  statusInactive: 'Not active (the host failed to load it — possibly not a valid dsh plugin)',
   exampleLabel: 'DeepSeek Harness built-in example',
   exampleHint: 'DeepSeek Harness built-in example — not a marketplace dsh plugin, the host does not load it, no restart needed',
   restart: 'Restart',
@@ -701,12 +708,17 @@ export const en = {
   failCopy: 'Copy full log',
   failIssueHint: 'Open a pre-filled issue on the author repo with this error log (includes catalog links)',
   failIssueBig: 'Report this bug to GitHub — contribute to open source',
+  // Non-plugin-side failures (unclassified / pnpm allowBuilds block) now route to the hub repo for triage
+  failHubIssueHint: 'This failure was classified as an environment or Plugin Hub issue (not a plugin-author issue). Open a pre-filled issue on the Plugin Hub repo with this error log.',
+  failHubIssueBig: 'Report to the Plugin Hub for triage',
+  // Unknown-failure fallback: not routed to the plugin author, but to the hub repo for triage
+  failUnclassifiedHint: 'The install failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.',
   // prepare script actually failed (git tarball misses submodules/build output): a packaging issue of the plugin itself — file an issue
   failPrepareHint: 'This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.',
   // Pre-install / post-install guard hit ([packaging]): git distribution lacks build output, entry file missing = not adapted to the official default install method
   failPackagingHint: 'This plugin does not support the official default install method: its git distribution lacks the build output (the entry file declared in package.json is not in the repository), so it has not been adapted to the official install flow. Please file an Issue on the author\'s repo asking for committed build output, a prebuilt release `.tgz` (`releases/download/<tag>/<asset>.tgz`), or a complete npm release.',
-  // native-module build scripts ignored by pnpm by default (e.g. node-pty, ERR_PNPM_IGNORED_BUILDS): only affects plugins with native deps — a dependency/packaging issue of the plugin itself, file an issue
-  failIgnoredBuild: 'This plugin (or its dependencies) needs to run build scripts, which pnpm blocks by default via its allowBuilds allowlist, so the install fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs) — other plugins are unaffected. This is a dependency/packaging issue of the plugin itself. Please report it to the author repository and ask the author to ship a prebuilt variant (e.g. node-pty-prebuilt-multiarch) or drop install-time builds.',
+  // native-module build scripts ignored by pnpm by default (e.g. node-pty, ERR_PNPM_IGNORED_BUILDS): not a plugin-side issue on its own, route to the hub repo for triage
+  failIgnoredBuild: 'This plugin (or its dependencies) needs to run build scripts, which pnpm blocks by default via its allowBuilds allowlist, so the install fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). This is not necessarily the plugin itself (it may be caused by the hub falling back to a git install after npm lookup failed). Please report it to the Plugin Hub first; if it turns out to be a plugin dependency issue, the author can ship a prebuilt variant (e.g. node-pty-prebuilt-multiarch) or drop install-time builds.',
   failNpmTooLow: 'Your local npm may be too old: npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   failNpmTooLowV: 'Your local npm is too old (v{v}): npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   // Pre-install connectivity probe / connection failure in the install log ([network] / git fetch timeout / DNS / TLS): a local network or proxy issue, not a plugin issue — no issue link
@@ -739,7 +751,7 @@ export const en = {
   failPnpmTarballIntegrityHint: 'pnpm reported ERR_PNPM_MISSING_TARBALL_INTEGRITY: a tarball entry in the lockfile has no checksum to verify the downloaded package. Read the full log, fully quit DeepSeek Harness, and inspect and back up package.json, pnpm-lock.yaml and pnpm-workspace.yaml in the affected profile. Once the dependency sources are verified, rename pnpm-lock.yaml to preserve it, then use the same DSH installer to install a plugin version compatible with the host and regenerate the lockfile. This resolves profile dependencies again: compare the old and new versions, and keep integrity checks enabled.',
   failPnpmPolicyHint: 'The installer was blocked by pnpm supply-chain security policy — every plugin install would hit the same wall, so this is not a problem with the plugin itself. Two cases: ① "Minimum release age" (ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION): the package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety. Add minimumReleaseAge: 0 to your pnpm config (pnpm-workspace.yaml) to opt out, or wait until the 24 hours have passed and retry. ② "untrusted origin" (ERR_PNPM_UNTRUSTED_ORIGIN): a dependency source is not trusted by this machine, usually because plugins were previously installed via github: or a non-official npm registry, so the lockfile records an untrusted source. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall.',
   // minimumReleaseAge only: compute the exact retry time ({time}) from the error so the user knows
-  // when installs will work again, instead of the vague "wait 24 hours" (see issue #121)
+  // when installs will work again, instead of the vague "wait 24 hours"
   failPnpmReleaseAgeHint: 'The installer was blocked by pnpm supply-chain security policy, and every plugin installed into this profile would hit the same wall — this is not a problem with the plugin itself. The package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety, so both installs and removals are blocked for this profile in the meantime. Retry after: {time} (i.e. 24 hours after the package was published). If you must install right now, add minimumReleaseAge: 0 to pnpm-workspace.yaml inside the profile directory (~/.dsh/profiles/<profile>) to opt out, but that loosens supply-chain protection for the whole profile.',
   // Custom install entry channel names (the three cards) — used in error/log traceability
   installChannelNpm: 'NPM package',

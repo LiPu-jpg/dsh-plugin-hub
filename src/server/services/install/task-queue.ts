@@ -134,7 +134,7 @@ function cliInvocation(profile: string): Invocation {
   if (entry !== undefined) {
     // 打包桌面端（Electron）：宿主入口在 app.asar 内，机器上根本没有 `dsh` 可执行文件
     //（Windows 那条 dsh.cmd shim 只存在于宿主进程自己的 PATH 里），直接回退 PATH 必然
-    // 报 [dsh-missing]（见 issue #71）。这里改用应用自己的 CLI 引导脚本调起同一份打包
+    // 报 [dsh-missing]。这里改用应用自己的 CLI 引导脚本调起同一份打包
     // CLI：Electron 可执行文件 + --expose-internals + desktop-cli.js，与内置终端、
     // 官方插件页安装完全同一条路径 —— desktop profile 由应用独占管理的授权也在其中。
     const bootstrap = desktopCliBootstrap(entry)
@@ -189,9 +189,8 @@ export function desktopCliBootstrap(entry: string): string | null {
 
 /**
  * dsh 命令存在性探测：which/where 找 PATH 里的 dsh。
- * Windows shell 模式命令缺失时 cmd 只输出 GBK 乱码「不是内部或外部命令」（UTF-8 解码后
- * 无法匹配），POSIX 非 shell 模式才会抛 spawn dsh ENOENT —— 两种形态都不可靠，统一在
- * spawn 前用 which/where 探测，命令不存在则直接失败并打 ASCII 标记 [dsh-missing]（乱码免疫）。
+ * 命令缺失时各平台报错形态不同（Windows shell 只回 GBK 乱码、POSIX 才抛 spawn ENOENT），
+ * 统一在 spawn 前用 which/where 探测，命令不存在则直接失败并打 ASCII 标记 [dsh-missing]（乱码免疫）。
  * 探测自身异常（which/where 不可用等）不拦截安装，交给装后校验兜底。
  */
 function dshOnPath(env?: NodeJS.ProcessEnv): boolean {
@@ -416,8 +415,8 @@ function spawnMutation(options: {
     let child: ReturnType<typeof spawn>
     try {
       // 独立 CLI 场景（file: 'dsh'，宿主加载器走 node bin 不经过这里）：先探测 dsh 是否在 PATH。
-      // 命令不存在时 Windows shell 模式只回传 GBK 乱码、POSIX 才抛 spawn dsh ENOENT —— 统一前置
-      // 拦截并打 ASCII 标记 [dsh-missing]，前端据此精准提示「dsh 未加入 PATH」而不是笼统的插件失败。
+      // 命令缺失时各平台报错形态不同（GBK 乱码 / spawn ENOENT），统一前置拦截并打 ASCII 标记
+      // [dsh-missing]，前端据此精准提示「dsh 未加入 PATH」而不是笼统的插件失败。
       if (invocation.file === 'dsh' && !dshOnPath(env)) {
         const detail = '[dsh-missing] the dsh CLI was not found on this machine (DeepSeek Harness not installed, or dsh not on the PATH)'
         if (task) {
@@ -535,12 +534,9 @@ function spawnMutation(options: {
 
   return (async () => {
     let result = await spawnOnce(args)
-    // npm 11 的 arborist peer-set bug（`Cannot read properties of null (reading 'children')`）：
-    // 某些包的 peerDependencies 用「双段 prerelease 范围」（如 dsh-tui@0.9.0 的 `^0.1.0-rc.6 || ^0.1.1-rc.1`，
-    // 26 个必需 peer 全是这种形状）会让 `npm install -g` 在解析阶段直接崩溃 —— 退出码 1、什么都没装，
-    // 与是不是从我们界面发起无关（终端里同样复现）。首次失败后自动带 `--legacy-peer-deps` 重试一次：
-    // 跳过 peer 自动解析即可绕过该 bug（peer 通常由同装的 @deepseek-ai/dsh 依赖树天然提供）。
-    // 二次尝试仍失败则保留其错误信息，不掩盖真正的原因。
+    // npm 11 的 arborist peer-set bug（`Cannot read properties of null (reading 'children')`）
+    // 会让 `npm install -g` 在解析阶段直接崩溃。首次失败后自动带 `--legacy-peer-deps` 重试一次：
+    // 跳过 peer 自动解析即可绕过该 bug；二次尝试仍失败则保留其错误信息，不掩盖真正的原因。
     if (isGlobalNpm && result.exitCode !== 0 && !result.timedOut && task?.status !== 'cancelled') {
       const retryArgs = ['install', '-g', '--legacy-peer-deps', ...(globalNpm ?? [])]
       const retryExecuted = `npm install -g --legacy-peer-deps ${(globalNpm ?? []).join(' ')}`
@@ -645,7 +641,7 @@ function ignoredBuildKeys(output: string): string[] {
 
 /** npm arborist edgesOut 崩溃 + 本机 npm 版本过低 → 把 [npm-too-low] 标记追加到任务输出，
  *  前端据此展示「本机 npm 版本过低」的准确原因 —— 避免该报错被外层 ERR_PNPM_PREPARE_PACKAGE
- *  误判成插件打包/分发问题、误导用户提 Issue。检测逻辑在独立的 npm-check.ts（本机 npm 环境职责）。 */
+ *  误判成插件打包/分发问题。检测逻辑在独立的 npm-check.ts（本机 npm 环境职责）。 */
 function annotateNpmTooLow(result: InstallResult, options: {
   action: 'add' | 'remove' | 'update'
   task?: InstallTask

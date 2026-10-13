@@ -35,7 +35,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failedDescProxy: "你的网络似乎不通，或设置里的 HTTP 代理地址不可达，无法获取插件目录数据。请检查代理设置与网络连接后重试；或点击右上角按钮在浏览器中打开插件市场。",
 			retry: "重试",
 			install: "安装",
-			cliOnlyHint: "此插件可能需命令行辅助，失败时复制上方命令到 dsh 终端",
+			cliOnlyHint: "此插件需在命令行安装（网页端无法代执行），请复制上方命令到终端运行",
 			failedCopyHint: "安装失败。请复制上方安装命令到 dsh 终端手动执行（原生依赖构建脚本可能需要人工放行，如 pnpm approve-builds）",
 			toastCopied: "安装命令已复制，去 dsh 终端粘贴即可安装",
 			installed: "已安装",
@@ -90,6 +90,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			statusLabel: "安装状态",
 			statusRunning: "运行中",
 			statusPending: "待重启",
+			statusInactive: "未激活（宿主加载失败，可能不是有效的 dsh 插件）",
 			exampleLabel: "DeepSeek Harness 内置示例项目",
 			exampleHint: "DeepSeek Harness 内置示例项目：不是插件市场的 dsh 插件，宿主不会加载它，无需重启",
 			restart: "重启",
@@ -288,9 +289,12 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failCopy: "复制完整错误信息",
 			failIssueHint: "带着错误日志去作者仓库一键提交 Issue（正文含官网收录链接）",
 			failIssueBig: "一键提交 BUG 到 GitHub Issue 为开源作贡献",
+			failHubIssueHint: "此失败已被判定为环境或插件中心自身问题（非插件作者问题），带着错误日志到插件中心仓库一键提交 Issue",
+			failHubIssueBig: "反馈给插件中心排查",
+			failUnclassifiedHint: "安装失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。",
 			failPrepareHint: "该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。",
 			failPackagingHint: "该插件不支持官方默认安装方式：其 git 分发缺少构建产物（package.json 声明的入口文件在仓库中不存在），说明作者未适配官方安装流程。请到作者仓库提交 Issue 反馈，请其提交构建产物、改用预构建 release `.tgz` 直链（`releases/download/<tag>/<asset>.tgz`），或发布完整的 npm 版。",
-			failIgnoredBuild: "该插件或其依赖需要执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截导致安装失败（如原生模块 node-pty、或 git 安装时插件的 prepare 脚本）—— 其他插件不受影响，属该插件的依赖/打包问题。建议向作者仓库一键反馈，请作者改用预编译版本（如 node-pty-prebuilt-multiarch）或移除安装期构建。",
+			failIgnoredBuild: "该插件或其依赖需要执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截导致安装失败（如原生模块 node-pty、或 git 安装时插件的 prepare 脚本）。这不一定是插件自身的问题（也可能是插件中心反查失败后回退到 git 安装所致），请先反馈给插件中心排查；若确认为插件依赖问题，可建议作者改用预编译版本（如 node-pty-prebuilt-multiarch）或移除安装期构建。",
 			failNpmTooLow: "怀疑本机 npm 版本过低：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest",
 			failNpmTooLowV: "本机 npm 版本过低（当前 v{v}）：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest",
 			failNetworkHint: "安装前检测到网络不通：无法连接到安装源（可能是断网、DNS 解析失败、被防火墙拦截，或代理配置有问题）。这不是插件本身的问题 —— 请检查网络连接，或到「设置」里确认 HTTP 代理配置，再到「系统诊断」运行一次连通性检测，然后重试。",
@@ -378,7 +382,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failedDescProxy: "Your network seems unreachable, or the HTTP proxy in Settings is unreachable, so the plugin catalog could not be loaded. Please check the proxy address and your connection, then retry; or open the hub in your browser with the button above.",
 			retry: "Retry",
 			install: "Install",
-			cliOnlyHint: "This plugin may need command-line help; if it fails, copy the command above and run it in your dsh terminal",
+			cliOnlyHint: "This plugin must be installed from the command line (it cannot be run from the web UI) — copy the command above and run it in your terminal",
 			failedCopyHint: "Install failed. Copy the command above and run it manually in your dsh terminal (native build scripts may need manual approval, e.g. pnpm approve-builds)",
 			toastCopied: "Install command copied — paste it in your dsh terminal",
 			installed: "Installed",
@@ -433,6 +437,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			statusLabel: "Status",
 			statusRunning: "Running",
 			statusPending: "Restart pending",
+			statusInactive: "Not active (the host failed to load it — possibly not a valid dsh plugin)",
 			exampleLabel: "DeepSeek Harness built-in example",
 			exampleHint: "DeepSeek Harness built-in example — not a marketplace dsh plugin, the host does not load it, no restart needed",
 			restart: "Restart",
@@ -634,9 +639,12 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failCopy: "Copy full log",
 			failIssueHint: "Open a pre-filled issue on the author repo with this error log (includes catalog links)",
 			failIssueBig: "Report this bug to GitHub — contribute to open source",
+			failHubIssueHint: "This failure was classified as an environment or Plugin Hub issue (not a plugin-author issue). Open a pre-filled issue on the Plugin Hub repo with this error log.",
+			failHubIssueBig: "Report to the Plugin Hub for triage",
+			failUnclassifiedHint: "The install failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.",
 			failPrepareHint: "This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.",
 			failPackagingHint: "This plugin does not support the official default install method: its git distribution lacks the build output (the entry file declared in package.json is not in the repository), so it has not been adapted to the official install flow. Please file an Issue on the author's repo asking for committed build output, a prebuilt release `.tgz` (`releases/download/<tag>/<asset>.tgz`), or a complete npm release.",
-			failIgnoredBuild: "This plugin (or its dependencies) needs to run build scripts, which pnpm blocks by default via its allowBuilds allowlist, so the install fails (e.g. native modules like node-pty, or the plugin's own prepare script on git installs) — other plugins are unaffected. This is a dependency/packaging issue of the plugin itself. Please report it to the author repository and ask the author to ship a prebuilt variant (e.g. node-pty-prebuilt-multiarch) or drop install-time builds.",
+			failIgnoredBuild: "This plugin (or its dependencies) needs to run build scripts, which pnpm blocks by default via its allowBuilds allowlist, so the install fails (e.g. native modules like node-pty, or the plugin's own prepare script on git installs). This is not necessarily the plugin itself (it may be caused by the hub falling back to a git install after npm lookup failed). Please report it to the Plugin Hub first; if it turns out to be a plugin dependency issue, the author can ship a prebuilt variant (e.g. node-pty-prebuilt-multiarch) or drop install-time builds.",
 			failNpmTooLow: "Your local npm may be too old: npm crashed internally while resolving the plugin's dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest",
 			failNpmTooLowV: "Your local npm is too old (v{v}): npm crashed internally while resolving the plugin's dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest",
 			failNetworkHint: "The network could not be reached before install: the install source is unreachable (offline, DNS failure, firewall block, or a misconfigured proxy). This is not a problem with the plugin itself — please check your connection, confirm the HTTP proxy in Settings, run a connectivity check under System Diagnostics, then retry.",
@@ -718,41 +726,41 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$11
 		});
 		var Header_module_css_default = {
-			"headerRight": "qikqja_headerRight",
-			"headerTitleRow": "qikqja_headerTitleRow",
-			"sortGroup": "qikqja_sortGroup",
-			"tabs": "qikqja_tabs",
-			"langBtn": "qikqja_langBtn",
-			"tabsRow": "qikqja_tabsRow",
-			"githubIcon": "qikqja_githubIcon",
-			"brandTitle": "qikqja_brandTitle",
-			"root": "qikqja_root",
-			"adBanner": "qikqja_adBanner",
-			"resultCount": "qikqja_resultCount",
-			"title": "qikqja_title",
-			"adArrow": "qikqja_adArrow",
 			"taglineLink": "qikqja_taglineLink",
-			"segLabel": "qikqja_segLabel",
-			"version": "qikqja_version",
-			"controls": "qikqja_controls",
-			"adBadge": "qikqja_adBadge",
-			"searchRow": "qikqja_searchRow",
-			"search": "qikqja_search",
-			"hubUpdateBadge": "qikqja_hubUpdateBadge",
-			"segGroup": "qikqja_segGroup",
-			"copyIcon": "qikqja_copyIcon",
-			"header": "qikqja_header",
-			"adText": "qikqja_adText",
-			"versionBtn": "qikqja_versionBtn",
-			"resultSeg": "qikqja_resultSeg",
+			"root": "qikqja_root",
 			"tagline": "qikqja_tagline",
-			"segBtnActive": "qikqja_segBtnActive",
-			"tabActive": "qikqja_tabActive",
+			"hubUpdateBadge": "qikqja_hubUpdateBadge",
+			"githubIcon": "qikqja_githubIcon",
+			"title": "qikqja_title",
 			"tabCount": "qikqja_tabCount",
+			"adArrow": "qikqja_adArrow",
+			"segBtnActive": "qikqja_segBtnActive",
+			"header": "qikqja_header",
+			"headerTitleRow": "qikqja_headerTitleRow",
+			"adBadge": "qikqja_adBadge",
+			"sortGroup": "qikqja_sortGroup",
 			"githubLink": "qikqja_githubLink",
+			"tabsRow": "qikqja_tabsRow",
+			"versionBtn": "qikqja_versionBtn",
+			"headerRight": "qikqja_headerRight",
+			"version": "qikqja_version",
+			"copyIcon": "qikqja_copyIcon",
+			"langBtn": "qikqja_langBtn",
 			"segBtn": "qikqja_segBtn",
+			"search": "qikqja_search",
+			"tabActive": "qikqja_tabActive",
+			"brandTitle": "qikqja_brandTitle",
+			"tabs": "qikqja_tabs",
+			"resultSeg": "qikqja_resultSeg",
+			"adText": "qikqja_adText",
+			"segGroup": "qikqja_segGroup",
+			"adBanner": "qikqja_adBanner",
+			"controls": "qikqja_controls",
 			"tab": "qikqja_tab",
 			"logoIcon": "qikqja_logoIcon",
+			"segLabel": "qikqja_segLabel",
+			"searchRow": "qikqja_searchRow",
+			"resultCount": "qikqja_resultCount",
 			"aboutBtn": "qikqja_aboutBtn"
 		};
 		//#endregion
@@ -772,136 +780,136 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$10
 		});
 		var Modal_module_css_default = {
-			"modalValue": "BiQ1zG_modalValue",
-			"modalTitle": "BiQ1zG_modalTitle",
-			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
-			"noticeTextOk": "BiQ1zG_noticeTextOk",
-			"progressFill": "BiQ1zG_progressFill",
-			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
-			"detailLabel": "BiQ1zG_detailLabel",
-			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
-			"noticeHead": "BiQ1zG_noticeHead",
-			"modalRow": "BiQ1zG_modalRow",
-			"detailPathActions": "BiQ1zG_detailPathActions",
 			"detailDim": "BiQ1zG_detailDim",
-			"detailPath": "BiQ1zG_detailPath",
-			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
-			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
-			"confirmIcon": "BiQ1zG_confirmIcon",
-			"modalWide": "BiQ1zG_modalWide",
-			"restartNowWarning": "BiQ1zG_restartNowWarning",
-			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
-			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
-			"noticeRowMain": "BiQ1zG_noticeRowMain",
-			"errorModal": "BiQ1zG_errorModal",
-			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
-			"modalCancel": "BiQ1zG_modalCancel",
-			"noticeTextFail": "BiQ1zG_noticeTextFail",
-			"aboutMeta": "BiQ1zG_aboutMeta",
-			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
-			"queueRowHead": "BiQ1zG_queueRowHead",
-			"failPrepareHint": "BiQ1zG_failPrepareHint",
-			"failRepo": "BiQ1zG_failRepo",
-			"trustHint": "BiQ1zG_trustHint",
-			"modalIn": "BiQ1zG_modalIn",
-			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
-			"resultTitle": "BiQ1zG_resultTitle",
-			"modal": "BiQ1zG_modal",
-			"failHead": "BiQ1zG_failHead",
-			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
-			"aboutContent": "BiQ1zG_aboutContent",
-			"failList": "BiQ1zG_failList",
 			"detailModal": "BiQ1zG_detailModal",
-			"detailLink": "BiQ1zG_detailLink",
-			"detailStatusPending": "BiQ1zG_detailStatusPending",
-			"overlay": "BiQ1zG_overlay",
-			"detailGrid": "BiQ1zG_detailGrid",
-			"linkIcon": "BiQ1zG_linkIcon",
-			"detailArrow": "BiQ1zG_detailArrow",
-			"errorTitle": "BiQ1zG_errorTitle",
-			"progressText": "BiQ1zG_progressText",
-			"noticeRow": "BiQ1zG_noticeRow",
-			"detailStatusText": "BiQ1zG_detailStatusText",
-			"detailPathBtn": "BiQ1zG_detailPathBtn",
-			"toastFail": "BiQ1zG_toastFail",
-			"detailValue": "BiQ1zG_detailValue",
-			"noticeMain": "BiQ1zG_noticeMain",
-			"failClear": "BiQ1zG_failClear",
-			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
-			"pendingRowActions": "BiQ1zG_pendingRowActions",
+			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
 			"noticeIgnore": "BiQ1zG_noticeIgnore",
-			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
 			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
-			"detailStars": "BiQ1zG_detailStars",
-			"queueRowStatus": "BiQ1zG_queueRowStatus",
-			"failEmpty": "BiQ1zG_failEmpty",
-			"failedCopyHint": "BiQ1zG_failedCopyHint",
-			"modalHead": "BiQ1zG_modalHead",
-			"queueRowBody": "BiQ1zG_queueRowBody",
-			"toast": "BiQ1zG_toast",
-			"modalInstall": "BiQ1zG_modalInstall",
-			"resultRestarting": "BiQ1zG_resultRestarting",
-			"progressTrack": "BiQ1zG_progressTrack",
-			"errorCopySoft": "BiQ1zG_errorCopySoft",
-			"result": "BiQ1zG_result",
-			"modalLabel": "BiQ1zG_modalLabel",
-			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
-			"failKindUninstall": "BiQ1zG_failKindUninstall",
-			"helpModal": "BiQ1zG_helpModal",
-			"modalActions": "BiQ1zG_modalActions",
-			"resultDesc": "BiQ1zG_resultDesc",
-			"noticeRemove": "BiQ1zG_noticeRemove",
-			"toastIn": "BiQ1zG_toastIn",
-			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
-			"queueSection": "BiQ1zG_queueSection",
-			"stripCancel": "BiQ1zG_stripCancel",
-			"failKind": "BiQ1zG_failKind",
-			"failBigIssue": "BiQ1zG_failBigIssue",
-			"queueRowPct": "BiQ1zG_queueRowPct",
-			"modalLink": "BiQ1zG_modalLink",
-			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
-			"noticeVersion": "BiQ1zG_noticeVersion",
-			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
-			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
-			"detailMono": "BiQ1zG_detailMono",
-			"queuedHint": "BiQ1zG_queuedHint",
-			"detailRow": "BiQ1zG_detailRow",
-			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
-			"errorBox": "BiQ1zG_errorBox",
-			"aboutModal": "BiQ1zG_aboutModal",
-			"logModal": "BiQ1zG_logModal",
-			"progress": "BiQ1zG_progress",
-			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
-			"modalCopy": "BiQ1zG_modalCopy",
-			"restartLater": "BiQ1zG_restartLater",
-			"noticeList": "BiQ1zG_noticeList",
-			"noticeTime": "BiQ1zG_noticeTime",
-			"modalClose": "BiQ1zG_modalClose",
-			"modalDesc": "BiQ1zG_modalDesc",
-			"restartNow": "BiQ1zG_restartNow",
-			"detailPathText": "BiQ1zG_detailPathText",
-			"queueRowTrack": "BiQ1zG_queueRowTrack",
-			"modalCmd": "BiQ1zG_modalCmd",
-			"failRow": "BiQ1zG_failRow",
-			"failCopy": "BiQ1zG_failCopy",
-			"failDiagBtn": "BiQ1zG_failDiagBtn",
-			"modalBody": "BiQ1zG_modalBody",
-			"errorHint": "BiQ1zG_errorHint",
-			"modalCmdText": "BiQ1zG_modalCmdText",
-			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
-			"queueRow": "BiQ1zG_queueRow",
-			"resultCheck": "BiQ1zG_resultCheck",
-			"dangerConfirm": "BiQ1zG_dangerConfirm",
-			"confirmPrimary": "BiQ1zG_confirmPrimary",
-			"progressHead": "BiQ1zG_progressHead",
-			"queueRowTarget": "BiQ1zG_queueRowTarget",
-			"queueRowDesc": "BiQ1zG_queueRowDesc",
-			"progressFillFail": "BiQ1zG_progressFillFail",
-			"failKindInstall": "BiQ1zG_failKindInstall",
+			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
 			"noticeFoot": "BiQ1zG_noticeFoot",
-			"noticeRowOk": "BiQ1zG_noticeRowOk",
+			"queueRow": "BiQ1zG_queueRow",
+			"restartNow": "BiQ1zG_restartNow",
+			"noticeList": "BiQ1zG_noticeList",
+			"errorTitle": "BiQ1zG_errorTitle",
+			"noticeRow": "BiQ1zG_noticeRow",
+			"restartNowWarning": "BiQ1zG_restartNowWarning",
+			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
+			"noticeHead": "BiQ1zG_noticeHead",
+			"failBigIssue": "BiQ1zG_failBigIssue",
+			"queueRowBody": "BiQ1zG_queueRowBody",
+			"aboutModal": "BiQ1zG_aboutModal",
+			"queueRowPct": "BiQ1zG_queueRowPct",
+			"resultTitle": "BiQ1zG_resultTitle",
+			"failRow": "BiQ1zG_failRow",
+			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
+			"progressFillFail": "BiQ1zG_progressFillFail",
+			"trustHint": "BiQ1zG_trustHint",
+			"noticeVersion": "BiQ1zG_noticeVersion",
+			"detailStars": "BiQ1zG_detailStars",
+			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
+			"failKind": "BiQ1zG_failKind",
+			"detailLink": "BiQ1zG_detailLink",
+			"aboutMeta": "BiQ1zG_aboutMeta",
+			"detailValue": "BiQ1zG_detailValue",
+			"confirmPrimary": "BiQ1zG_confirmPrimary",
+			"failKindInstall": "BiQ1zG_failKindInstall",
+			"toastIn": "BiQ1zG_toastIn",
+			"failPrepareHint": "BiQ1zG_failPrepareHint",
+			"queueRowDesc": "BiQ1zG_queueRowDesc",
+			"confirmIcon": "BiQ1zG_confirmIcon",
+			"modalCancel": "BiQ1zG_modalCancel",
+			"failKindUninstall": "BiQ1zG_failKindUninstall",
+			"failList": "BiQ1zG_failList",
+			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
+			"resultDesc": "BiQ1zG_resultDesc",
+			"modalClose": "BiQ1zG_modalClose",
+			"modalCmd": "BiQ1zG_modalCmd",
+			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
+			"queueRowStatus": "BiQ1zG_queueRowStatus",
+			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
+			"overlayIn": "BiQ1zG_overlayIn",
+			"toastFail": "BiQ1zG_toastFail",
+			"detailArrow": "BiQ1zG_detailArrow",
+			"progressFill": "BiQ1zG_progressFill",
+			"modalWide": "BiQ1zG_modalWide",
+			"errorModal": "BiQ1zG_errorModal",
+			"detailPathActions": "BiQ1zG_detailPathActions",
+			"errorCopySoft": "BiQ1zG_errorCopySoft",
+			"modalRow": "BiQ1zG_modalRow",
 			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
-			"overlayIn": "BiQ1zG_overlayIn"
+			"modalActions": "BiQ1zG_modalActions",
+			"noticeRowOk": "BiQ1zG_noticeRowOk",
+			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
+			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
+			"noticeMain": "BiQ1zG_noticeMain",
+			"modalBody": "BiQ1zG_modalBody",
+			"progress": "BiQ1zG_progress",
+			"dangerConfirm": "BiQ1zG_dangerConfirm",
+			"modalLabel": "BiQ1zG_modalLabel",
+			"detailStatusPending": "BiQ1zG_detailStatusPending",
+			"failCopy": "BiQ1zG_failCopy",
+			"detailLabel": "BiQ1zG_detailLabel",
+			"modalLink": "BiQ1zG_modalLink",
+			"modalCmdText": "BiQ1zG_modalCmdText",
+			"errorBox": "BiQ1zG_errorBox",
+			"failDiagBtn": "BiQ1zG_failDiagBtn",
+			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
+			"noticeTime": "BiQ1zG_noticeTime",
+			"queuedHint": "BiQ1zG_queuedHint",
+			"modalIn": "BiQ1zG_modalIn",
+			"resultRestarting": "BiQ1zG_resultRestarting",
+			"progressText": "BiQ1zG_progressText",
+			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
+			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
+			"failRepo": "BiQ1zG_failRepo",
+			"modalHead": "BiQ1zG_modalHead",
+			"detailGrid": "BiQ1zG_detailGrid",
+			"modalCopy": "BiQ1zG_modalCopy",
+			"modalDesc": "BiQ1zG_modalDesc",
+			"detailMono": "BiQ1zG_detailMono",
+			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
+			"detailPathBtn": "BiQ1zG_detailPathBtn",
+			"modalValue": "BiQ1zG_modalValue",
+			"noticeRowMain": "BiQ1zG_noticeRowMain",
+			"errorHint": "BiQ1zG_errorHint",
+			"queueRowHead": "BiQ1zG_queueRowHead",
+			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
+			"result": "BiQ1zG_result",
+			"progressHead": "BiQ1zG_progressHead",
+			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
+			"queueRowTarget": "BiQ1zG_queueRowTarget",
+			"queueRowTrack": "BiQ1zG_queueRowTrack",
+			"failClear": "BiQ1zG_failClear",
+			"detailPathText": "BiQ1zG_detailPathText",
+			"queueSection": "BiQ1zG_queueSection",
+			"modalTitle": "BiQ1zG_modalTitle",
+			"failHead": "BiQ1zG_failHead",
+			"noticeTextFail": "BiQ1zG_noticeTextFail",
+			"restartLater": "BiQ1zG_restartLater",
+			"failedCopyHint": "BiQ1zG_failedCopyHint",
+			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
+			"overlay": "BiQ1zG_overlay",
+			"aboutContent": "BiQ1zG_aboutContent",
+			"resultCheck": "BiQ1zG_resultCheck",
+			"detailRow": "BiQ1zG_detailRow",
+			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
+			"noticeTextOk": "BiQ1zG_noticeTextOk",
+			"modal": "BiQ1zG_modal",
+			"noticeRemove": "BiQ1zG_noticeRemove",
+			"toast": "BiQ1zG_toast",
+			"failEmpty": "BiQ1zG_failEmpty",
+			"detailStatusText": "BiQ1zG_detailStatusText",
+			"helpModal": "BiQ1zG_helpModal",
+			"progressTrack": "BiQ1zG_progressTrack",
+			"stripCancel": "BiQ1zG_stripCancel",
+			"pendingRowActions": "BiQ1zG_pendingRowActions",
+			"logModal": "BiQ1zG_logModal",
+			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
+			"detailPath": "BiQ1zG_detailPath",
+			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
+			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
+			"modalInstall": "BiQ1zG_modalInstall",
+			"linkIcon": "BiQ1zG_linkIcon"
 		};
 		//#endregion
 		//#region src/server/services/install/release-target.ts
@@ -999,6 +1007,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		const SITE_URL = "https://dsh-plugin.org/";
 		/** 插件市场源码仓库：头部右上角 GitHub 图标的跳转地址 */
 		const GITHUB_URL = "https://github.com/dshplugin/dsh-plugin-hub";
+		/** Hub 自身在目录数据里的仓库标识：头部版本号旁的「可更新」徽标按它定位自己。 */
+		const HUB_REPO = "dshplugin/dsh-plugin-hub";
 		/**
 		* Hub 自我更新版本控制（接口中心 Pages：api.dsh-plugin.org，静态 JSON 发布）。
 		* 发新版 = 在 api-center 的 releases/ 写发版记录 + 重新部署，hub.json 随之更新，
@@ -1936,14 +1946,14 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		*   （浏览器 fetch 的 `Failed to fetch` —— 宿主未就绪/正在重启，或本地代理拦了回环地址）
 		*   → 提示检查网络，registry 指向自定义源时给出换源指引
 		*
-		* 插件分发/依赖问题（引导去仓库提 Issue）：
-		* - pnpmIgnoredBuild：插件自身或依赖的构建脚本被 pnpm 安全白名单（allowBuilds）默认拦截
-		*   （`ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` / `ERR_PNPM_IGNORED_BUILDS`）—— 只影响带安装期
-		*   构建的插件 → 建议改用预编译版本或关闭安装期构建
+		* 插件分发/依赖问题（确有证据是插件自身问题时才引导去插件仓库提 Issue）：
 		* - pluginPrepare：插件的 prepare/构建脚本实际执行失败（git tarball 常因缺失子模块或构建产物
 		*   导致），或装后校验发现 package.json 声明的入口文件不在发布物里（服务端 `[packaging]` 标记）
-		*   —— 属插件打包/分发问题
-		* - repo：其余失败，默认按插件仓库问题处理
+		*   —— 属插件打包/分发问题，是唯一引导去插件仓库提 Issue 的一类
+		* - pnpmIgnoredBuild：插件自身或依赖的构建脚本被 pnpm 安全白名单（allowBuilds）默认拦截
+		*   （`ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` / `ERR_PNPM_IGNORED_BUILDS`）—— 不单独算插件问题
+		*   （常因 npm 反查失败回退 git 安装而触发），引导到插件中心仓库排查
+		* - hub：其余失败（含无法识别的未知原因），一律引导到插件中心仓库排查，不再默认归到插件作者头上
 		*/
 		function classifyFailure(message) {
 			if (/\[npm-too-low\]|edgesOut/i.test(message)) return "npmTooOld";
@@ -1966,7 +1976,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			if (/\bERR_PNPM_NO_MATCHING_VERSION\b|\bETARGET\b|No matching version found/i.test(message)) return "registryVersionStale";
 			if (/\bERR_PNPM_LINKED_PKG_DIR_NOT_FOUND\b|Could not install from .+ as it does not exist/i.test(message)) return "pnpmLinkedDirMissing";
 			if (/ERR_PNPM_PREPARE_PACKAGE|ELIFECYCLE|prepare-guard/i.test(message) || /Command failed/.test(message)) return "pluginPrepare";
-			return "repo";
+			return "hub";
 		}
 		/** 从服务端 `[npm-too-low]` 标记行提取本机 npm 版本（如 `[npm-too-low] npm@11.3.0` → "11.3.0"）；
 		*  历史记录无标记时返回 null，前端据此决定提示文案是否带具体版本。 */
@@ -2116,6 +2126,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				case "pnpmIgnoredBuild": return "build scripts blocked by pnpm allowlist";
 				case "pluginPrepare": return "plugin distribution incomplete";
 				case "network": return "network failure on the user side";
+				case "hub": return "install failed (cause unclassified)";
 				default: return "plugin install failed";
 			}
 		}
@@ -2181,6 +2192,76 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					`This error was produced by the [dsh-plugin-hub](${GITHUB_URL}) installer bundled with DeepSeek Harness.`
 				].join("\n");
 				return `https://github.com/${repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+			};
+			const MAX_URL_CHARS = 7600;
+			let url = build(MAX_CORE_CHARS);
+			if (url.length > MAX_URL_CHARS) for (const budget of [
+				4e3,
+				2500,
+				1400,
+				800,
+				400
+			]) {
+				url = build(budget);
+				if (url.length <= MAX_URL_CHARS) break;
+			}
+			return url;
+		}
+		/**
+		* 插件中心自身仓库的预填 Issue 链接：用于「非插件侧」失败（无法识别的未知原因、
+		* 以及 pnpm allowBuilds 拦截这类不再归到插件作者的情形）。正文带上目标插件与完整
+		* 错误摘要，供插件中心维护者分诊 —— 不再把环境问题/插件中心自身问题误投给插件作者。
+		*/
+		function hubIssueUrl(pluginRepo, message, env, command, attempts) {
+			const kind = classifyFailure(message);
+			const executed = executedCommandOf(command, attempts);
+			const repo = pluginRepo && pluginRepo.trim() !== "" ? pluginRepo.trim() : "unknown";
+			const title = `[dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`;
+			const code = coreErrorCode(message);
+			const build = (coreChars) => {
+				const body = [
+					"## Summary",
+					`- Auto-classified cause: ${reasonTitleOf(kind)}`,
+					`- Target plugin: \`${repo}\``,
+					...code ? [`- Key error: \`${code}\``] : [],
+					"- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage.",
+					"",
+					`## [DSH Plugin 插件市场](${SITE_URL}) · 安装 Plugin 失败错误信息`,
+					`本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次安装失败一并提交。`,
+					`- 实际执行的安装命令：${executed ? `\`${executed}\`` : "unknown (no executed command recorded)"}`,
+					`- 执行结果：安装失败，未能安装该插件。`,
+					...attempts && attempts.length > 0 ? [
+						"",
+						"## Attempted install channels（已尝试的安装方式）",
+						...attempts.map((a) => `- ${a}`)
+					] : [],
+					"",
+					"## Environment",
+					`- Plugin: \`${repo}\``,
+					...env ? [
+						`- DSH: ${env.dshVersion ? `v${env.dshVersion}` : "unknown"}`,
+						`- Plugin Hub: v${PLUGIN_VERSION}`,
+						`- Node: ${env.nodeVersion}`,
+						`- pnpm: ${env.pnpmVersion ? `v${env.pnpmVersion}` : "unknown"}`,
+						`- npm: ${env.npmVersion ? `v${env.npmVersion}` : "unknown"}`,
+						`- git: ${env.gitVersion ? `v${env.gitVersion}` : "unknown"}`,
+						`- OS: ${env.platform} ${env.arch} (${env.release})`,
+						`- Profile: \`${env.profile}\``,
+						`- DSH Home: \`${env.dshHome}\``,
+						`- Full log: \`~/.dsh/profiles/${env.profile}/hub.log\` (paste or attach for the full output)`
+					] : [],
+					...repo !== "unknown" ? [`- Catalog: [${pluginSiteUrl(repo)}](${pluginSiteUrl(repo)})`] : [],
+					"",
+					"## Error (core)",
+					"",
+					"```",
+					summarizeError(message, coreChars),
+					"```",
+					"",
+					"---",
+					`This error was produced by the [dsh-plugin-hub](${GITHUB_URL}) installer bundled with DeepSeek Harness.`
+				].join("\n");
+				return `https://github.com/${HUB_REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
 			};
 			const MAX_URL_CHARS = 7600;
 			let url = build(MAX_CORE_CHARS);
@@ -3429,7 +3510,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				className: Modal_module_css_default.modalCopy,
 				disabled: busy,
 				onClick: onCopy
-			}, t("copyInstallCommand")), (0, react.createElement)("button", {
+			}, t("copyInstallCommand")), cliOnly ? null : (0, react.createElement)("button", {
 				className: Modal_module_css_default.modalInstall,
 				disabled: busy,
 				onClick: onInstall
@@ -3535,19 +3616,19 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					className: Modal_module_css_default.failDiagBtn,
 					onClick: onRunDiagnostics
 				}, t("failNetworkRunDiag")) : null
-			]) : failureKind === "pluginPrepare" || failureKind === "pnpmIgnoredBuild" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, failureKind === "pnpmIgnoredBuild" ? t("failIgnoredBuild") : /\[packaging\]/i.test(message) ? t("failPackagingHint") : t("failPrepareHint")), repo ? (0, react.createElement)("a", {
+			]) : failureKind === "pluginPrepare" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, /\[packaging\]/i.test(message) ? t("failPackagingHint") : t("failPrepareHint")), repo ? (0, react.createElement)("a", {
 				className: Modal_module_css_default.failBigIssue,
 				href: pluginIssueUrl(repo, message, env, command, attempts),
 				target: "_blank",
 				rel: "noopener noreferrer",
 				title: t("failIssueHint")
-			}, t("failIssueBig")) : null]) : repo ? (0, react.createElement)("a", {
+			}, t("failIssueBig")) : null]) : (0, react.createElement)("div", null, [failureKind === "pnpmIgnoredBuild" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failIgnoredBuild")) : (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failUnclassifiedHint")), (0, react.createElement)("a", {
 				className: Modal_module_css_default.failBigIssue,
-				href: pluginIssueUrl(repo, message, env, command, attempts),
+				href: hubIssueUrl(repo, message, env, command, attempts),
 				target: "_blank",
 				rel: "noopener noreferrer",
-				title: t("failIssueHint")
-			}, t("failIssueBig")) : null), (0, react.createElement)("div", { className: Modal_module_css_default.modalActions }, (0, react.createElement)("button", {
+				title: t("failHubIssueHint")
+			}, t("failHubIssueBig"))])), (0, react.createElement)("div", { className: Modal_module_css_default.modalActions }, (0, react.createElement)("button", {
 				className: Modal_module_css_default.restartLater,
 				onClick: onClose
 			}, t("errorClose"))))));
@@ -4116,20 +4197,20 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 							onClick: onRunDiagnostics
 						}, t("failNetworkRunDiag")) : null
 					]);
-					if (kind === "pluginPrepare" || kind === "pnpmIgnoredBuild") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, kind === "pnpmIgnoredBuild" ? t("failIgnoredBuild") : /\[packaging\]/i.test(r.message) ? t("failPackagingHint") : t("failPrepareHint")), r.repo && shownRepo ? (0, react.createElement)("a", {
+					if (kind === "pluginPrepare") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, /\[packaging\]/i.test(r.message) ? t("failPackagingHint") : t("failPrepareHint")), r.repo && shownRepo ? (0, react.createElement)("a", {
 						className: Modal_module_css_default.failBigIssue,
 						href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
 						target: "_blank",
 						rel: "noopener noreferrer",
 						title: t("failIssueHint")
 					}, t("failIssueBig")) : null]);
-					return r.repo && shownRepo ? (0, react.createElement)("a", {
+					return (0, react.createElement)("div", null, [kind === "pnpmIgnoredBuild" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failIgnoredBuild")) : (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failUnclassifiedHint")), (0, react.createElement)("a", {
 						className: Modal_module_css_default.failBigIssue,
-						href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
+						href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts),
 						target: "_blank",
 						rel: "noopener noreferrer",
-						title: t("failIssueHint")
-					}, t("failIssueBig")) : null;
+						title: t("failHubIssueHint")
+					}, t("failHubIssueBig"))]);
 				})())), !r.ok ? (0, react.createElement)("div", { className: Modal_module_css_default.noticeFoot }, (0, react.createElement)("span", {
 					className: Modal_module_css_default.noticeTime,
 					title: new Date(r.at).toLocaleString()
@@ -4310,40 +4391,40 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$9
 		});
 		var List_module_css_default = {
-			"desc": "_3XaZHa_desc",
-			"body": "_3XaZHa_body",
-			"installBtn": "_3XaZHa_installBtn",
-			"cardHead": "_3XaZHa_cardHead",
-			"stateDesc": "_3XaZHa_stateDesc",
-			"cardSide": "_3XaZHa_cardSide",
-			"actions": "_3XaZHa_actions",
-			"categoryBadge": "_3XaZHa_categoryBadge",
-			"date": "_3XaZHa_date",
-			"cardTitle": "_3XaZHa_cardTitle",
-			"cardMain": "_3XaZHa_cardMain",
-			"card": "_3XaZHa_card",
-			"verified": "_3XaZHa_verified",
-			"star": "_3XaZHa_star",
-			"installBtnCopied": "_3XaZHa_installBtnCopied",
-			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
-			"stateTitle": "_3XaZHa_stateTitle",
 			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
-			"stateActions": "_3XaZHa_stateActions",
-			"footer": "_3XaZHa_footer",
-			"topics": "_3XaZHa_topics",
-			"footLink": "_3XaZHa_footLink",
+			"stateTitle": "_3XaZHa_stateTitle",
 			"diagBtn": "_3XaZHa_diagBtn",
+			"list": "_3XaZHa_list",
+			"cardTitle": "_3XaZHa_cardTitle",
+			"installBtnCopied": "_3XaZHa_installBtnCopied",
+			"actions": "_3XaZHa_actions",
+			"cardHead": "_3XaZHa_cardHead",
+			"moreSentinel": "_3XaZHa_moreSentinel",
+			"installBtn": "_3XaZHa_installBtn",
+			"topic": "_3XaZHa_topic",
+			"stats": "_3XaZHa_stats",
+			"versionBadge": "_3XaZHa_versionBadge",
+			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
+			"footer": "_3XaZHa_footer",
+			"verified": "_3XaZHa_verified",
+			"footLink": "_3XaZHa_footLink",
+			"categoryBadge": "_3XaZHa_categoryBadge",
 			"updateBadge": "_3XaZHa_updateBadge",
 			"fork": "_3XaZHa_fork",
-			"list": "_3XaZHa_list",
-			"versionBadge": "_3XaZHa_versionBadge",
-			"retryBtn": "_3XaZHa_retryBtn",
+			"stateDesc": "_3XaZHa_stateDesc",
+			"desc": "_3XaZHa_desc",
+			"card": "_3XaZHa_card",
+			"detailBtn": "_3XaZHa_detailBtn",
 			"state": "_3XaZHa_state",
-			"moreSentinel": "_3XaZHa_moreSentinel",
-			"topic": "_3XaZHa_topic",
+			"body": "_3XaZHa_body",
+			"cardSide": "_3XaZHa_cardSide",
+			"star": "_3XaZHa_star",
+			"retryBtn": "_3XaZHa_retryBtn",
+			"cardMain": "_3XaZHa_cardMain",
+			"date": "_3XaZHa_date",
 			"uninstallBtn": "_3XaZHa_uninstallBtn",
-			"stats": "_3XaZHa_stats",
-			"detailBtn": "_3XaZHa_detailBtn"
+			"stateActions": "_3XaZHa_stateActions",
+			"topics": "_3XaZHa_topics"
 		};
 		//#endregion
 		//#region src/client/hooks/useIncrementalList.ts
@@ -4550,15 +4631,15 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$8
 		});
 		var SectionTabs_module_css_default = {
-			"tabActive": "_7tvizq_tabActive",
-			"root": "_7tvizq_root",
-			"noticeIcon": "_7tvizq_noticeIcon",
-			"noticeBtn": "_7tvizq_noticeBtn",
 			"noticeCount": "_7tvizq_noticeCount",
-			"tabCount": "_7tvizq_tabCount",
+			"noticeIcon": "_7tvizq_noticeIcon",
+			"tabCountActive": "_7tvizq_tabCountActive",
+			"root": "_7tvizq_root",
 			"tabIcon": "_7tvizq_tabIcon",
 			"tab": "_7tvizq_tab",
-			"tabCountActive": "_7tvizq_tabCountActive"
+			"tabActive": "_7tvizq_tabActive",
+			"noticeBtn": "_7tvizq_noticeBtn",
+			"tabCount": "_7tvizq_tabCount"
 		};
 		//#endregion
 		//#region src/client/components/layout/SectionTabs.tsx
@@ -4635,42 +4716,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$7
 		});
 		var InstalledView_module_css_default = {
-			"rowRepo": "_1nXeGW_rowRepo",
-			"updateBadge": "_1nXeGW_updateBadge",
-			"rowUpdate": "_1nXeGW_rowUpdate",
-			"rowRestart": "_1nXeGW_rowRestart",
-			"emptyDesc": "_1nXeGW_emptyDesc",
-			"rowDesc": "_1nXeGW_rowDesc",
-			"root": "_1nXeGW_root",
-			"rowCategory": "_1nXeGW_rowCategory",
-			"rowTitle": "_1nXeGW_rowTitle",
-			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
-			"rowMeta": "_1nXeGW_rowMeta",
-			"emptyTitle": "_1nXeGW_emptyTitle",
-			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
-			"segBtnActive": "_1nXeGW_segBtnActive",
-			"searchInput": "_1nXeGW_searchInput",
-			"rowDetail": "_1nXeGW_rowDetail",
-			"rowUninstall": "_1nXeGW_rowUninstall",
-			"segGroup": "_1nXeGW_segGroup",
-			"empty": "_1nXeGW_empty",
-			"statusDot": "_1nXeGW_statusDot",
-			"toolbar": "_1nXeGW_toolbar",
-			"searchWrap": "_1nXeGW_searchWrap",
-			"versionBadge": "_1nXeGW_versionBadge",
-			"rowSourceTag": "_1nXeGW_rowSourceTag",
-			"list": "_1nXeGW_list",
-			"rowMain": "_1nXeGW_rowMain",
-			"segRow": "_1nXeGW_segRow",
-			"segBtn": "_1nXeGW_segBtn",
-			"statusInactive": "_1nXeGW_statusInactive",
-			"exampleBadge": "_1nXeGW_exampleBadge",
 			"statusPending": "_1nXeGW_statusPending",
-			"exampleRow": "_1nXeGW_exampleRow",
-			"rowTitleLine": "_1nXeGW_rowTitleLine",
-			"segLabel": "_1nXeGW_segLabel",
+			"rowTitle": "_1nXeGW_rowTitle",
+			"statusDot": "_1nXeGW_statusDot",
 			"rowActions": "_1nXeGW_rowActions",
-			"row": "_1nXeGW_row"
+			"rowMain": "_1nXeGW_rowMain",
+			"versionBadge": "_1nXeGW_versionBadge",
+			"row": "_1nXeGW_row",
+			"toolbar": "_1nXeGW_toolbar",
+			"searchInput": "_1nXeGW_searchInput",
+			"empty": "_1nXeGW_empty",
+			"rowCategory": "_1nXeGW_rowCategory",
+			"segRow": "_1nXeGW_segRow",
+			"segLabel": "_1nXeGW_segLabel",
+			"rowDesc": "_1nXeGW_rowDesc",
+			"rowSourceTag": "_1nXeGW_rowSourceTag",
+			"rowTitleLine": "_1nXeGW_rowTitleLine",
+			"root": "_1nXeGW_root",
+			"segGroup": "_1nXeGW_segGroup",
+			"rowUninstall": "_1nXeGW_rowUninstall",
+			"list": "_1nXeGW_list",
+			"searchWrap": "_1nXeGW_searchWrap",
+			"emptyDesc": "_1nXeGW_emptyDesc",
+			"exampleRow": "_1nXeGW_exampleRow",
+			"exampleBadge": "_1nXeGW_exampleBadge",
+			"segBtn": "_1nXeGW_segBtn",
+			"rowMeta": "_1nXeGW_rowMeta",
+			"rowRestart": "_1nXeGW_rowRestart",
+			"rowRepo": "_1nXeGW_rowRepo",
+			"emptyTitle": "_1nXeGW_emptyTitle",
+			"statusInactive": "_1nXeGW_statusInactive",
+			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
+			"rowDetail": "_1nXeGW_rowDetail",
+			"rowUpdate": "_1nXeGW_rowUpdate",
+			"segBtnActive": "_1nXeGW_segBtnActive",
+			"updateBadge": "_1nXeGW_updateBadge"
 		};
 		//#endregion
 		//#region src/client/components/views/InstalledView.tsx
@@ -4715,7 +4796,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				onClick
 			}, label, icon);
 		}
-		function InstalledRow({ item, t, langKey, canReveal, revealLabel, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }) {
+		function InstalledRow({ item, t, langKey, canReveal, revealLabel, pendingRestart, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }) {
 			const name = item.plugin?.displayName ?? item.name;
 			const repo = item.repo;
 			const category = item.plugin?.category;
@@ -4734,9 +4815,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					}
 				}
 			}, (0, react.createElement)("div", { className: InstalledView_module_css_default.rowTitleLine }, (0, react.createElement)("span", {
-				className: item.loaded ? InstalledView_module_css_default.statusDot : item.dshCapable ? `${InstalledView_module_css_default.statusDot} ${InstalledView_module_css_default.statusPending}` : `${InstalledView_module_css_default.statusDot} ${InstalledView_module_css_default.statusInactive}`,
-				title: item.loaded ? t("statusRunning") : item.dshCapable ? t("statusPending") : t("exampleHint"),
-				"aria-label": item.loaded ? t("statusRunning") : item.dshCapable ? t("statusPending") : t("exampleHint")
+				className: item.loaded ? InstalledView_module_css_default.statusDot : item.dshCapable && pendingRestart ? `${InstalledView_module_css_default.statusDot} ${InstalledView_module_css_default.statusPending}` : `${InstalledView_module_css_default.statusDot} ${InstalledView_module_css_default.statusInactive}`,
+				title: item.loaded ? t("statusRunning") : item.dshCapable && pendingRestart ? t("statusPending") : item.dshCapable ? t("statusInactive") : t("exampleHint"),
+				"aria-label": item.loaded ? t("statusRunning") : item.dshCapable && pendingRestart ? t("statusPending") : item.dshCapable ? t("statusInactive") : t("exampleHint")
 			}), (0, react.createElement)("div", { className: InstalledView_module_css_default.rowMain }, (0, react.createElement)("span", { className: InstalledView_module_css_default.rowTitle }, name), item.installedVersion ? (0, react.createElement)("span", {
 				className: InstalledView_module_css_default.versionBadge,
 				title: t("installedVersionLabel")
@@ -4746,7 +4827,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			}, t("updateAvailable")) : null), (0, react.createElement)("span", {
 				className: isCustom ? `${InstalledView_module_css_default.rowSourceTag} ${InstalledView_module_css_default.rowSourceTagManual}` : `${InstalledView_module_css_default.rowSourceTag} ${InstalledView_module_css_default.rowSourceTagHub}`,
 				title: isCustom ? t("manualInstallHint") : t("hubInstallHint")
-			}, isCustom ? t("manualInstall") : t("hubInstall")), (0, react.createElement)("div", { className: InstalledView_module_css_default.rowActions }, !item.loaded && item.dshCapable ? (0, react.createElement)("button", {
+			}, isCustom ? t("manualInstall") : t("hubInstall")), (0, react.createElement)("div", { className: InstalledView_module_css_default.rowActions }, !item.loaded && item.dshCapable && pendingRestart ? (0, react.createElement)("button", {
 				className: InstalledView_module_css_default.rowRestart,
 				type: "button",
 				title: t("restartPendingHint"),
@@ -4785,7 +4866,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			}, desc) : null);
 		}
 		/** 行列表：单个已安装列表（自定义安装与目录插件混排，靠徽标区分）。 */
-		function RowList({ items, t, langKey, canReveal, revealLabel, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }) {
+		function RowList({ items, t, langKey, canReveal, revealLabel, pendingRestarts, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }) {
+			const pendingSet = new Set(pendingRestarts.map((r) => r.toLowerCase()));
 			return (0, react.createElement)("ul", { className: InstalledView_module_css_default.list }, items.map((item) => (0, react.createElement)(InstalledRow, {
 				key: item.name,
 				item,
@@ -4793,6 +4875,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				langKey,
 				canReveal,
 				revealLabel,
+				pendingRestart: item.repo !== null && pendingSet.has(item.repo.toLowerCase()),
 				onOpenDetail,
 				onReveal,
 				onUpdate,
@@ -4800,7 +4883,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				onRestart
 			})));
 		}
-		function InstalledView({ items, t, langKey, platform, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }) {
+		function InstalledView({ items, t, langKey, platform, pendingRestarts, onOpenDetail, onReveal, onUpdate, onUninstall, onRestart }) {
 			const [query, setQuery] = (0, react.useState)("");
 			/** 默认按「最近安装」排序（最新在前）；点其他排序按钮用该排序的默认方向（Star/Fork 最多在前、名称正序） */
 			const [sort, setSort] = (0, react.useState)("sortInstalledAt");
@@ -4855,6 +4938,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				langKey,
 				canReveal: platform === "darwin" || platform === "win32" || platform === "linux",
 				revealLabel: platform === "darwin" ? t("revealFolder") : t("openFolder"),
+				pendingRestarts,
 				onOpenDetail,
 				onReveal,
 				onUpdate,
@@ -4916,28 +5000,28 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$6
 		});
 		var CustomInstallView_module_css_default = {
-			"channelOff": "zISxCG_channelOff",
-			"installRow": "zISxCG_installRow",
-			"installLabel": "zISxCG_installLabel",
-			"installInput": "zISxCG_installInput",
-			"helpBody": "zISxCG_helpBody",
-			"channelOffText": "zISxCG_channelOffText",
-			"installCardDisabled": "zISxCG_installCardDisabled",
 			"installExample": "zISxCG_installExample",
-			"installCard": "zISxCG_installCard",
-			"installBtn": "zISxCG_installBtn",
 			"installCardHead": "zISxCG_installCardHead",
-			"installInsertBtn": "zISxCG_installInsertBtn",
-			"helpLine": "zISxCG_helpLine",
-			"helpCmd": "zISxCG_helpCmd",
-			"desc": "zISxCG_desc",
-			"channelOffBtn": "zISxCG_channelOffBtn",
-			"installHelpBtn": "zISxCG_installHelpBtn",
-			"installError": "zISxCG_installError",
 			"root": "zISxCG_root",
+			"installRow": "zISxCG_installRow",
+			"installInputError": "zISxCG_installInputError",
+			"installLabel": "zISxCG_installLabel",
 			"installCards": "zISxCG_installCards",
+			"channelOff": "zISxCG_channelOff",
+			"installInsertBtn": "zISxCG_installInsertBtn",
+			"installCardDisabled": "zISxCG_installCardDisabled",
+			"channelOffText": "zISxCG_channelOffText",
+			"installCard": "zISxCG_installCard",
+			"installError": "zISxCG_installError",
+			"helpBody": "zISxCG_helpBody",
 			"helpNote": "zISxCG_helpNote",
-			"installInputError": "zISxCG_installInputError"
+			"installHelpBtn": "zISxCG_installHelpBtn",
+			"desc": "zISxCG_desc",
+			"helpCmd": "zISxCG_helpCmd",
+			"channelOffBtn": "zISxCG_channelOffBtn",
+			"installBtn": "zISxCG_installBtn",
+			"helpLine": "zISxCG_helpLine",
+			"installInput": "zISxCG_installInput"
 		};
 		//#endregion
 		//#region src/client/components/views/CustomInstallView.tsx
@@ -5227,30 +5311,30 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$5
 		});
 		var SettingsView_module_css_default = {
-			"pageDesc": "_506LLG_pageDesc",
-			"content": "_506LLG_content",
-			"navItemActive": "_506LLG_navItemActive",
-			"settingLabel": "_506LLG_settingLabel",
 			"pageHeader": "_506LLG_pageHeader",
-			"proxyHintOk": "_506LLG_proxyHintOk",
-			"resetBtn": "_506LLG_resetBtn",
-			"settingRow": "_506LLG_settingRow",
 			"settingDesc": "_506LLG_settingDesc",
-			"settingControl": "_506LLG_settingControl",
-			"proxyHint": "_506LLG_proxyHint",
-			"textInput": "_506LLG_textInput",
-			"controlDropdown": "_506LLG_controlDropdown",
-			"navIcon": "_506LLG_navIcon",
-			"navItem": "_506LLG_navItem",
+			"settingRowStack": "_506LLG_settingRowStack",
 			"settingControlStack": "_506LLG_settingControlStack",
-			"root": "_506LLG_root",
 			"sidebar": "_506LLG_sidebar",
-			"proxyHintFail": "_506LLG_proxyHintFail",
 			"pageTitle": "_506LLG_pageTitle",
-			"card": "_506LLG_card",
+			"pageDesc": "_506LLG_pageDesc",
+			"proxyHint": "_506LLG_proxyHint",
+			"navIcon": "_506LLG_navIcon",
+			"root": "_506LLG_root",
+			"settingControl": "_506LLG_settingControl",
+			"proxyHintOk": "_506LLG_proxyHintOk",
+			"navItem": "_506LLG_navItem",
+			"proxyHintFail": "_506LLG_proxyHintFail",
 			"proxyControl": "_506LLG_proxyControl",
 			"settingTitle": "_506LLG_settingTitle",
-			"settingRowStack": "_506LLG_settingRowStack"
+			"controlDropdown": "_506LLG_controlDropdown",
+			"resetBtn": "_506LLG_resetBtn",
+			"settingRow": "_506LLG_settingRow",
+			"settingLabel": "_506LLG_settingLabel",
+			"content": "_506LLG_content",
+			"textInput": "_506LLG_textInput",
+			"navItemActive": "_506LLG_navItemActive",
+			"card": "_506LLG_card"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Dropdown.module.css.mjs
@@ -5269,18 +5353,18 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$4
 		});
 		var Dropdown_module_css_default = {
-			"dropdownLabel": "B_Gxsq_dropdownLabel",
-			"dropdownItem": "B_Gxsq_dropdownItem",
-			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
-			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen",
 			"dropdown": "B_Gxsq_dropdown",
-			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
-			"dropdownCount": "B_Gxsq_dropdownCount",
+			"dropdownFill": "B_Gxsq_dropdownFill",
+			"dropdownBtn": "B_Gxsq_dropdownBtn",
 			"dropdownPanel": "B_Gxsq_dropdownPanel",
 			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
-			"dropdownFill": "B_Gxsq_dropdownFill",
+			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen",
 			"dropdownArrow": "B_Gxsq_dropdownArrow",
-			"dropdownBtn": "B_Gxsq_dropdownBtn"
+			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
+			"dropdownCount": "B_Gxsq_dropdownCount",
+			"dropdownLabel": "B_Gxsq_dropdownLabel",
+			"dropdownItem": "B_Gxsq_dropdownItem",
+			"dropdownItemActive": "B_Gxsq_dropdownItemActive"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Toggle.module.css.mjs
@@ -5299,8 +5383,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$3
 		});
 		var Toggle_module_css_default = {
-			"toggleOn": "k-cD4G_toggleOn",
 			"knob": "k-cD4G_knob",
+			"toggleOn": "k-cD4G_toggleOn",
 			"toggle": "k-cD4G_toggle"
 		};
 		//#endregion
@@ -5401,29 +5485,29 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$2
 		});
 		var DiagnosticsView_module_css_default = {
-			"head": "k9eRya_head",
+			"headHint": "k9eRya_headHint",
+			"row": "k9eRya_row",
+			"envLabel": "k9eRya_envLabel",
 			"panel": "k9eRya_panel",
-			"envDesc": "k9eRya_envDesc",
-			"badgeFail": "k9eRya_badgeFail",
+			"badgeRunning": "k9eRya_badgeRunning",
+			"summary": "k9eRya_summary",
+			"summaryOk": "k9eRya_summaryOk",
+			"display": "k9eRya_display",
 			"envCopyBtn": "k9eRya_envCopyBtn",
 			"badgeOk": "k9eRya_badgeOk",
-			"name": "k9eRya_name",
-			"display": "k9eRya_display",
-			"badgeRunning": "k9eRya_badgeRunning",
-			"badgeIdle": "k9eRya_badgeIdle",
-			"meta": "k9eRya_meta",
-			"summaryFail": "k9eRya_summaryFail",
-			"row": "k9eRya_row",
 			"diagPulse": "k9eRya_diagPulse",
+			"badgeFail": "k9eRya_badgeFail",
+			"badgeIdle": "k9eRya_badgeIdle",
+			"summaryFail": "k9eRya_summaryFail",
+			"head": "k9eRya_head",
+			"summaryRunning": "k9eRya_summaryRunning",
+			"runBtn": "k9eRya_runBtn",
 			"envRow": "k9eRya_envRow",
 			"badge": "k9eRya_badge",
-			"envLabel": "k9eRya_envLabel",
-			"summaryRunning": "k9eRya_summaryRunning",
-			"summary": "k9eRya_summary",
-			"headHint": "k9eRya_headHint",
-			"summaryOk": "k9eRya_summaryOk",
 			"envTitle": "k9eRya_envTitle",
-			"runBtn": "k9eRya_runBtn"
+			"envDesc": "k9eRya_envDesc",
+			"name": "k9eRya_name",
+			"meta": "k9eRya_meta"
 		};
 		//#endregion
 		//#region src/client/components/views/DiagnosticsView.tsx
@@ -5601,57 +5685,57 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$1
 		});
 		var LogsView_module_css_default = {
-			"time": "_3j77BW_time",
 			"message": "_3j77BW_message",
-			"pathText": "_3j77BW_pathText",
-			"pathDialogDesc": "_3j77BW_pathDialogDesc",
-			"panel": "_3j77BW_panel",
-			"badgeError": "_3j77BW_badgeError",
-			"pathDialogReset": "_3j77BW_pathDialogReset",
-			"actions": "_3j77BW_actions",
-			"footFail": "_3j77BW_footFail",
-			"entry": "_3j77BW_entry",
-			"event": "_3j77BW_event",
-			"pathRow": "_3j77BW_pathRow",
-			"pathDialogHint": "_3j77BW_pathDialogHint",
-			"catUpdate": "_3j77BW_catUpdate",
-			"pathLabel": "_3j77BW_pathLabel",
-			"filterChipActive": "_3j77BW_filterChipActive",
-			"list": "_3j77BW_list",
-			"badgeSuccess": "_3j77BW_badgeSuccess",
-			"footCount": "_3j77BW_footCount",
-			"badge": "_3j77BW_badge",
-			"headHint": "_3j77BW_headHint",
-			"badgeInfo": "_3j77BW_badgeInfo",
 			"searchInput": "_3j77BW_searchInput",
-			"footActions": "_3j77BW_footActions",
-			"pathDraft": "_3j77BW_pathDraft",
-			"btn": "_3j77BW_btn",
+			"catUpdate": "_3j77BW_catUpdate",
+			"catDiagnostics": "_3j77BW_catDiagnostics",
 			"clearBtn": "_3j77BW_clearBtn",
+			"list": "_3j77BW_list",
+			"catSettings": "_3j77BW_catSettings",
 			"headActions": "_3j77BW_headActions",
+			"filterChip": "_3j77BW_filterChip",
+			"filterChipActive": "_3j77BW_filterChipActive",
+			"empty": "_3j77BW_empty",
 			"pathDialogFoot": "_3j77BW_pathDialogFoot",
-			"filterBar": "_3j77BW_filterBar",
+			"badgeError": "_3j77BW_badgeError",
+			"footCount": "_3j77BW_footCount",
+			"event": "_3j77BW_event",
+			"linkBtn": "_3j77BW_linkBtn",
+			"entry": "_3j77BW_entry",
+			"pathDraft": "_3j77BW_pathDraft",
 			"catUninstall": "_3j77BW_catUninstall",
 			"search": "_3j77BW_search",
-			"filterChip": "_3j77BW_filterChip",
-			"badgeDebug": "_3j77BW_badgeDebug",
 			"catInstall": "_3j77BW_catInstall",
-			"previewRow": "_3j77BW_previewRow",
-			"head": "_3j77BW_head",
-			"more": "_3j77BW_more",
-			"pathDialog": "_3j77BW_pathDialog",
-			"catDiagnostics": "_3j77BW_catDiagnostics",
-			"footPath": "_3j77BW_footPath",
-			"catSystem": "_3j77BW_catSystem",
-			"empty": "_3j77BW_empty",
 			"pathDialogRow": "_3j77BW_pathDialogRow",
-			"moreEnd": "_3j77BW_moreEnd",
-			"badgeWarn": "_3j77BW_badgeWarn",
-			"linkBtn": "_3j77BW_linkBtn",
-			"logList": "_3j77BW_logList",
+			"badgeInfo": "_3j77BW_badgeInfo",
+			"pathDialogHint": "_3j77BW_pathDialogHint",
+			"headHint": "_3j77BW_headHint",
+			"catBadge": "_3j77BW_catBadge",
 			"foot": "_3j77BW_foot",
-			"catSettings": "_3j77BW_catSettings",
-			"catBadge": "_3j77BW_catBadge"
+			"pathLabel": "_3j77BW_pathLabel",
+			"pathText": "_3j77BW_pathText",
+			"logList": "_3j77BW_logList",
+			"catSystem": "_3j77BW_catSystem",
+			"pathRow": "_3j77BW_pathRow",
+			"moreEnd": "_3j77BW_moreEnd",
+			"panel": "_3j77BW_panel",
+			"badgeDebug": "_3j77BW_badgeDebug",
+			"footPath": "_3j77BW_footPath",
+			"filterBar": "_3j77BW_filterBar",
+			"btn": "_3j77BW_btn",
+			"time": "_3j77BW_time",
+			"head": "_3j77BW_head",
+			"footFail": "_3j77BW_footFail",
+			"actions": "_3j77BW_actions",
+			"previewRow": "_3j77BW_previewRow",
+			"pathDialogReset": "_3j77BW_pathDialogReset",
+			"more": "_3j77BW_more",
+			"footActions": "_3j77BW_footActions",
+			"pathDialog": "_3j77BW_pathDialog",
+			"pathDialogDesc": "_3j77BW_pathDialogDesc",
+			"badge": "_3j77BW_badge",
+			"badgeSuccess": "_3j77BW_badgeSuccess",
+			"badgeWarn": "_3j77BW_badgeWarn"
 		};
 		//#endregion
 		//#region src/client/components/modals/LogsModal.tsx
@@ -6865,6 +6949,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				langKey,
 				t,
 				platform: env?.platform ?? "",
+				pendingRestarts: queue.pendingRestarts.map((p) => p.target),
 				onOpenDetail: (item) => setDetailItem(item),
 				onReveal: (item) => {
 					revealFolder(item);

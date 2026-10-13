@@ -151,7 +151,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'repo'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hub'
 
 /** Match the pnpm error code, not a generic mention of checksum or integrity. */
 function missingTarballIntegrity(message: string): boolean {
@@ -187,202 +187,59 @@ export function pnpmPolicyHintParams(message: string): Record<string, string> {
 }
 
 /**
- * 失败归类：把安装输出归到具体成因，供弹窗文案、是否引导提 Issue 与 issue 预填原因使用。
- * 分界是「本机环境问题」（装任何插件都会同样失败 → 不引导提 Issue）与
- * 「插件分发/依赖问题」（只影响这个插件 → 引导去仓库提 Issue）；各分支的判定顺序有依赖，
- * 原因见 classifyFailure 内注释。
- *
- * 本机环境问题：
- * - npmTooOld：本机 npm 版本过低或自身缺陷 —— npm arborist 解 peer 依赖时抛 `edgesOut`
- *   （build-ideal-tree.js 内部报错），或服务端已核实版本低于阈值并打了 `[npm-too-low]` 标记
- *   → 引导升级 npm
- * - dshMissing：安装器 spawn 的 `dsh` 命令找不到（Windows cmd「不是内部或外部命令」/ POSIX
- *   「command not found」/ spawn ENOENT）→ 提示检查 PATH / 重装 DSH
- * - gitMissing：安装器调用 `git` 时找不到可执行文件（Windows cmd「'git' is not recognized」/
- *   POSIX「git: command not found」/ spawn ENOENT）→ 提示安装 Git / 加入 PATH
- * - pnpmMissing：dsh 存在但调用的 `pnpm` 找不到（dsh 报 `pnpm not found on PATH` / POSIX
- *   「pnpm: command not found」/ spawn ENOENT）—— dsh 用 pnpm 管理 profile 插件
- *   → 提示安装 / 开启 pnpm
- * - npmMissing：全局 npm 安装通道（`npm install -g …`）spawn 的 `npm` 命令找不到，形态同上
- *   → 提示安装 npm（Node.js 自带）/ 加入 PATH
- * - pnpmStore：pnpm 报 store / virtual store 位置不匹配（`ERR_PNPM_UNEXPECTED_STORE` /
- *   `ERR_PNPM_UNEXPECTED_VIRTUAL_STORE` / `Unexpected store location`）—— profile 目录里的依赖
- *   是另一个大版本的 pnpm 生成的（或 profile 目录被复制/移动、virtual-store-dir 配置变化），
- *   当前 pnpm 出于安全不认 → 提示清理 profile 依赖目录后用当前 pnpm 重建
- * - pnpmWorkspace：pnpm 拒绝在 workspace 根目录下安装（`ERR_PNPM_ADDING_TO_ROOT`）—— profile
- *   目录含 pnpm-workspace.yaml 即被 pnpm 视为 workspace 根，宿主调 `pnpm add` 时未声明在根
- *   操作（缺 `-w`/`--workspace-root`），整条命令被拒 → 提示在 profile 的 .npmrc 里加
- *   `ignore-workspace-root-check=true` 或升级宿主
- * - originRejected：请求的来源没通过本地 hub 服务的校验（服务端 403，正文是裸的
- *   `untrusted origin`）—— 请求在进入安装流程前就被拒，与 pnpm 无关；常见于用非 localhost 的
- *   地址（如局域网 IP）打开市场页面，或宿主页面的 origin 未被识别 → 提示从本机地址打开市场后重试
- * - pnpmPolicy：pnpm 的供应链安全策略拒绝安装（缺少 tarball integrity、`ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` /
- *   `Minimum release age` —— 锁文件里包的发布时间还不满 24 小时被拒；`untrusted origin` ——
- *   依赖来源未被本机 pnpm 信任）→ 提示按子场景给解法（发布未满 24 小时 → `minimumReleaseAge: 0`
- *   豁免或等满 24 小时；untrusted origin → 删除 profile 的 node_modules + pnpm-lock.yaml 清掉
- *   不受信任来源后重装）
- * - pnpmUnusedPatch：profile 里留着指向旧版本 dsh-plugin 的 patch 声明，本次安装解析到的版本
- *   已经不是它（`ERR_PNPM_UNUSED_PATCH` / `The following patches were not used: dsh-plugin@1.4.2`）
- *   —— pnpm 发现补丁没被用上即中止整次安装 → 提示删掉该条目后重试
- * - pnpmMissingDep：profile 里留着一条指向 registry 上不存在的包的依赖，pnpm 解析时收到 404
- *   （`ERR_PNPM_FETCH_404` / `Not Found - 404`）—— 该 profile 的任何安装都会先卡在这条依赖上
- *   → 提示按包名删掉该条目后重试（404 的包通常不是正在安装的插件，故不引导提 Issue）
- * - registryVersionStale：实际执行安装的那个源里没有这个版本（`ERR_PNPM_NO_MATCHING_VERSION` /
- *   `ETARGET` / `No matching version found`）—— 常见于镜像滞后（反查包名走设置里的 npmRegistry、
- *   实际安装沿用本机 ~/.npmrc 的源，官方已发布而镜像还没同步），或版本号写错
- *   → 提示对齐设置里的源与本机 ~/.npmrc、或那一次显式走官方源 / 用离线包后重试
- *   （与插件作者无关，故不引导提 Issue）
- * - pnpmLinkedDirMissing：profile 里留着一条指向不存在目录的本地依赖（`ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND`
- *   / `Could not install from "<path>" as it does not exist`）—— 常见于 link:/本地路径装过开发中的插件、
- *   之后目录被删或移动，pnpm 每次解析 profile 依赖都会先卡在它上面
- *   → 提示删掉 profile 里那条悬空的本地依赖条目后重试（与插件作者无关，故不引导提 Issue）
- * - fileLocked：pnpm 无法替换 profile 里被其他进程占用的文件（Windows `os error 32`
- *   「另一个程序正在使用此文件」/ `EBUSY` / `resource busy or locked`）—— 通常是宿主进程或
- *   杀毒软件实时扫描持有句柄 → 提示完全退出宿主后重试
- * - accessDenied：pnpm 在 profile 里替换文件时被系统拒绝写入（Windows `os error 5`
- *   「拒绝访问」= ERROR_ACCESS_DENIED / Node 的 `EPERM` `EACCES` / `Access is denied`）——
- *   文件/目录被其他进程占用、只读属性、目录 ACL 受限，或杀毒软件实时防护拦截写入
- *   → 提示退出宿主 / 关杀软后重试，仍失败则检查只读属性并以管理员身份运行
- * - fsUnavailable：本机文件系统层面根本写不进去 —— 磁盘/分区空间耗尽（`ENOSPC` /
- *   `no space left on device`，Windows 为 `os error 112`）、目标分卷或挂载点为只读
- *   （`EROFS` / `read-only file system`，Windows 写保护为 `os error 19`）、进程可用的文件句柄
- *   被耗尽（`EMFILE` / `ENFILE` / `too many open files`），都发生在 pnpm 落盘阶段
- *   → 提示按报错代码对号入座（清空间 / 换可写目录 / 重启宿主释放句柄）
- * - network：安装前连通性预检拦截（服务端 `[network]` 标记）、底层连接失败
- *   （ERR_PNPM_GIT_FETCH_FAILED / ETIMEDOUT / DNS 解析 / TLS 握手 / 代理拒绝），或
- *   registry tarball 拉取失败（`fetch failed` / `GET …/-/…tgz error (n)` —— 常见于本机
- *   npm/pnpm 的 registry 被指向内网/自定义源，该源取不到包），或界面请求压根没送达宿主服务
- *   （浏览器 fetch 的 `Failed to fetch` —— 宿主未就绪/正在重启，或本地代理拦了回环地址）
- *   → 提示检查网络，registry 指向自定义源时给出换源指引
- *
- * 插件分发/依赖问题（引导去仓库提 Issue）：
- * - pnpmIgnoredBuild：插件自身或依赖的构建脚本被 pnpm 安全白名单（allowBuilds）默认拦截
- *   （`ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` / `ERR_PNPM_IGNORED_BUILDS`）—— 只影响带安装期
- *   构建的插件 → 建议改用预编译版本或关闭安装期构建
- * - pluginPrepare：插件的 prepare/构建脚本实际执行失败（git tarball 常因缺失子模块或构建产物
- *   导致），或装后校验发现 package.json 声明的入口文件不在发布物里（服务端 `[packaging]` 标记）
- *   —— 属插件打包/分发问题
- * - repo：其余失败，默认按插件仓库问题处理
+ * 失败归类：把安装输出归到具体成因，供弹窗文案与是否引导提 Issue 使用。
+ * 分界是「本机环境问题」（装任何插件都会同样失败 → 不引导提 Issue）与「插件分发问题」
+ * （只影响这个插件 → 才引导提 Issue）。各分支判定顺序有依赖，见函数内注释。
  */
 export function classifyFailure(message: string): FailureKind {
-  // npm 内部崩溃（edgesOut）或服务端 [npm-too-low] 标记：是本机 npm 版本过低/自身缺陷，
-  // 不是插件问题 —— 必须最先判，否则该报错会被外层 ERR_PNPM_PREPARE_PACKAGE 吞成
-  // 「插件打包分发问题」，误导用户去提 Issue
+  // npm 自身崩溃（edgesOut）或服务端标记的本机 npm 版本过低。必须最先判，否则会被外层
+  // ERR_PNPM_PREPARE_PACKAGE 吞成「插件打包问题」
   if (/\[npm-too-low\]|edgesOut/i.test(message)) return 'npmTooOld'
-  // 找不到 pnpm 命令（dsh 报 `pnpm not found on PATH` —— dsh 用它管理 profile 插件 /
-  // POSIX「pnpm: command not found」/ spawn pnpm ENOENT / Windows cmd 中英文报错）：
-  // 本机缺 pnpm。必须在 dshMissing 之前 —— dshMissing 正则含裸「command not found」，
-  // 会把 `pnpm: command not found` 吞成「dsh 缺失」，误引导用户去装 DSH
+  // 本机缺 pnpm。必须在 dshMissing 之前 —— 后者的裸「command not found」会吞掉 pnpm 缺失
   if (/\[pnpm-missing\]|pnpm not found|pnpm: command not found|spawn pnpm ENOENT|'pnpm' 不是内部或外部命令|"pnpm" 不是内部或外部命令|pnpm['"]?\s*is not recognized/i.test(message)) return 'pnpmMissing'
-  // 找不到 git 命令（服务端 [git-missing] 标记 / Windows cmd 中英文「'git' is not recognized」/
-  // POSIX「git: command not found」/ spawn git ENOENT）：本机 Git 未安装或不在 PATH。
-  // 必须在 dshMissing 之前 —— dshMissing 正则含裸「is not recognized / command not found」，
-  // 会把 git 缺失（'git' is not recognized as an internal or external command）吞成「dsh 缺失」，
-  // 误导用户去装 DSH
+  // 本机缺 git。必须在 dshMissing 之前，原因同上（裸「is not recognized」会吞掉 git 缺失）
   if (/\[git-missing\]|spawn git ENOENT|'git' 不是内部或外部命令|"git" 不是内部或外部命令|git['"]?\s*is not recognized|git: command not found/i.test(message)) return 'gitMissing'
-  // 找不到 npm 命令（全局 npm 安装通道 `npm install -g` spawn 的 npm 缺失 / Windows cmd 中英文
-  // 「'npm' is not recognized」/ POSIX「npm: command not found」/ spawn npm ENOENT）：本机 npm 未安装
-  // 或不在 PATH，不是插件问题。必须在 dshMissing 之前 —— dshMissing 正则含裸「is not recognized /
-  // command not found」，会把 npm 缺失（'npm' is not recognized）吞成「dsh 缺失」，误导用户去装 DSH
+  // 本机缺 npm。必须在 dshMissing 之前，原因同上
   if (/\[npm-missing\]|spawn npm ENOENT|'npm' 不是内部或外部命令|"npm" 不是内部或外部命令|npm['"]?\s*is not recognized|npm: command not found/i.test(message)) return 'npmMissing'
-  // 找不到 dsh 命令（服务端 [dsh-missing] 标记 —— 乱码免疫：Windows cmd 中文版输出 GBK，
-  // 经 UTF-8 解码成乱码无法匹配原文，故服务端在 spawn 前用 which/where 探测并打 ASCII 标记；
-  // 其余形态：Windows cmd「不是内部或外部命令」/ POSIX「command not found」/
-  // node spawn ENOENT）：是本机 DSH 未正确安装或不在 PATH —— 必须先判，
-  // 否则会被外层 "Command failed" 吞成「插件打包问题」，误导用户去提 Issue
+  // 本机缺 dsh。服务端 [dsh-missing] 标记乱码免疫（Windows GBK 解码后无法匹配原文）
   if (/\[dsh-missing\]|不是内部或外部命令|is not recognized as an internal or external command|command not found|spawn dsh ENOENT/i.test(message)) return 'dshMissing'
-  // pnpm 大版本/虚拟 store 位置不一致（ERR_PNPM_UNEXPECTED_STORE / ERR_PNPM_UNEXPECTED_VIRTUAL_STORE /
-  // Unexpected store location）：profile 目录里的依赖是另一个大版本 pnpm 生成的（或 profile 目录
-  // 被复制/移动、virtual-store-dir 配置变化导致 virtual store 位置不匹配），当前 pnpm 出于安全
-  // 不认 —— 任何插件装进该 profile 都会同样失败 → 提示清理依赖目录用当前 pnpm 重建。
-  // 必须在 pnpmMissing 之后 —— pnpm 在（能跑起来报错），不是「找不到命令」。
+  // store 版本不匹配：profile 依赖由另一大版本 pnpm 生成，当前 pnpm 不认。
+  // 必须在 pnpmMissing 之后（pnpm 能跑起来报错，不是找不到命令）
   if (/ERR_PNPM_UNEXPECTED_(VIRTUAL_)?STORE|Unexpected (virtual )?store location/i.test(message)) return 'pnpmStore'
-  // pnpm 拒绝在 workspace 根目录下安装（ERR_PNPM_ADDING_TO_ROOT）：profile 目录被视为
-  // pnpm workspace 根，宿主调 pnpm add 时没声明在根操作（缺 -w/--workspace-root），
-  // pnpm 直接整条命令拒绝 —— 本机 profile/宿主调用方式问题，任何插件都装不上
+  // pnpm 拒绝往 workspace 根装依赖：profile 被视为 workspace 根但未声明根操作
   if (/ERR_PNPM_ADDING_TO_ROOT|add the dependency to the workspace root/i.test(message)) return 'pnpmWorkspace'
-  // 本地 hub 服务的来源校验拒绝了请求（服务端 403，正文恰好是 `untrusted origin`）：
-  // 请求在 requireTrustedPost 就被拦下，压根没进入安装流程，与 pnpm 无关。
-  // 必须放在 pnpmPolicy 之前 —— 后者正则含同名裸文本，会把这条吞成「pnpm 供应链策略」，
-  // 并建议用户删掉 profile 的 node_modules + pnpm-lock.yaml（无效且具破坏性）。
-  // 用「整行以它结尾」来区隔 pnpm 的真实报错：pnpm 的形态后面一定跟着 dsh 的上下文
-  // （如 `untrusted origin\ndsh: pnpm failed in profile directory …`），不会被本规则命中
+  // 本地服务来源校验拒绝（403 untrusted origin），请求没进安装流程。必须在 pnpmPolicy 之前
+  // —— 后者同名裸文本会把这条误判成供应链策略。用「整行以它结尾」区隔 pnpm 真实报错
   if (/(^|\n)untrusted origin\s*$/.test(message)) return 'originRejected'
-  // pnpm 供应链安全策略拦截（缺少 tarball 校验值 / minimumReleaseAge 拒收「刚发布」的包 ——
-  // 两个错误码形态 ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION 与 ERR_PNPM_NO_MATURE_MATCHING_VERSION /
-  // untrusted origin 来源不受信任）：pnpm 在、也连得上，纯粹是本机策略不放行 ——
-  // 装任何「新发布/非信任来源」的插件都会同样失败。
-  // 必须在 pnpmIgnoredBuild 之前 —— 该策略优先于「构建脚本被白名单拦截」，且两者都不引导提 Issue。
+  // pnpm 供应链策略拦截（缺 tarball integrity / minimumReleaseAge / untrusted origin）。
+  // 必须在 pnpmIgnoredBuild 之前
   if (missingTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge|untrusted origin/i.test(message)) return 'pnpmPolicy'
-  // profile 里留着指向旧版本 dsh-plugin 的 patch 声明（ERR_PNPM_UNUSED_PATCH /
-  // `The following patches were not used: dsh-plugin@1.4.2`）：本机 pnpm 配置与本次解析到的版本
-  // 对不上，pnpm 出于安全直接中止整次安装 —— 任何插件都装不进来 → 提示删条目后重试。
-  // 必须在兜底之前，否则被归成「插件侧失败」引导去提 Issue。
+  // profile 残留旧版本 patch 声明，pnpm 中止安装。必须在兜底之前
   if (/ERR_PNPM_UNUSED_PATCH|patches were not used/i.test(message)) return 'pnpmUnusedPatch'
-  // profile 里的文件被其他进程占用，pnpm 无法替换（Windows `os error 32`
-  // 「另一个程序正在使用此文件，进程无法访问」/ EBUSY / resource busy or locked）——
-  // 通常是宿主进程或杀毒软件实时扫描持有句柄；`os error 32` 用 ASCII 特征，中文原文乱码也能命中
-  // → 提示完全退出宿主后重试
+  // profile 文件被其他进程占用（os error 32 / EBUSY）。ASCII 特征免疫乱码
   if (/os error 32|EBUSY|resource busy or locked|being used by another process/i.test(message)) return 'fileLocked'
-  // profile 里的文件/目录被系统拒绝写入（Windows `os error 5`「拒绝访问」= ERROR_ACCESS_DENIED /
-  // Node 的 EPERM、EACCES / 英文 `Access is denied`）：占用、只读属性、目录 ACL 或杀软拦截，
-  // 任何插件都装不上。`os error 5` 只认 ASCII 特征 —— 中文原文经 GBK→UTF-8 解码会残缺，
-  // 不能依赖「拒绝访问」四个字
+  // 系统拒绝写 profile（os error 5 / EPERM / EACCES）。ASCII 特征免疫乱码
   if (/os error 5\b|ERROR_ACCESS_DENIED|\bEPERM\b|\bEACCES\b|access is denied/i.test(message)) return 'accessDenied'
-  // 本机文件系统层面根本写不进去：空间耗尽（ENOSPC / no space left on device / Windows os error 112）、
-  // 目标盘或挂载点只读（EROFS / read-only file system / Windows 写保护 os error 19）、
-  // 文件句柄耗尽（EMFILE / ENFILE / too many open files）。都在 pnpm 落盘阶段发生，
-  // 空间不足、盘只读或句柄不够时任何插件都装不进来，不是插件问题 ——
-  // 必须在 network / prepare 之前判：磁盘满时 pnpm 会在日志尾部混着重试与超时特征，
-  // 先判网络会把「本机磁盘写不进去」误报成「你的网络不通」
+  // 文件系统写不进去（ENOSPC/EROFS/EMFILE/ENFILE）。必须在 network 之前判：
+  // 磁盘满时日志尾部混超时特征，先判网络会误报成「网络不通」
   if (/os error 112\b|os error 19\b|ERROR_DISK_FULL|ERROR_WRITE_PROTECT|\bENOSPC\b|\bEROFS\b|\bEMFILE\b|\bENFILE\b|no space left on device|read-only file system|too many open files/i.test(message)) return 'fsUnavailable'
-  // 构建脚本被 pnpm 白名单（allowBuilds）拦截：插件的 prepare 脚本或依赖里的原生模块构建
-  // 被默认拒绝（ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED / ERR_PNPM_IGNORED_BUILDS）。
-  // 这类错误出现即说明 pnpm 已成功 fetch 到 tarball（网络是通的），主因是插件构建脚本
-  // 被拦 —— 必须在 network 判定之前：日志尾部常混着重试残留的连接失败特征
-  // （ETIMEDOUT / Failed to connect 等），若先判网络会把「插件分发问题」误报成「你的网络不通」。
+  // 构建脚本被 allowBuilds 拦截。必须在 network 之前判：日志尾部混重试残留的连接失败特征
   if (/ERR_PNPM_IGNORED_BUILDS|Ignored build scripts:|ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED/i.test(message)) return 'pnpmIgnoredBuild'
-  // 网络问题（服务端 [network] 标记，或安装日志里的连接失败特征：git fetch 失败、
-  // 连接超时/拒绝/重置、DNS 解析失败、TLS/SSL 握手失败，或 registry tarball 拉取失败
-  // —— `fetch failed` / `GET https://…/-/…tgz error (n)` 是 pnpm 下载包文件时的网络层失败，
-  // 常见于本机 npm/pnpm registry 被指向内网/自定义源而取不到包）—— 是本机网络/代理/源
-  // 配置问题，不是插件问题。必须在 prepare/Command failed 判定之前：git fetch 失败常被
-  // 外层包成 "Command failed: git fetch ..."，先按网络特征归类才不会误判成插件问题。
-  // 404 类「目标不存在」不含这些特征，仍归 repo（那是仓库/包的问题）。
-  // 注意：fetch failed 只在 pnpm 拉取阶段出现；prepare/构建已跑起来（tarball 到手）的
-  // 插件问题不带此特征，不会误伤（allowBuilds 拦截在上一分支先判）。
-  // `Failed to fetch` 是浏览器 fetch 的 TypeError（词序与 Node 的 fetch failed 相反）：界面
-  // 请求根本没送达宿主服务（宿主未就绪/正在重启、本地代理拦了回环地址）。
+  // 网络/代理/源配置问题。必须在 prepare 之前判：git fetch 失败常被外层包成 "Command failed"
   if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \(\d+\)/i.test(message)) return 'network'
-  // 装后校验拦截（服务端 verifyInstalledEntry 标记）：入口文件缺失 = git 分发缺构建产物，
-  // 与 pluginPrepare 同类（插件打包/分发问题），引导去仓库提 Issue
+  // 装后校验发现入口文件缺失（[packaging]）= git 分发缺构建产物
   if (/\[packaging\]|entry file missing/i.test(message)) return 'pluginPrepare'
-  // 依赖在 registry 上不存在（`ERR_PNPM_FETCH_404` / `Not Found - 404`）：pnpm 连得上 registry，
-  // 是被明确告知「这个包不存在」—— 属于 profile 的本地依赖问题，不是插件问题。profile 里留着
-  // 一条指向未发布包的依赖条目时，该 profile 的**任何**安装都会先卡在这条依赖上。
-  // 必须在 pluginPrepare 之前判定：此时宿主尾部只有通用的 `dsh: plugin command failed`，
-  // 落到下面会被当成构建失败。
-  // （两个形态：pnpm 的 `[ERR_PNPM_FETCH_404] GET <url>: Not Found - 404` 与 npm 的
-  //   `npm error 404 Not Found - GET <url> - Not found`）
+  // registry 上不存在的依赖（404），profile 任何安装都会卡在这条。必须在 pluginPrepare 之前判
   if (/ERR_PNPM_FETCH_404|404 Not Found|Not Found - 404/i.test(message)) return 'pnpmMissingDep'
-  // 要装的版本在「实际执行安装的那个源」里查不到（ERR_PNPM_NO_MATCHING_VERSION / ETARGET /
-  // `No matching version found for <pkg>@<ver>`）：与 FETCH_404 同属「registry 侧的缺失」，
-  // 但更常见的是**镜像滞后** —— 反查包名走的是设置里的 npmRegistry，实际安装却沿用本机
-  // ~/.npmrc 的源，官方源刚发布、镜像还没同步时就会命中；
-  // 也可能只是版本号写错。都不是插件作者的问题，不能落 repo 兜底推给作者仓库。
-  // 与 404 一样必须在 pluginPrepare 之前判定（尾部往往只有通用的 `dsh: plugin command failed`）。
+  // 要装的版本在实际安装源里没有（镜像滞后或版本写错）。必须在 pluginPrepare 之前判
   if (/\bERR_PNPM_NO_MATCHING_VERSION\b|\bETARGET\b|No matching version found/i.test(message)) return 'registryVersionStale'
-  // profile 里留着一条指向**不存在目录**的本地依赖（link: / file:）（ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND /
-  // `Could not install from "<path>" as it does not exist`）—— 常见于用 `dsh plugin add <本地路径>`
-  // 或 link: 装过开发中的插件，之后那个目录被删除/移动。pnpm 每次解析 profile 依赖都会先卡在它上面，
-  // 与本次要装的插件无关，不是插件作者的问题。必须在 pluginPrepare 之前判定。
+  // profile 残留指向不存在目录的本地依赖（link:/file:）。必须在 pluginPrepare 之前判
   if (/\bERR_PNPM_LINKED_PKG_DIR_NOT_FOUND\b|Could not install from .+ as it does not exist/i.test(message)) return 'pnpmLinkedDirMissing'
-  // 再判 prepare 实际执行失败：只有构建脚本真的跑挂了才是插件问题。
-  // `Command failed` 区分大小写 —— 只匹配 pnpm 包装出的报错，不匹配宿主那句小写的
-  // `dsh: plugin command failed`（那只是「这条命令失败了」的通用说明）。
+  // 构建脚本真的跑挂了才算插件问题。Command failed 区分大小写：只匹配 pnpm 的包装，
+  // 不匹配宿主那句小写 dsh: plugin command failed
   if (/ERR_PNPM_PREPARE_PACKAGE|ELIFECYCLE|prepare-guard/i.test(message) || /Command failed/.test(message)) return 'pluginPrepare'
-  // 其余失败（含 git prepare 被 pnpm 白名单拦截）：当前通道装不上 = 插件分发/依赖的问题，一律提 Issue
-  return 'repo'
+  // 其余未知失败：引导到插件中心仓库排查
+  return 'hub'
 }
 
 /** 从服务端 `[npm-too-low]` 标记行提取本机 npm 版本（如 `[npm-too-low] npm@11.3.0` → "11.3.0"）；

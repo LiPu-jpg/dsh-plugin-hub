@@ -16,7 +16,7 @@ import type { EnvInfo, HubPlugin, TaskState, ToastState, Translate } from '../..
 import { CloseIcon, ConfirmIcon, CopyIcon, LinkIcon } from '../ui/icons.tsx'
 import { ProgressView } from './ProgressView.tsx'
 import { installCommandOf } from '../../logic/install-command.ts'
-import { pluginDetailUrl, pluginIssueUrl, pluginSiteUrl } from '../../logic/urls.ts'
+import { pluginDetailUrl, pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
 
 /** 完成结果视图：绿色对勾 + 标题/描述；
@@ -205,7 +205,9 @@ export function InstallModal(props: InstallModalProps) {
               disabled: busy,
               onClick: onCopy,
             }, t('copyInstallCommand')),
-            h('button', {
+            // 命令行插件（webInstallable=false）：网页端无法可靠代执行（如 npx 安装器），
+            // 只给复制命令，不提供一键安装，避免装成无效插件
+            cliOnly ? null : h('button', {
               className: styles.modalInstall,
               disabled: busy,
               onClick: onInstall,
@@ -402,20 +404,16 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
             ? h('div', { className: styles.failPrepareHint },
               t(npmVersion ? 'failNpmTooLowV' : 'failNpmTooLow', npmVersion ? { v: npmVersion } : undefined))
             : failureKind === 'dshMissing'
-              // 找不到 dsh 命令（Win「不是内部或外部命令」/ POSIX「command not found」/ spawn ENOENT）：
-              // 本机 DeepSeek Harness 未正确安装或 dsh 不在 PATH，不是插件问题 —— 直接给环境修复指引，不引导提 Issue
+              // 本机缺 dsh，不是插件问题
               ? h('div', { className: styles.failPrepareHint }, t('failDshMissingHint'))
               : failureKind === 'gitMissing'
-              // 找不到 git 命令（Win「'git' is not recognized」/ POSIX「git: command not found」/ spawn ENOENT）：
-              // 本机 Git 未安装或不在 PATH，不是插件问题 —— 直接给环境修复指引，不引导提 Issue
+              // 本机缺 git，不是插件问题
               ? h('div', { className: styles.failPrepareHint }, t('failGitMissingHint'))
               : failureKind === 'pnpmMissing'
-              // 找到了 dsh 但缺 pnpm（dsh 用它管理 profile 插件；dsh 报 pnpm not found on PATH）：
-              // 本机缺 pnpm，不是插件问题 —— 给安装指引，不引导提 Issue
+              // 本机缺 pnpm，不是插件问题
               ? h('div', { className: styles.failPrepareHint }, t('failPnpmMissingHint'))
               : failureKind === 'npmMissing'
-              // 全局 npm 安装通道 spawn 的 npm 找不到（Win「'npm' is not recognized」/ POSIX
-              // 「npm: command not found」/ spawn ENOENT）：本机 npm 未安装或不在 PATH —— 给安装指引，不引导提 Issue
+              // 本机缺 npm，不是插件问题
               ? h('div', { className: styles.failPrepareHint }, t('failNpmMissingHint'))
               : failureKind === 'pnpmWorkspace'
               // pnpm 拒绝把依赖装到 workspace 根目录（ERR_PNPM_ADDING_TO_ROOT）：宿主在 profile 目录
@@ -458,16 +456,13 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
               // 与本次要装的插件无关 —— 给删除悬空条目的指引，不引导提 Issue
               ? h('div', { className: styles.failPrepareHint }, t('failPnpmLinkedDirMissingHint'))
               : failureKind === 'fileLocked'
-              // profile 里的文件被其他进程占用（Windows os error 32）：pnpm 无法替换被占用的文件，
-              // 通常是宿主或杀毒软件持有句柄 —— 给退出宿主的指引，不引导提 Issue
+              // profile 文件被其他进程占用
               ? h('div', { className: styles.failPrepareHint }, t('failFileLockedHint'))
               : failureKind === 'accessDenied'
-              // profile 里的文件被系统拒绝写入（Windows os error 5「拒绝访问」/ EPERM / EACCES）：
-              // 占用、只读属性、目录 ACL 或杀软拦截 —— 同样给退出宿主/检查权限的指引，不引导提 Issue
+              // 系统拒绝写 profile
               ? h('div', { className: styles.failPrepareHint }, t('failAccessDeniedHint'))
               : failureKind === 'fsUnavailable'
-              // 本机磁盘写不进去（ENOSPC / EROFS / EMFILE 及 Windows os error 112、19）：
-              // 空间不足、盘只读、句柄耗尽，任何插件都装不进来 —— 按子场景给指引，不引导提 Issue
+              // 磁盘写不进去
               ? h('div', { className: styles.failPrepareHint }, t('failFsUnavailableHint'))
               : failureKind === 'originRejected'
               // 请求来源没通过本地 hub 服务的校验（服务端 403 untrusted origin）：请求根本没进
@@ -489,13 +484,11 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                   onClick: onRunDiagnostics,
                 }, t('failNetworkRunDiag')) : null,
               ])
-              : failureKind === 'pluginPrepare' || failureKind === 'pnpmIgnoredBuild'
+              : failureKind === 'pluginPrepare'
               ? h('div', null, [
                 // [packaging]（预检/装后校验拦截：git 分发缺产物）与
-                // prepare 构建脚本实际执行失败 / 原生依赖构建被 pnpm 拦截：都是插件打包分发问题 —— 先说明原因，按钮在下方提交
-                h('div', { className: styles.failPrepareHint }, failureKind === 'pnpmIgnoredBuild'
-                  ? t('failIgnoredBuild')
-                  : /\[packaging\]/i.test(message) ? t('failPackagingHint') : t('failPrepareHint')),
+                // prepare 构建脚本实际执行失败：唯一确有证据的插件打包分发问题 —— 引导到插件仓库提 Issue
+                h('div', { className: styles.failPrepareHint }, /\[packaging\]/i.test(message) ? t('failPackagingHint') : t('failPrepareHint')),
                 repo ? h('a', {
                   className: styles.failBigIssue,
                   href: pluginIssueUrl(repo, message, env, command, attempts),
@@ -504,13 +497,19 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                   title: t('failIssueHint'),
                 }, t('failIssueBig')) : null,
               ])
-              : repo ? h('a', {
-                className: styles.failBigIssue,
-                href: pluginIssueUrl(repo, message, env, command, attempts),
-                target: '_blank',
-                rel: 'noopener noreferrer',
-                title: t('failIssueHint'),
-              }, t('failIssueBig')) : null,
+              : h('div', null, [
+                // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
+                failureKind === 'pnpmIgnoredBuild'
+                  ? h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild'))
+                  : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint')),
+                h('a', {
+                  className: styles.failBigIssue,
+                  href: hubIssueUrl(repo, message, env, command, attempts),
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  title: t('failHubIssueHint'),
+                }, t('failHubIssueBig')),
+              ]),
         ),
         h('div', { className: styles.modalActions },
           h('button', { className: styles.restartLater, onClick: onClose }, t('errorClose')),

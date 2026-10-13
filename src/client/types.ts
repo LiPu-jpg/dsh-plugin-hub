@@ -116,7 +116,7 @@ export interface HubUpdateInfo {
  *  - `pending`   远端有更新但发布未满门槛（见 useCatalog）→ 暂缓提示并说明原因
  *  - `latest`    与远端最新版一致 → 确已最新
  * 「有新版但暂缓提示」必须与「确已最新」分开：两者若共用文案，弹窗会在本机版本落后时
- * 谎称「你正在使用 v{远端最新版}，已是最新」（见 issue #145）。
+ * 谎称「你正在使用 v{远端最新版}，已是最新」。
  */
 export type HubUpdateState = 'none' | 'available' | 'pending' | 'latest'
 

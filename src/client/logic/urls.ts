@@ -8,7 +8,7 @@
  * URL stays within GitHub's 8192-byte request limit.
  */
 import type { EnvInfo, HubPlugin, LocaleId } from '../types.ts'
-import { GITHUB_URL, PLUGIN_VERSION, SITE_URL } from './constants.ts'
+import { GITHUB_URL, HUB_REPO, PLUGIN_VERSION, SITE_URL } from './constants.ts'
 import { MAX_CORE_CHARS, classifyFailure, coreErrorCode, pnpmPolicyHintOf, summarizeError } from './failures.ts'
 import { executedCommandOf } from './install-command.ts'
 import type { FailureKind } from './failures.ts'
@@ -63,6 +63,7 @@ function reasonTitleOf(kind: FailureKind): string {
     case 'pnpmIgnoredBuild': return 'build scripts blocked by pnpm allowlist'
     case 'pluginPrepare': return 'plugin distribution incomplete'
     case 'network': return 'network failure on the user side'
+    case 'hub': return 'install failed (cause unclassified)'
     default: return 'plugin install failed'
   }
 }
@@ -172,6 +173,74 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
     return `https://github.com/${repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`
   }
   // GitHub 请求行上限 8192 字节：先用宽松预算（最多 ~5K 核心错误）构建，超长再逐档缩小，保证最终 URL 不超限
+  const MAX_URL_CHARS = 7600
+  let url = build(MAX_CORE_CHARS)
+  if (url.length > MAX_URL_CHARS) {
+    for (const budget of [4000, 2500, 1400, 800, 400]) {
+      url = build(budget)
+      if (url.length <= MAX_URL_CHARS) break
+    }
+  }
+  return url
+}
+
+/**
+ * 插件中心自身仓库的预填 Issue 链接：用于「非插件侧」失败（无法识别的未知原因、
+ * 以及 pnpm allowBuilds 拦截这类不再归到插件作者的情形）。正文带上目标插件与完整
+ * 错误摘要，供插件中心维护者分诊 —— 不再把环境问题/插件中心自身问题误投给插件作者。
+ */
+export function hubIssueUrl(pluginRepo: string | null, message: string, env?: EnvInfo | null, command?: string, attempts?: string[]): string {
+  const kind = classifyFailure(message)
+  const executed = executedCommandOf(command, attempts)
+  const repo = pluginRepo && pluginRepo.trim() !== '' ? pluginRepo.trim() : 'unknown'
+  const title = `[dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`
+  const code = coreErrorCode(message)
+  const build = (coreChars: number): string => {
+    const body = [
+      '## Summary',
+      `- Auto-classified cause: ${reasonTitleOf(kind)}`,
+      `- Target plugin: \`${repo}\``,
+      ...(code ? [`- Key error: \`${code}\``] : []),
+      // 为什么投递到这里而非插件仓库：只有确有证据是插件自身构建失败（pluginPrepare）才投插件仓库
+      '- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage.',
+      '',
+      `## [DSH Plugin 插件市场](${SITE_URL}) · 安装 Plugin 失败错误信息`,
+      `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次安装失败一并提交。`,
+      `- 实际执行的安装命令：${executed ? `\`${executed}\`` : 'unknown (no executed command recorded)'}`,
+      `- 执行结果：安装失败，未能安装该插件。`,
+      ...(attempts && attempts.length > 0
+        ? ['', '## Attempted install channels（已尝试的安装方式）', ...attempts.map((a) => `- ${a}`)]
+        : []),
+      '',
+      '## Environment',
+      `- Plugin: \`${repo}\``,
+      ...(env
+        ? [
+          `- DSH: ${env.dshVersion ? `v${env.dshVersion}` : 'unknown'}`,
+          `- Plugin Hub: v${PLUGIN_VERSION}`,
+          `- Node: ${env.nodeVersion}`,
+          `- pnpm: ${env.pnpmVersion ? `v${env.pnpmVersion}` : 'unknown'}`,
+          `- npm: ${env.npmVersion ? `v${env.npmVersion}` : 'unknown'}`,
+          `- git: ${env.gitVersion ? `v${env.gitVersion}` : 'unknown'}`,
+          `- OS: ${env.platform} ${env.arch} (${env.release})`,
+          `- Profile: \`${env.profile}\``,
+          `- DSH Home: \`${env.dshHome}\``,
+          `- Full log: \`~/.dsh/profiles/${env.profile}/hub.log\` (paste or attach for the full output)`,
+        ]
+        : []),
+      ...(repo !== 'unknown' ? [`- Catalog: [${pluginSiteUrl(repo)}](${pluginSiteUrl(repo)})`] : []),
+      '',
+      '## Error (core)',
+      '',
+      '```',
+      summarizeError(message, coreChars),
+      '```',
+      '',
+      '---',
+      `This error was produced by the [dsh-plugin-hub](${GITHUB_URL}) installer bundled with DeepSeek Harness.`,
+    ].join('\n')
+    return `https://github.com/${HUB_REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`
+  }
   const MAX_URL_CHARS = 7600
   let url = build(MAX_CORE_CHARS)
   if (url.length > MAX_URL_CHARS) {

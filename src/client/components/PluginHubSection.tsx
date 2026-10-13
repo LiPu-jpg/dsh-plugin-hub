@@ -460,6 +460,9 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
             // 支持系统文件管理器定位的平台（macOS / Linux）上，行内「打开详情」替换为
             // 打开安装目录按钮（行点击本身即打开详情弹窗）；Windows 不支持则按钮不显示
             platform: env?.platform ?? '',
+            // 待重启列表（owner/repo）：用于区分「待重启」与「已重启仍加载失败」，
+            // 后者不再无限显示「重启」，改为「未激活」灰点
+            pendingRestarts: queue.pendingRestarts.map((p) => p.target),
             // 行点击 / 详情按钮：打开已安装详情弹窗（完整元数据 + 运行时信息）
             onOpenDetail: (item) => setDetailItem(item),
             onReveal: (item) => { void revealFolder(item) },

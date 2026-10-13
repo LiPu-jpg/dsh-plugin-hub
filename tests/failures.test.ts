@@ -239,7 +239,7 @@ test('classifyFailure: a stale pnpm patch entry on the machine is an environment
   ].join('\n')
   assert.equal(classifyFailure(msg), 'pnpmUnusedPatch')
   // 不能被 repo 兜底吞掉：旧逻辑会把 #48 误报成「插件侧安装失败」引导去提 Issue
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 只带说明句（无错误码）也要能归到 pnpmUnusedPatch，且优先于「Command failed」的插件侧判定
   assert.equal(classifyFailure('The following patches were not used: dsh-plugin@1.4.2\nCommand failed: pnpm add'), 'pnpmUnusedPatch')
 })
@@ -253,7 +253,7 @@ test('classifyFailure: a locked file inside the profile is an environment issue 
     'dsh: pnpm failed in profile directory C:\\Users\\ZeKun\\.dsh\\profiles\\web',
   ].join('\n')
   assert.equal(classifyFailure(msg), 'fileLocked')
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 其他形态的占用报错（EBUSY / 英文原句）同样归到 fileLocked
   assert.equal(classifyFailure('EBUSY: resource busy or locked, rename ...'), 'fileLocked')
   assert.equal(classifyFailure('Error: the process cannot access the file because it is being used by another process'), 'fileLocked')
@@ -269,7 +269,7 @@ test('classifyFailure: a write access denial inside the profile is an environmen
     'dsh: pnpm failed in profile directory C:\\Users\\Administrator\\AppData\\Roaming\\Deepseek-Harness-Desktop\\dsh-home\\profiles\\web',
   ].join('\n')
   assert.equal(classifyFailure(msg), 'accessDenied')
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 语义与 os error 32（文件被占用）不同，不能被 fileLocked 分支抢走
   assert.notEqual(classifyFailure(msg), 'fileLocked')
   // Node 层的权限码与 Windows 英文原句同样归到 accessDenied
@@ -290,7 +290,7 @@ test('classifyFailure: a file system that cannot accept writes is an environment
   // Windows 形态：只认 ASCII 错误码（中文原文经 GBK→UTF-8 解码会残缺）
   assert.equal(classifyFailure('write: There is not enough space on the disk. (os error 112)'), 'fsUnavailable')
   assert.equal(classifyFailure('mkdir: The media is write protected. (os error 19)'), 'fsUnavailable')
-  assert.notEqual(classifyFailure('Error: ENOSPC: no space left on device, write'), 'repo')
+  assert.notEqual(classifyFailure('Error: ENOSPC: no space left on device, write'), 'pluginPrepare')
   // 磁盘满时 pnpm 日志尾部常混着超时/重试特征，不能被 network 抢走
   assert.notEqual(classifyFailure('Error: ENOSPC: no space left on device\nETIMEDOUT'), 'network')
   // 不能被后续分支抢走：普通安装失败仍归插件侧（避免新分支过宽）
@@ -300,7 +300,7 @@ test('classifyFailure: a file system that cannot accept writes is an environment
 test('classifyFailure: the browser "Failed to fetch" on the host request is an environment issue (issue #45), not a plugin issue', () => {
   const msg = '安装失败 — Failed to fetch'
   assert.equal(classifyFailure(msg), 'network')
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
 })
 
 test('classifyFailure: a dependency missing from the registry is an environment issue (issue #73), not a plugin issue', () => {
@@ -314,7 +314,7 @@ test('classifyFailure: a dependency missing from the registry is an environment 
   assert.equal(classifyFailure(msg), 'pnpmMissingDep')
   // 不能把 Issue 误挂到正在安装的插件上
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 404 是「包不存在」，不是网络不通
   assert.notEqual(classifyFailure(msg), 'network')
   // npm 通道的同类报错（`npm error 404 Not Found - GET …`）同样归到这里
@@ -330,7 +330,7 @@ test('classifyFailure: a version missing from the install registry is an environ
     'dsh: plugin command failed; diagnostics: /x/.plugin-manager/logs/operation-Xn3nTz/pnpm.log',
   ].join('\n')
   assert.equal(classifyFailure(msg), 'registryVersionStale')
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // npm 通道的 ETARGET / 描述句（无 ERR_ 前缀）同样归到这里
   assert.equal(classifyFailure('npm error code ETARGET\nnpm error notarget No matching version found for foo@9.9.9'), 'registryVersionStale')
   assert.equal(classifyFailure('No matching version found for dsh-plugin@1.9.9'), 'registryVersionStale')
@@ -345,7 +345,7 @@ test('classifyFailure: the 24h release-age gate (ERR_PNPM_NO_MATURE_MATCHING_VER
     'dsh: plugin command failed; diagnostics: /x/.plugin-manager/logs/operation-Xn3nTz/pnpm.log',
   ].join('\n')
   assert.equal(classifyFailure(msg), 'pnpmPolicy')
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
 })
 
 test('pnpmPolicyHintOf: minimumReleaseAge via ERR_PNPM_NO_MATURE_MATCHING_VERSION yields the exact retry time', async () => {
@@ -363,7 +363,7 @@ test('classifyFailure: a dangling local (link:) dependency in the profile is an 
     'dsh: plugin command failed; diagnostics: C:\\Users\\23812\\.dsh\\profiles\\desktop\\.plugin-manager\\logs\\operation-cuaKvy\\pnpm.log',
   ].join('\n')
   assert.equal(classifyFailure(msg), 'pnpmLinkedDirMissing')
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 无 ERR_ 前缀、只有描述句时同样归到这里
   assert.equal(classifyFailure('Could not install from "/tmp/gone-plugin" as it does not exist'), 'pnpmLinkedDirMissing')
 })
@@ -371,7 +371,7 @@ test('classifyFailure: a dangling local (link:) dependency in the profile is an 
 test('classifyFailure: the host tail alone (lowercase `command failed`) is not a prepare failure', () => {
   // 宿主尾部提示是小写的 `dsh: plugin command failed`，只是「这条命令失败了」的通用说明，
   // 不算构建脚本失败
-  assert.equal(classifyFailure('something unexpected\ndsh: plugin command failed; diagnostics: /tmp/pnpm.log'), 'repo')
+  assert.equal(classifyFailure('something unexpected\ndsh: plugin command failed; diagnostics: /tmp/pnpm.log'), 'hub')
   // pnpm 真正包出来的 `Command failed: …`（大写 C）仍按 prepare 失败处理
   assert.equal(classifyFailure('Command failed: pnpm add some-plugin'), 'pluginPrepare')
 })
@@ -390,9 +390,9 @@ test('missingRegistryPackageOf extracts the 404 package name (scoped too), null 
   assert.equal(missingRegistryPackageOf(''), null)
 })
 
-test('classifyFailure: generic install failure falls back to repo', () => {
-  assert.equal(classifyFailure('network error while fetching'), 'repo')
-  assert.equal(classifyFailure(''), 'repo')
+test('classifyFailure: generic install failure falls back to hub', () => {
+  assert.equal(classifyFailure('network error while fetching'), 'hub')
+  assert.equal(classifyFailure(''), 'hub')
 })
 
 test('unreachableTargetOf extracts the exact unreachable address for the dialog', () => {
@@ -424,12 +424,12 @@ test('classifyFailure: registry tarball download failure is a network/registry i
   // 只有 TypeError: fetch failed（pnpm 各版本输出形态不同）也要能归到 network
   assert.equal(classifyFailure('TypeError: fetch failed\ndsh: pnpm failed in profile directory /Users/x/.dsh/profiles/web'), 'network')
   // 不能被 repo 兜底吞掉：旧逻辑会把 #32 误报成「插件侧安装失败」引导去提 Issue
-  assert.notEqual(classifyFailure(msg), 'repo')
+  assert.notEqual(classifyFailure(msg), 'pluginPrepare')
 })
 
-test('classifyFailure: generic "network error while fetching" without the tarball markers stays repo', () => {
-  // 不加面过宽的词：只有描述性文本时仍按插件问题兜底（防止误伤真实插件侧报错）
-  assert.equal(classifyFailure('network error while fetching'), 'repo')
+test('classifyFailure: generic "network error while fetching" without the tarball markers stays hub', () => {
+  // 不加面过宽的词：只有描述性文本时仍按未知原因兜底（防止误伤真实插件侧报错）
+  assert.equal(classifyFailure('network error while fetching'), 'hub')
 })
 
 test('registryHostOf reports a private/internal registry host, null for official or public mirrors', () => {
@@ -539,9 +539,9 @@ test('missing tarball integrity is a pnpm policy rejection with specific recover
   assert.equal(pnpmPolicyHintOf(message), 'failPnpmTarballIntegrityHint')
   assert.equal(pnpmPolicyHintOf('ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION'), 'failPnpmPolicyHint')
   assert.equal(pnpmPolicyHintOf('ERR_PNPM_TARBALL_INTEGRITY checksum mismatch'), 'failPnpmPolicyHint')
-  assert.equal(classifyFailure('ERR_PNPM_TARBALL_INTEGRITY checksum mismatch'), 'repo')
-  assert.equal(classifyFailure('a plugin says its integrity is missing'), 'repo')
-  assert.equal(classifyFailure('ERR_PNPM_MISSING_TARBALL_INTEGRITY_OTHER'), 'repo')
+  assert.equal(classifyFailure('ERR_PNPM_TARBALL_INTEGRITY checksum mismatch'), 'hub')
+  assert.equal(classifyFailure('a plugin says its integrity is missing'), 'hub')
+  assert.equal(classifyFailure('ERR_PNPM_MISSING_TARBALL_INTEGRITY_OTHER'), 'hub')
 })
 
 test('minimum release age rejection gets its own hint with the exact retry time', async () => {

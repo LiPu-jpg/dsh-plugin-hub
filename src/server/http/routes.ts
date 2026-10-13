@@ -284,7 +284,7 @@ function sendJson(response: ServerResponse, status: number, value: unknown): voi
 }
 
 /** 本机回环主机名：`localhost` / `127.0.0.1` / `[::1]` 指向同一台机器的同一个端口，
- *  字符串不同但同源，必须按同一来源比较（dsh-plugin-hub#72）。 */
+ *  字符串不同但同源，必须按同一来源比较。 */
 const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
 
 /** 把 `host[:port]` 形式的 authority 归一化成 `loopback:端口` —— 三个回环别名
@@ -310,7 +310,7 @@ export function isSameOrigin(request: IncomingMessage): boolean {
   if (hostKey === null) return false
   const origin = request.headers.origin
   // 桌面端宿主把 `/dsh-plugin-hub/*` 转发给本地 http server 时可能不带 Origin 头，
-  // 此时所有 POST 都会被判成 untrusted origin（dsh-plugin-hub#72）。浏览器对 POST 请求
+  // 此时所有 POST 都会被判成 untrusted origin。浏览器对 POST 请求
   // 必定携带 Origin（含同源 POST 与跨站表单），能省略该头的只有本机原生客户端，
   // 而它们本来就能伪造任意 Origin，因此放行不扩大 CSRF 面。
   if (origin === undefined || origin === '') return true
@@ -825,7 +825,7 @@ export function mountPluginHubRoutes(webServer: WebServerService, profile: strin
           const gitRepo = githubRepoOf(rawRepo)
           const release = githubReleaseTarget(rawRepo)
           // 显式 pin 的 Git ref（`#tag` / `#commit`）是用户意图：保留它，且不让 npm 反查
-          // 把这个精确修订换成 registry 上的默认版本（见 issue #130）。
+          // 把这个精确修订换成 registry 上的默认版本。
           const pinnedRef = githubRefOf(rawRepo)
           const repoTarget = gitRepo !== null && release === null ? githubTarget(gitRepo, pinnedRef) : null
           let target: string | null = release?.target ?? repoTarget ?? (validPackageName(rawRepo) ? rawRepo : null)
@@ -872,7 +872,7 @@ export function mountPluginHubRoutes(webServer: WebServerService, profile: strin
           // 反查本身计入「已尝试的安装方式」：组织 scope 与 GitHub 用户名不一致时仅凭
           // 仓库名猜不到包名，失败提 Issue 时作者看到我们查过的命令就能直接指认正确包名。
           // 显式 pin 了 Git ref 时跳过 npm 反查：用户要的就是那个精确修订，
-          // 不能用 registry 上的默认版本覆盖它（issue #130）。
+          // 不能用 registry 上的默认版本覆盖它。
           if (repoTarget !== null && pinnedRef === null) {
             // 反查/记录统一用归一化后的 owner/repo（gitRepo），保证「输入完整链接」也走同一套 npm 反查
             const repoIdentity = gitRepo ?? rawRepo
@@ -933,8 +933,8 @@ export function mountPluginHubRoutes(webServer: WebServerService, profile: strin
               : `${(settings.npmRegistry.replace(/\/+$/, '') || 'https://registry.npmjs.org')}/`
             // git 通道的探针换成克隆握手本身：git ls-remote 走的就是 pnpm 克隆前的同一套
             // https 传输。curl 打 github.com 主页会被按协议/端口区分的防火墙与 TLS 复检
-            // 拦截（能 git 克隆、打不开网页），把可装的仓库误判成 [network] 而中止
-            // （见 issue #71）。握手失败时再用 curl 复核一次主页连通性：只有两者都不通
+            // 拦截（能 git 克隆、打不开网页），把可装的仓库误判成 [network] 而中止。
+            // 握手失败时再用 curl 复核一次主页连通性：只有两者都不通
             // 才判「网络不通」；仅握手失败（仓库不存在、私有仓库、需要凭据）放行，
             // 交给后续预检与真实安装给出准确原因。
             // 探针只握手仓库本身（去掉 git+ 前缀与 #ref 片段）：ls-remote 认的是仓库地址，

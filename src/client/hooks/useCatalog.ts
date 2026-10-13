@@ -204,7 +204,7 @@ export function useCatalog(lang: LocaleId) {
    * 另加 pnpm 供应链安全门槛：新版本发布还不满 24 小时（+30 分钟缓冲）时，pnpm 会静默
    * 回退到旧版本，此时若提示「可更新」用户点了也更新不到。publishedAt 由接口中心按 npm
    * registry 真实发布时间下发（同源），据此判断最准。门槛命中要单列成 `pending` 而不是
-   * 落回「无更新」——回落会让弹窗在本机版本落后时谎称「已是最新」（issue #145）。
+   * 落回「无更新」——回落会让弹窗在本机版本落后时谎称「已是最新」。
    */
   const hubCurrentVersion = PLUGIN_VERSION || versions[HUB_REPO]?.version || ''
   const hubUpdateState: HubUpdateState = (() => {
