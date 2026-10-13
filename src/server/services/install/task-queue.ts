@@ -58,12 +58,30 @@ export function activeTask(): ActiveTaskInfo[] {
   for (const item of queue) {
     const task = item.task
     if (task.status === 'pending') {
-      found.push({ id: task.id, target: show(task), action: task.action, status: 'pending', progress: task.progress, lines: task.lines.slice(0, MAX_TASK_LINES), attempts: task.attempts, installChannel: task.installChannel })
+      found.push({
+        id: task.id,
+        target: show(task),
+        action: task.action,
+        status: 'pending',
+        progress: task.progress,
+        lines: task.lines.slice(0, MAX_TASK_LINES),
+        attempts: task.attempts,
+        installChannel: task.installChannel,
+      })
     }
   }
   tasks.forEach((task) => {
     if (task.status === 'running') {
-      found.unshift({ id: task.id, target: show(task), action: task.action, status: 'running', progress: task.progress, lines: task.lines.slice(0, MAX_TASK_LINES), attempts: task.attempts, installChannel: task.installChannel })
+      found.unshift({
+        id: task.id,
+        target: show(task),
+        action: task.action,
+        status: 'running',
+        progress: task.progress,
+        lines: task.lines.slice(0, MAX_TASK_LINES),
+        attempts: task.attempts,
+        installChannel: task.installChannel,
+      })
     }
   })
   return found
@@ -269,7 +287,22 @@ export function startPluginMutation(options: {
   // 卸载入队时先快照「该包是否带客户端 UI」：卸载完成后包已从磁盘删除，读不到 package.json，
   // 只能在此刻取；卸载成功且曾存活时据此决定是否要刷新页面摘除插件面板
   const hadClientUi = options.action === 'remove' ? hasClientUi(options.profile, options.target) : undefined
-  const task: InstallTask = { id: nextTaskId, target: options.target, displayTarget: options.displayTarget, globalNpm: options.globalNpm, action: options.action, status: 'pending', timedOut: false, exitCode: null, progress: 0, lines: [], attempts: options.attempts ?? [], needsRestart: false, hadClientUi, installChannel: options.installChannel }
+  const task: InstallTask = {
+    id: nextTaskId,
+    target: options.target,
+    displayTarget: options.displayTarget,
+    globalNpm: options.globalNpm,
+    action: options.action,
+    status: 'pending',
+    timedOut: false,
+    exitCode: null,
+    progress: 0,
+    lines: [],
+    attempts: options.attempts ?? [],
+    needsRestart: false,
+    hadClientUi,
+    installChannel: options.installChannel,
+  }
   nextTaskId = nextTaskId >= Number.MAX_SAFE_INTEGER ? 1 : nextTaskId + 1
   tasks.set(task.id, task)
   if (tasks.size > MAX_TASKS) {

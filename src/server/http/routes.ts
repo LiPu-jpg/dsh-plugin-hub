@@ -14,7 +14,23 @@ import { homedir, release } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
 import { fetchViaCurl, gitLsRemote, probeUrl, systemProxy } from '../services/probe.ts'
-import { activeTask, cancelTask, dumpLoaderEntries, getTask, githubRefOf, githubRepoOf, githubTarget, globalNpmPackagesOf, hasQueuedTarget, installTargetOf, listPendingRestarts, readProfileArg, startPluginMutation, validPackageName, type LoaderHandle } from '../services/install/install.ts'
+import {
+  activeTask,
+  cancelTask,
+  dumpLoaderEntries,
+  getTask,
+  githubRefOf,
+  githubRepoOf,
+  githubTarget,
+  globalNpmPackagesOf,
+  hasQueuedTarget,
+  installTargetOf,
+  listPendingRestarts,
+  readProfileArg,
+  startPluginMutation,
+  validPackageName,
+  type LoaderHandle,
+} from '../services/install/install.ts'
 import { githubReleaseTarget } from '../services/install/release-target.ts'
 import { recordInstalledVersion, recordResolvedNpmPackage, readInstalledVersions, removeInstalledVersion } from '../services/profile/installed-versions.ts'
 import { isDshNpmPackageForRepo, resolveNpmPackage } from '../services/install/npm-resolve.ts'

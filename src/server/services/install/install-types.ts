@@ -63,7 +63,15 @@ export interface Invocation {
 /** 排队中的变更任务及其启动参数。 */
 export interface QueueItem {
   task: InstallTask
-  options: { action: 'add' | 'remove' | 'update'; profile: string; target: string; timeoutMs?: number; env?: NodeJS.ProcessEnv; globalNpm?: string[]; installChannel?: 'npm' | 'git' | 'dsh' }
+  options: {
+    action: 'add' | 'remove' | 'update'
+    profile: string
+    target: string
+    timeoutMs?: number
+    env?: NodeJS.ProcessEnv
+    globalNpm?: string[]
+    installChannel?: 'npm' | 'git' | 'dsh'
+  }
 }
 
 /**
