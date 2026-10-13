@@ -1,24 +1,15 @@
-import type { IncomingMessage, ServerResponse } from 'node:http';
-import { readProfileArg, type LoaderHandle } from '../services/install/install.ts';
 /**
- * 宿主是否由桌面应用壳托管（`ELECTRON_RUN_AS_NODE=1`：壳用 Electron 二进制以 Node 模式跑宿主）。
- * 桌面端的宿主归应用壳管，插件重启不了它，也不该去 kill —— 详见 /restart 路由。
+ * DSH Plugin Hub — the community plugin marketplace for DeepSeek Harness.
+ * Website: https://dsh-plugin.org
+ * GitHub: https://github.com/dshplugin/dsh-plugin-hub
+ *
+ * Local HTTP routes exposing real installs to the in-app Plugin Hub UI.
+ * The client fetches the same-origin `/dsh-plugin-hub/*` endpoints; the
+ * install handler validates the target, then spawns the official dsh CLI
+ * (see services/install/install.ts) and reports the captured result back.
  */
-export declare function isDesktopHost(): boolean;
-export interface WebRoute {
-    kind: 'exact';
-    path: string;
-    handler: (request: IncomingMessage, response: ServerResponse) => void | Promise<void>;
-}
-/** The subset of the host web-server service this plugin touches. */
-export interface WebServerService {
-    register(route: WebRoute): () => void;
-}
-/** Read non-official dependencies installed into one profile. */
-export declare function readInstalled(profile: string): Record<string, string>;
-/** POST mutations are only accepted from the local web server origin or the desktop host page.
- *  Exported for tests (tests/routes.test.ts) — the origin check is the whole CSRF defence. */
-export declare function isSameOrigin(request: IncomingMessage): boolean;
+import { type LoaderHandle } from '../services/install/install.ts';
+import { type WebServerService } from './shared.ts';
 /**
  * Register the Plugin Hub API on the host web server and return a disposer.
  * @param webServer - DSH web server service.
@@ -28,4 +19,8 @@ export declare function isSameOrigin(request: IncomingMessage): boolean;
  */
 export declare function mountPluginHubRoutes(webServer: WebServerService, profile: string, loader?: LoaderHandle): () => void;
 /** Profile resolution shared with the client route docs. */
-export { readProfileArg };
+export { readProfileArg } from '../services/install/install.ts';
+/** Re-exported so the host entry (index.ts) keeps importing it from this module. */
+export type { WebServerService } from './shared.ts';
+/** Re-exported so tests/routes.test.ts keeps importing these from this module. */
+export { isDesktopHost, isSameOrigin } from './shared.ts';
