@@ -313,6 +313,18 @@ test('classifyFailure: hub state-guard messages are hubState, not plugin-side (i
   assert.notEqual(classifyFailure('plugin is not installed'), 'hub')
 })
 
+test('classifyFailure: the short "already installed" guard line is hubState, not an unknown failure (issue #193)', () => {
+  // 旧版本守卫在「目标已安装」时返回的整行短消息：已装列表与服务端实读不同步，不是插件问题
+  assert.equal(classifyFailure('already installed: dsh-cuigengji-plugin'), 'hubState')
+  // 前面带一行说明（自定义安装会先加一行入口渠道）时同样命中
+  assert.equal(classifyFailure('some prefix line\nalready installed: dsh-cuigengji-plugin'), 'hubState')
+  // 包名冲突那条带「——」说明，是另一回事，不能按状态不同步提示
+  assert.notEqual(
+    classifyFailure('already installed: dsh-cuigengji-plugin —— mistnest/dsh-cuigengji-plugin 声明的 npm 包名「dsh-cuigengji-plugin」已存在于当前 profile'),
+    'hubState',
+  )
+})
+
 test('classifyFailure: a dependency missing from the registry is an environment issue (issue #73), not a plugin issue', () => {
   // profile 里既存依赖 dsh-our-free-model 在 npm 上不存在：pnpm 解析依赖时先卡在它上面，
   // 日志尾部只有宿主那句通用的 `dsh: plugin command failed`

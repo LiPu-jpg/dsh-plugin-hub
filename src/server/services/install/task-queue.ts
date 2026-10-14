@@ -14,6 +14,7 @@ import { dirname, join, resolve } from 'node:path'
 import type { InstallResult, InstallTask, Invocation, QueueItem } from './install-types.ts'
 import { CAPTURE_LIMIT_BYTES, MAX_TASKS, MAX_TASK_LINES } from './install-types.ts'
 import { npmTooLowMarker } from './npm-check.ts'
+import { backfillOperationLog } from './operation-log.ts'
 import { cleanLine, estimateProgress } from '../profile/progress.ts'
 import type { LoaderHandle } from '../loader.ts'
 import { hasClientUi, isDshPlugin, mountLoadedEntry, removeLoadedEntry } from '../loader.ts'
@@ -774,6 +775,20 @@ export async function runPluginMutation(options: {
         pushLine(options.task, detail)
       }
       return { exitCode: 1, timedOut: false, error: `declared file missing: ${verified.missing}`, stdout: result.stdout, stderr: `${result.stderr}\n${detail}` }
+    }
+  }
+  // DSH 只把一行摘要（`dsh: plugin command failed; diagnostics: <path>`）回显到控制台时，
+  // 控制台里没有任何错误特征，前端只能把失败归为「未知」（issue #192）。这里按该路径回捞
+  // operation 日志尾部补进失败信息：用户直接看到真实报错，自动归类也有据可依。
+  // 只在本就不含任何错误码时回捞 —— pnpm 已把报错回显出来时无需多读一次文件。
+  if (result.exitCode !== 0 && !result.timedOut && !/\bERR_[A-Z0-9_]+\b/.test(`${result.stderr}\n${result.stdout}`)) {
+    const backfilled = backfillOperationLog(`${result.stderr}\n${result.stdout}`)
+    if (backfilled !== null) {
+      if (options.task && options.task.status !== 'cancelled') {
+        pushLine(options.task, '[pnpm log] DSH did not echo pnpm output — recovered the operation log from disk')
+        for (const line of backfilled.split(/\r?\n/)) if (line.trim() !== '') pushLine(options.task, line.trimEnd())
+      }
+      result = { ...result, stderr: `${result.stderr}\n${backfilled}` }
     }
   }
   // npm arborist edgesOut 崩溃 + 本机 npm 版本过低 → 追加 [npm-too-low] 标记，前端据此给准确原因
