@@ -27,7 +27,7 @@ import { HubUpdateModal } from './modals/HubUpdateModal.tsx'
 import { InstalledDetailModal } from './modals/InstalledDetailModal.tsx'
 import { NotificationsModal } from './modals/NotificationsModal.tsx'
 import { addFailure, addSuccess, addUpdateNotice, clearNotifications, ignoreUpdate, loadIgnoredUpdates, loadNotifications, removeNotification, removeUpdateNotice } from '../logic/failures.ts'
-import type { NotificationRecord } from '../logic/failures.ts'
+import type { FailureAction, NotificationRecord } from '../logic/failures.ts'
 import { CatalogHeader } from './layout/CatalogHeader.tsx'
 import { MarketView } from './views/MarketView.tsx'
 import { SectionTabs } from './layout/SectionTabs.tsx'
@@ -114,8 +114,8 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
   const [uninstallNeedsReload, setUninstallNeedsReload] = useState(false)
   /** 结果视图「立即重启」：请求宿主重启后进入等待，服务回来后整页刷新 */
   const [restarting, setRestarting] = useState(false)
-  /** 操作失败完整信息 + 所属插件仓库 + 失败类型（决定弹窗标题「安装失败/卸载失败」）+ 实际执行的安装命令 + 尝试过的安装方式（issue 预填用） */
-  const [errorMsg, setErrorMsg] = useState<{ message: string; repo: string | null; kind: 'install' | 'uninstall'; command?: string; attempts?: string[] } | null>(null)
+  /** 操作失败信息 + 归属仓库 + 动作（决定弹窗标题与上报措辞）+ 命令与尝试记录（issue 预填用） */
+  const [errorMsg, setErrorMsg] = useState<{ message: string; repo: string | null; action: FailureAction; command?: string; attempts?: string[] } | null>(null)
   /** 通知中心记录：localStorage 持久化，每次安装/卸载任务成败都留痕（启动时读回） */
   const [notifications, setNotifications] = useState<NotificationRecord[]>(() => loadNotifications())
   /** 通知中心弹窗：一级导航「设置」tab 后边的铃铛入口按钮打开 */
@@ -173,7 +173,8 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
       // 提 Issue 目标先反查仓库身份：npm 包名能在已安装表/目录里反查到 owner/repo 才保留，
       // 反查不到置 null —— 错误弹窗据此不显示「一键提 Issue」按钮（防提到错误仓库）
       const issueRepo = issueRepoOf(repo ?? '', catalog.installedItems, catalog.plugins)
-      setErrorMsg({ message, repo: issueRepo, kind, command, attempts })
+      // 动作：更新失败要显示「更新失败」，其余按安装/卸载
+      setErrorMsg({ message, repo: issueRepo, action: update ? 'update' : kind, command, attempts })
       // 失败自动写入通知记录：任务在后台结束时没人盯着也能留痕。
       // 存原始 repo（可能只是裸包名）而非反查结果 —— 反查只服务于提 Issue，
       // 通知中心的展示反查由 NotificationsModal 做、查不到会回退显示原始值，
@@ -793,7 +794,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
     errorMsg && h(ErrorModal, {
       message: errorMsg.message,
       repo: errorMsg.repo,
-      kind: errorMsg.kind,
+      action: errorMsg.action,
       command: errorMsg.command,
       attempts: errorMsg.attempts,
       t,

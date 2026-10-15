@@ -46,7 +46,7 @@ test('pluginIssueUrl: 把尝试过的安装方式（npm 反查 + 实际执行命
   ]
   const url = pluginIssueUrl('ccch1mneyyy/dsh-tui', 'prepare failed', null, 'dsh plugin --profile web add git+https://github.com/ccch1mneyyy/dsh-tui.git', attempts)
   const body = decodeURIComponent(url.split('body=')[1])
-  assert.match(body, /## Attempted install channels/)
+  assert.match(body, /## Attempted channels/)
   // 每条尝试都以 markdown 列表项出现在正文里（保留反引号）：作者据此反推正确的 npm 包名
   for (const a of attempts) assert.ok(body.includes(`- ${a}`))
 })
@@ -54,7 +54,7 @@ test('pluginIssueUrl: 把尝试过的安装方式（npm 反查 + 实际执行命
 test('pluginIssueUrl: 无尝试记录时正文不含该段落', () => {
   const url = pluginIssueUrl('owner/repo', 'error xyz')
   const body = decodeURIComponent(url.split('body=')[1])
-  assert.ok(!body.includes('Attempted install channels'))
+  assert.ok(!body.includes('Attempted channels'))
 })
 
 test('pluginIssueUrl: 标题点明错误原因，不再用 Install/Remove 动作词', () => {

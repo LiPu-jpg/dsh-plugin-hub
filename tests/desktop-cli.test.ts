@@ -12,7 +12,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { desktopCliBootstrap } from '../src/server/services/install/task-queue.ts'
+import { desktopCliBootstrap, hostSpawnMarker } from '../src/server/services/install/task-queue.ts'
 
 /** 造一个临时 asar 目录树，返回其 app.asar 根路径；调用方负责清理。 */
 function makeAsar(files: string[]): string {
@@ -74,4 +74,18 @@ test('desktopCliBootstrap: 布局不认识时返回 null，调用方回退原逻
   // 非打包场景（源码/dev 运行）：干脆不进入桌面分支
   assert.equal(desktopCliBootstrap('/usr/local/lib/node_modules/@deepseek-ai/dsh/lib/bin.js'), null)
   assert.equal(desktopCliBootstrap(join(tmpdir(), 'app.asar.bak', 'lib', 'index.js')), null)
+})
+
+test('hostSpawnMarker: 仅「宿主自身入口起不来」打标（#212）', () => {
+  const hostExe = { file: 'D:\\DSH\\DSH Desktop\\DSH Desktop.exe', prefixArgs: [], cwd: '.', useShell: false }
+  assert.equal(
+    hostSpawnMarker(hostExe, Object.assign(new Error('spawn x ENOENT'), { code: 'ENOENT' })),
+    '[host-spawn] the DSH host could not be launched (D:\\DSH\\DSH Desktop\\DSH Desktop.exe: ENOENT)')
+  // PATH 上的 dsh / 全局 npm 各有自己的标记，不重复打
+  assert.equal(hostSpawnMarker({ file: 'dsh', prefixArgs: [], cwd: '.', useShell: true }, Object.assign(new Error('x'), { code: 'ENOENT' })), null)
+  assert.equal(hostSpawnMarker({ file: 'npm', prefixArgs: [], cwd: '.', useShell: true }, Object.assign(new Error('x'), { code: 'ENOENT' })), null)
+  // 其他错误码不算「起不来」
+  assert.equal(hostSpawnMarker(hostExe, Object.assign(new Error('x'), { code: 'EACCES' })), null)
+  assert.equal(hostSpawnMarker(hostExe, new Error('boom')), null)
+  assert.equal(hostSpawnMarker(hostExe, null), null)
 })

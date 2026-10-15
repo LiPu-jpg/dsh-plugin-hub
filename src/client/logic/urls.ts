@@ -9,9 +9,9 @@
  */
 import type { EnvInfo, HubPlugin, LocaleId } from '../types.ts'
 import { GITHUB_URL, HUB_REPO, PLUGIN_VERSION, SITE_URL } from './constants.ts'
-import { MAX_CORE_CHARS, classifyFailure, coreErrorCode, pnpmPolicyHintOf, summarizeError } from './failures.ts'
+import { MAX_CORE_CHARS, actionWordEn, actionWordZh, classifyFailure, coreErrorCode, pnpmPolicyHintOf, summarizeError } from './failures.ts'
 import { executedCommandOf } from './install-command.ts'
-import type { FailureKind } from './failures.ts'
+import type { FailureAction, FailureKind } from './failures.ts'
 
 /** dsh-plugin.org 中文页挂在 /zh/ 前缀下，英文在根路径。 */
 export function langPathOf(lang: LocaleId): string {
@@ -41,18 +41,18 @@ export function pluginSiteUrl(repo: string): string {
   return siteUrl(`plugins/${repo}`)
 }
 
-/** 按失败类型给出简洁的错误原因标题（对外用英文）：
- *  标题直接点明问题出在哪一侧（构建白名单/分发物/本机 npm/网络/插件侧），
- *  让作者与用户扫一眼列表就能分流，而不是笼统的 Install/Remove 动作词。 */
-function reasonTitleOf(kind: FailureKind): string {
+/** 错误原因标题（对外英文）：点明问题出在哪一侧，便于 issue 列表分流；
+ *  动作级原因（未分类/超时…）带动作词，卸载失败不写成 install failed。 */
+function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
+  const word = actionWordEn(action)
   switch (kind) {
-    case 'npmTooOld': return 'npm too old to install'
+    case 'npmTooOld': return `npm too old for this ${word}`
     case 'dshMissing': return 'dsh command not found on the user machine'
     case 'pnpmMissing': return 'pnpm command not found on the user machine'
     case 'pnpmStore': return 'pnpm store version mismatch on the user machine'
-    case 'pnpmWorkspace': return 'pnpm workspace-root check blocked the install on the user machine'
+    case 'pnpmWorkspace': return `pnpm workspace-root check blocked the ${word} on the user machine`
     case 'originRejected': return 'request origin rejected by the local service on the user machine'
-    case 'pnpmPolicy': return 'pnpm supply-chain policy blocked the install on the user machine'
+    case 'pnpmPolicy': return `pnpm supply-chain policy blocked the ${word} on the user machine`
     case 'pnpmUnusedPatch': return 'stale pnpm patch entry on the user machine'
     case 'pnpmMissingDep': return 'dependency not found on the npm registry on the user machine'
     case 'registryVersionStale': return 'requested version not available on the npm registry in use on the user machine'
@@ -63,12 +63,13 @@ function reasonTitleOf(kind: FailureKind): string {
     case 'pnpmIgnoredBuild': return 'build scripts blocked by pnpm allowlist'
     case 'pluginPrepare': return 'plugin distribution incomplete'
     case 'network': return 'network failure on the user side'
-    case 'hubState': return 'stale install state in the plugin hub'
-    case 'timeout': return 'install timed out'
+    case 'hostCliSpawn': return 'the DSH host could not be launched on the user machine'
+    case 'hubState': return `stale ${word} state in the plugin hub`
+    case 'timeout': return `${word} timed out`
     case 'profileLock': return 'DSH profile is locked by another process'
     case 'pluginMissingDep': return 'a dependency of the plugin is not published on npm'
-    case 'hub': return 'install failed (cause unclassified)'
-    default: return 'plugin install failed'
+    case 'hub': return `${word} failed (cause unclassified)`
+    default: return `plugin ${word} failed`
   }
 }
 
@@ -81,14 +82,16 @@ function reasonTitleOf(kind: FailureKind): string {
  * attempts（尝试过的安装方式，npm 反查 + 实际执行命令）：作者看到我们查过/试过的命令，
  * 组织 scope 与 GitHub 用户名不一致时也能直接指认正确的 npm 包名。
  */
-export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | null, command?: string, attempts?: string[]): string {
+export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | null, command?: string, attempts?: string[], action: FailureAction = 'install'): string {
   // 原因判定：按失败类型归类，便于作者判断问题是否出在插件侧。
   // [packaging]（预检/装后校验拦截）单独列：无论走 npm 还是 git 通道，都是分发物不完整
   // （package.json 声明的文件在发布物里缺失），作者照此补齐即可。
   const kind = classifyFailure(message)
   const executed = executedCommandOf(command, attempts)
+  // 动作词：标题与正文的「安装/更新/卸载」统一取自这里
+  const zhWord = actionWordZh(action)
   // 标题 = 错误原因（非动作词），让 issue 列表一眼可分流
-  const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`
+  const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind, action)}: ${repo}`
   const reason = /\[packaging\]/i.test(message)
     ? 'plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published package (github tarball or npm package); please commit build output or publish a complete package'
       : /\[registry-missing\]/i.test(message)
@@ -123,16 +126,15 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
       `- Cause: ${reason}`,
       ...(code ? [`- Key error: \`${code}\``] : []),
       '',
-      // 来源说明：标题（链官网）+ 一句来源（链仓库）+ 实际执行的安装命令（含 --profile）与执行结果，链接由常量动态拼接
-      `## [DSH Plugin 插件市场](${SITE_URL}) · 安装 Plugin 失败错误信息`,
-      `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次安装失败一并提交。`,
-      `- 实际执行的安装命令：${executed ? `\`${executed}\`` : 'unknown (no executed command recorded)'}`,
-      `- 执行结果：安装失败，未能安装该插件。`,
-      // 尝试过的安装方式（npm 反查 + 实际执行命令，按先后顺序）：作者据此反推正确的
-      // npm 包名 —— 组织 scope 与 GitHub 用户名不一致时仅凭仓库名猜不到，作者看到我们
-      // 查过/试过的命令就能直接指认
+      // 来源说明：标题（链官网）+ 一句来源（链仓库）+ 实际执行的命令（含 --profile）与执行结果，链接由常量动态拼接
+      `## [DSH Plugin 插件市场](${SITE_URL}) · ${zhWord} Plugin 失败错误信息`,
+      `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次${zhWord}失败一并提交。`,
+      `- 实际执行的${zhWord}命令：${executed ? `\`${executed}\`` : 'unknown (no executed command recorded)'}`,
+      `- 执行结果：${zhWord}失败，未能${zhWord}该插件。`,
+      // 尝试过的通道（npm 反查 + 实际执行命令，按先后顺序）：作者据此指认正确的 npm 包名。
+      // 不写「安装」：卸载失败也走这条正文。
       ...(attempts && attempts.length > 0
-        ? ['', '## Attempted install channels（已尝试的安装方式）', ...attempts.map((a) => `- ${a}`)]
+        ? ['', '## Attempted channels（已尝试的方式）', ...attempts.map((a) => `- ${a}`)]
         : []),
       // [packaging] 场景：说明三种官方安装通道（npm 包 / git 直装 / 预构建 release .tgz），当前插件在对应通道下分发不完整
       ...(/\[packaging\]/i.test(message)
@@ -210,19 +212,22 @@ export function hubIssueUrl(
   attempts?: string[],
   /** 见 HubIssueVariant；缺省 'triage'，既有正文保持不变 */
   variant: HubIssueVariant = 'triage',
+  /** 上报动作：标题与正文按它取词 */
+  action: FailureAction = 'install',
 ): string {
   const kind = classifyFailure(message)
   const executed = executedCommandOf(command, attempts)
+  const zhWord = actionWordZh(action)
   const repo = pluginRepo && pluginRepo.trim() !== '' ? pluginRepo.trim() : 'unknown'
   const title = variant === 'misjudge'
     // 标题就点明「可能是误判」，维护者一眼能区分它和未分类兜底
     ? `[dsh-plugin-hub] possible misjudgment: ${repo}`
-    : `[dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`
+    : `[dsh-plugin-hub] ${reasonTitleOf(kind, action)}: ${repo}`
   const code = coreErrorCode(message)
   const build = (coreChars: number): string => {
     const body = [
       '## Summary',
-      `- Auto-classified cause: ${reasonTitleOf(kind)}`,
+      `- Auto-classified cause: ${reasonTitleOf(kind, action)}`,
       `- Target plugin: \`${repo}\``,
       ...(code ? [`- Key error: \`${code}\``] : []),
       // 为什么投递到这里而非插件仓库：只有确有证据是插件自身构建失败（pluginPrepare）才投插件仓库
@@ -236,12 +241,12 @@ export function hubIssueUrl(
         ]
         : ['- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage.']),
       '',
-      `## [DSH Plugin 插件市场](${SITE_URL}) · 安装 Plugin 失败错误信息`,
-      `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次安装失败一并提交。`,
-      `- 实际执行的安装命令：${executed ? `\`${executed}\`` : 'unknown (no executed command recorded)'}`,
-      `- 执行结果：安装失败，未能安装该插件。`,
+      `## [DSH Plugin 插件市场](${SITE_URL}) · ${zhWord} Plugin 失败错误信息`,
+      `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次${zhWord}失败一并提交。`,
+      `- 实际执行的${zhWord}命令：${executed ? `\`${executed}\`` : 'unknown (no executed command recorded)'}`,
+      `- 执行结果：${zhWord}失败，未能${zhWord}该插件。`,
       ...(attempts && attempts.length > 0
-        ? ['', '## Attempted install channels（已尝试的安装方式）', ...attempts.map((a) => `- ${a}`)]
+        ? ['', '## Attempted channels（已尝试的方式）', ...attempts.map((a) => `- ${a}`)]
         : []),
       '',
       '## Environment',

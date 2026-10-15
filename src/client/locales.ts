@@ -308,6 +308,10 @@ export const zh = {
   errorTitleUninstall: '卸载失败',
   // 更新失败（通知中心区分安装/更新）：更新目标覆盖重装失败，与首次安装失败不同语义
   errorTitleUpdate: '更新失败',
+  // 动作词：失败提示与上报正文统一取词，不写死「安装」
+  actionInstall: '安装',
+  actionUpdate: '更新',
+  actionUninstall: '卸载',
   errorPlugin: '插件',
   errorClose: '知道了',
   errorCopy: '复制错误信息',
@@ -319,12 +323,14 @@ export const zh = {
   failHubIssueHint: '此失败已被判定为环境或插件中心自身问题（非插件作者问题），带着错误日志到插件中心仓库一键提交 Issue',
   failHubIssueBig: '反馈给插件中心排查',
   // 未知失败兜底：不归到插件作者，引导到插件中心仓库排查
-  failUnclassifiedHint: '安装失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。',
+  failUnclassifiedHint: '{action}失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。',
   // 插件中心自身状态类消息（插件未安装 / 不在此处卸载 / 已在队列中）：已安装列表与实读快照不同步，非插件问题，不引导提 Issue
-  failHubStateHint: '插件列表状态已过期或与本地不一致：该插件可能已经装过了（无需重复安装，要升级请点「更新」），也可能已不在已安装列表中，或已在队列中。这不是插件本身的问题 —— 请刷新页面后重试。',
-  // 安装命令超时被强杀：可能其实已装成功（安装器超时后会先核对已安装列表），给可行动提示，不引导提 Issue
-  failTimeoutHint: '安装耗时超过本地上限、已被中断 —— 但很可能其实已经装上了（安装器在超时后会先核对本地已安装列表）。请刷新页面确认该插件是否已装上；若确实没装上，可在终端手动执行一次安装命令查看完整输出。这不是插件本身的问题。',
-  failProfileLockHint: 'DSH 在写入插件清单时等不到文件锁、超时中止 —— 通常是同时有另一个 DSH 进程或安装任务在写同一个 profile（也可能是上一次的进程没退干净留下的锁）。请先关掉其他 dsh 窗口或正在跑的命令，再重试一次；若反复出现，重启一次 DSH。这不是插件本身的问题，也不需要重复安装。',
+  failHubStateHint: '插件列表状态已过期或与本地不一致：这次{action}的目标可能已经在列表里了（要升级请点「更新」），也可能已经不在已安装列表中，或已在队列中。这不是插件本身的问题 —— 请刷新页面后重试。',
+  // 超时被强杀，可能其实已生效：给提示，不引导提 Issue。措辞动作中性（卸载场景说「已经装上了」不通）
+  failTimeoutHint: '本次操作耗时超过本地上限、已被中断 —— 但很可能其实已经生效了（安装器在超时后会先核对本地已安装列表）。请刷新页面确认当前状态；若确实没生效，可在终端手动执行一次对应命令查看完整输出。这不是插件本身的问题。',
+  failProfileLockHint: 'DSH 在写入插件清单时等不到文件锁、超时中止 —— 通常是同时有另一个 DSH 进程或安装任务在写同一个 profile（也可能是上一次的进程没退干净留下的锁）。请先关掉其他 dsh 窗口或正在跑的命令，再重试一次；若反复出现，重启一次 DSH。这不是插件本身的问题，也不需要重复{action}。',
+  // 宿主自身入口起不来：环境问题，给提示、不引导提 Issue
+  failHostCliSpawnHint: 'DSH 没能启动自身来完成这次操作（系统报「找不到可执行文件」）：通常是因为 DSH 的安装目录被移动或正在更新，或该 profile 目录还不存在。请重启一次 DSH 后重试；若反复出现，重新安装 DSH。这不是插件本身的问题，换别的插件也一样。',
   // prepare 构建脚本实际执行失败（git 分发缺子模块/构建产物）：插件打包分发问题，应提 Issue
   failPrepareHint: '该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。',
   // 「插件打包问题」分支的次要入口：该判据由插件中心自己的预检/装后校验产出（不是 pnpm 原文），
@@ -334,12 +340,12 @@ export const zh = {
   // 安装前预检 / 装后校验拦截（[packaging]）：git 分发缺插件需要的文件（入口 / 补丁 mount 的入口 / bundle 补丁）= 插件未适配官方默认安装方式
   failPackagingHint: '该插件不支持官方默认安装方式：其 git 分发缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁），说明作者未适配官方安装流程。请到作者仓库提交 Issue 反馈，请其提交构建产物、改用预构建 release `.tgz` 直链（`releases/download/<tag>/<asset>.tgz`），或发布完整的 npm 版。',
   // 原生依赖构建脚本被 pnpm 默认拦截（如 node-pty 的 ERR_PNPM_IGNORED_BUILDS）：不单独算插件问题，引导到插件中心仓库排查
-  failIgnoredBuild: '该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，安装因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败通常说明构建本身没通过。可先在终端手动执行一次安装命令查看完整构建错误；若确属插件的构建/分发问题，建议作者预置构建产物、发布 npm 包或预构建 .tgz。需要协助排查时也可反馈给插件中心。',
+  failIgnoredBuild: '该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，本次操作因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败通常说明构建本身没通过。可先在终端手动执行一次安装命令查看完整构建错误；若确属插件的构建/分发问题，建议作者预置构建产物、发布 npm 包或预构建 .tgz。需要协助排查时也可反馈给插件中心。',
   // npm arborist 内部崩溃（edgesOut）＋ 本机 npm 版本过低：npm 自身已知缺陷，不是插件问题，升级 npm 即可
   failNpmTooLow: '怀疑本机 npm 版本过低：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
   failNpmTooLowV: '本机 npm 版本过低（当前 v{v}）：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
   // 安装前连通性预检 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：本机网络或代理问题，不是插件问题，不引导提 Issue
-  failNetworkHint: '安装前检测到网络不通：无法连接到安装源（可能是断网、DNS 解析失败、被防火墙拦截，或代理配置有问题）。这不是插件本身的问题 —— 请检查网络连接，或到「设置」里确认 HTTP 代理配置，再到「系统诊断」运行一次连通性检测，然后重试。',
+  failNetworkHint: '{action}前检测到网络不通：无法连接到安装源（可能是断网、DNS 解析失败、被防火墙拦截，或代理配置有问题）。这不是插件本身的问题 —— 请检查网络连接，或到「设置」里确认 HTTP 代理配置，再到「系统诊断」运行一次连通性检测，然后重试。',
   // 网络失败弹窗里的「无法访问 …」醒目行：直接告诉用户具体哪个地址连不上（{url} 为提取的不可达地址）
   failNetworkRegistryHint: '你的 npm/pnpm 源（registry）被配置为 {host}，插件包需从该源下载但失败了。这通常是内网/自定义源没有同步该包（或需要内网认证）—— 请把 npm/pnpm 的 registry 指回官方源 https://registry.npmjs.org（或确认此源可访问该包）后重试。',
   failNetworkTarget: '无法访问 {url} —— 你的网络连接不通',
@@ -722,6 +728,10 @@ export const en = {
   errorTitleUninstall: 'Removal failed',
   // Update failed (notification center distinguishes install/update): update target reinstall failed
   errorTitleUpdate: 'Update failed',
+  // Action words: failure hints and filed reports take their wording from here
+  actionInstall: 'install',
+  actionUpdate: 'update',
+  actionUninstall: 'removal',
   errorPlugin: 'Plugin',
   errorClose: 'Got it',
   errorCopy: 'Copy error',
@@ -733,12 +743,14 @@ export const en = {
   failHubIssueHint: 'This failure was classified as an environment or Plugin Hub issue (not a plugin-author issue). Open a pre-filled issue on the Plugin Hub repo with this error log.',
   failHubIssueBig: 'Report to the Plugin Hub for triage',
   // Unknown-failure fallback: not routed to the plugin author, but to the hub repo for triage
-  failUnclassifiedHint: 'The install failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.',
+  failUnclassifiedHint: 'The {action} failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.',
   // The hub's own state-guard messages (plugin not installed / cannot be uninstalled here / already queued / already installed): the installed list is out of sync with the live snapshot — not a plugin issue, no issue prompt
-  failHubStateHint: 'The plugin list is out of date or out of sync: this plugin may already be installed (no need to reinstall — use "Update" to upgrade), or may no longer be in the installed list, or may already be queued. This is not a plugin problem — refresh the page and retry.',
-  // The install command hit the local time limit and was killed: it may well have installed successfully (the installer re-checks the installed list after a timeout) — actionable hint, no issue prompt
-  failTimeoutHint: 'The install exceeded the local time limit and was interrupted — but it may well have completed already (the installer re-checks your installed list after a timeout). Refresh the page to see whether the plugin is installed; if it is not, run the install command in a terminal to see the full output. This is not a plugin problem.',
-  failProfileLockHint: 'DSH timed out waiting for the file lock while writing the plugin list — usually because another DSH process or install task is writing the same profile (sometimes a previous run left the lock behind). Close other dsh windows or running commands, then retry; if it keeps happening, restart DSH once. This is not a plugin problem, and the plugin does not need to be reinstalled.',
+  failHubStateHint: 'The plugin list is out of date or out of sync: the target of this {action} may already be in the list (use "Update" to upgrade), may no longer be in the installed list, or may already be queued. This is not a plugin problem — refresh the page and retry.',
+  // The command hit the local time limit and was killed: it may well have taken effect already (the installer re-checks the installed list after a timeout) — actionable hint, no issue prompt
+  failTimeoutHint: 'This operation exceeded the local time limit and was interrupted — but it may well have taken effect already (the installer re-checks the installed list after a timeout). Refresh the page to confirm the current state; if it did not take effect, run the corresponding command in a terminal to see the full output. This is not a plugin problem.',
+  failProfileLockHint: 'DSH timed out waiting for the file lock while writing the plugin list — usually because another DSH process or install task is writing the same profile (sometimes a previous run left the lock behind). Close other dsh windows or running commands, then retry; if it keeps happening, restart DSH once. This is not a plugin problem, and there is no need to repeat the {action}.',
+  // The host could not launch itself to run the operation: not a plugin issue — hint only, no issue prompt
+  failHostCliSpawnHint: 'DSH could not start itself to perform this operation (the system reported that the executable was not found). This usually means the DSH installation folder has been moved or is being updated, or that the profile directory does not exist yet. Restart DSH and retry; if it keeps happening, reinstall DSH. This is not a plugin problem — other plugins would fail the same way.',
   // prepare script actually failed (git tarball misses submodules/build output): a packaging issue of the plugin itself — file an issue
   failPrepareHint: 'This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.',
   // Secondary entry on the "plugin packaging" branch: that verdict comes from the hub's own
@@ -749,11 +761,11 @@ export const en = {
   // Pre-install / post-install guard hit ([packaging]): git distribution lacks a file the package needs (entry / entry a patch mounts / bundle patch) = not adapted to the official default install method
   failPackagingHint: 'This plugin does not support the official default install method: its git distribution lacks a file the package needs (the entry from `main` / `exports`, an entry its own patch mounts by name, or the patch declared by `dsh.bundle.patch`), so it has not been adapted to the official install flow. Please file an Issue on the author\'s repo asking for committed build output, a prebuilt release `.tgz` (`releases/download/<tag>/<asset>.tgz`), or a complete npm release.',
   // native-module build scripts ignored by pnpm by default (e.g. node-pty, ERR_PNPM_IGNORED_BUILDS): not a plugin-side issue on its own, route to the hub repo for triage
-  failIgnoredBuild: 'This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so the install fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is usually the problem. Run the install command in a terminal to see the full build error; if it is indeed the plugin\'s build or distribution, the author can ship prebuilt output, an npm release, or a prebuilt .tgz. You can also report it to the Plugin Hub for triage.',
+  failIgnoredBuild: 'This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so this operation fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is usually the problem. Run the install command in a terminal to see the full build error; if it is indeed the plugin\'s build or distribution, the author can ship prebuilt output, an npm release, or a prebuilt .tgz. You can also report it to the Plugin Hub for triage.',
   failNpmTooLow: 'Your local npm may be too old: npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   failNpmTooLowV: 'Your local npm is too old (v{v}): npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   // Pre-install connectivity probe / connection failure in the install log ([network] / git fetch timeout / DNS / TLS): a local network or proxy issue, not a plugin issue — no issue link
-  failNetworkHint: 'The network could not be reached before install: the install source is unreachable (offline, DNS failure, firewall block, or a misconfigured proxy). This is not a problem with the plugin itself — please check your connection, confirm the HTTP proxy in Settings, run a connectivity check under System Diagnostics, then retry.',
+  failNetworkHint: 'The network could not be reached before the {action}: the install source is unreachable (offline, DNS failure, firewall block, or a misconfigured proxy). This is not a problem with the plugin itself — please check your connection, confirm the HTTP proxy in Settings, run a connectivity check under System Diagnostics, then retry.',
   // Prominent "cannot reach …" line in the network-failure dialog: shows the exact unreachable address ({url})
   failNetworkRegistryHint: 'Your npm/pnpm registry is set to {host}, and the package tarball could not be downloaded from it. This usually means a private/internal mirror that has not synced the package (or requires intranet auth) — point the registry back to https://registry.npmjs.org (or make sure this source can serve the package), then retry.',
   failNetworkTarget: 'Cannot reach {url} — your network connection is down',

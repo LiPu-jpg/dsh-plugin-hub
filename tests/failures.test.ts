@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyFailure, coreErrorCode, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf } from '../src/client/logic/failures.ts'
+import { classifyFailure, coreErrorCode, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh } from '../src/client/logic/failures.ts'
 
 const dshTailHint = 'dsh: git-hosted plugins build on install via their prepare script, which pnpm blocks until allowed — add the exact key pnpm printed above under allowBuilds in /Users/x/.dsh/profiles/web/pnpm-workspace.yaml, then re-run'
 
@@ -507,6 +507,33 @@ test('classifyFailure: registry tarball download failure is a network/registry i
 test('classifyFailure: generic "network error while fetching" without the tarball markers stays hub', () => {
   // 不加面过宽的词：只有描述性文本时仍按未知原因兜底（防止误伤真实插件侧报错）
   assert.equal(classifyFailure('network error while fetching'), 'hub')
+})
+
+test('classifyFailure: the host-spawn marker is its own cause (issue #212)', () => {
+  // 带标记 → 单独归类
+  assert.equal(
+    classifyFailure('[error] spawn D:\\DSH\\DSH Desktop\\DSH Desktop.exe ENOENT\n[host-spawn] the DSH host could not be launched (D:\\DSH\\DSH Desktop\\DSH Desktop.exe: ENOENT)'),
+    'hostCliSpawn')
+  // 具体命令的 ENOENT 归各自的环境类
+  assert.equal(classifyFailure('[error] spawn dsh ENOENT'), 'dshMissing')
+  assert.equal(classifyFailure('[error] spawn pnpm ENOENT'), 'pnpmMissing')
+  // 无标记的裸 spawn ENOENT 不认（curl/git/taskkill 等任何 spawn 都会产出这种文本）
+  assert.equal(classifyFailure('[error] spawn curl ENOENT'), 'hub')
+  assert.equal(classifyFailure('spawn /Applications/DSH.app/Contents/MacOS/DSH ENOENT'), 'hub')
+})
+
+test('actionOfRecord / action words: a removal is never described as an install', () => {
+  // 老记录只有 kind，按 kind 兜底；更新记录的 kind 仍是 install，靠 action 区分
+  assert.equal(actionOfRecord({ kind: 'uninstall' }), 'uninstall')
+  assert.equal(actionOfRecord({ kind: 'install' }), 'install')
+  assert.equal(actionOfRecord({ kind: 'install', action: 'update' }), 'update')
+  assert.equal(actionOfRecord({ kind: 'uninstall', action: 'update' }), 'update')
+  assert.equal(actionWordZh('uninstall'), '卸载')
+  assert.equal(actionWordZh('update'), '更新')
+  assert.equal(actionWordZh('install'), '安装')
+  assert.equal(actionWordEn('uninstall'), 'removal')
+  assert.equal(actionWordEn('update'), 'update')
+  assert.equal(actionWordEn('install'), 'install')
 })
 
 test('registryHostOf reports a private/internal registry host, null for official or public mirrors', () => {

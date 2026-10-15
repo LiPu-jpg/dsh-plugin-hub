@@ -18,7 +18,7 @@ import type { MouseEvent } from 'react'
 import styles from '../../styles/Modal.module.css'
 import type { EnvInfo, Translate } from '../../types.ts'
 import type { NotificationRecord } from '../../logic/failures.ts'
-import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import { actionOfRecord, classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
 import type { PendingRestart, QueueTask } from '../../hooks/useTaskQueue.ts'
 import { pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { CloseIcon } from '../ui/icons.tsx'
@@ -255,6 +255,9 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                   // 卡片不展示错误日志预览，完整日志靠「复制完整日志」按钮带走，避免每条卡片被日志撑高
                   !r.ok && (() => {
                     const kind = classifyFailure(r.message)
+                    // 动作词：该条提示与上报正文按真实动作取词
+                    const action = actionOfRecord(r)
+                    const actionWord = t(action === 'uninstall' ? 'actionUninstall' : action === 'update' ? 'actionUpdate' : 'actionInstall')
                     if (kind === 'npmTooOld') {
                       // npm 内部崩溃（edgesOut）＋ 本机 npm 版本过低：npm 自身已知缺陷，不是插件问题 ——
                       // 直接给升级指引，不引导提 Issue
@@ -324,7 +327,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         h('div', { className: styles.failPrepareHint }, t('failPluginMissingDepHint')),
                         r.repo && shownRepo ? h('a', {
                           className: styles.failBigIssue,
-                          href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
+                          href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts, action),
                           target: '_blank',
                           rel: 'noopener noreferrer',
                           title: t('failIssueHint'),
@@ -373,7 +376,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         // registry 被指向内网/自定义源（tarball 从非官方源下载失败）：直接给出换源指引，
                         // 否则用户外网是通的会困惑「为什么连不上」
                         (() => { const host = registryHostOf(r.message); return host ? h('div', { className: styles.failPrepareHint }, t('failNetworkRegistryHint', { host })) : null })(),
-                        h('div', { className: styles.failPrepareHint }, t('failNetworkHint')),
+                        h('div', { className: styles.failPrepareHint }, t('failNetworkHint', { action: actionWord })),
                         onRunDiagnostics ? h('button', {
                           className: styles.failDiagBtn,
                           onClick: onRunDiagnostics,
@@ -387,7 +390,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         h('div', { className: styles.failPrepareHint }, /\[packaging\]/i.test(r.message) ? t('failPackagingHint') : t('failPrepareHint')),
                         r.repo && shownRepo ? h('a', {
                           className: styles.failBigIssue,
-                          href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
+                          href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts, action),
                           target: '_blank',
                           rel: 'noopener noreferrer',
                           title: t('failIssueHint'),
@@ -398,7 +401,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                           h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),
                           h('a', {
                             className: styles.failMisjudgeLink,
-                            href: hubIssueUrl(shownRepo, r.message, env, r.command, r.attempts, 'misjudge'),
+                            href: hubIssueUrl(shownRepo, r.message, env, r.command, r.attempts, 'misjudge', action),
                             target: '_blank',
                             rel: 'noopener noreferrer',
                             title: t('failHubIssueHint'),
@@ -409,7 +412,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                     if (kind === 'hubState') {
                       // 插件中心的列表状态已过期（安装器自身守卫消息）：非插件问题、也不是 bug，只给可行动提示，不引导提 Issue
                       return h('div', null, [
-                        h('div', { className: styles.failPrepareHint }, t('failHubStateHint')),
+                        h('div', { className: styles.failPrepareHint }, t('failHubStateHint', { action: actionWord })),
                       ])
                     }
                     if (kind === 'timeout') {
@@ -421,17 +424,23 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                     if (kind === 'profileLock') {
                       // DSH 写 profile 的锁超时（同一 profile 被别的 dsh/安装任务占着）：只给可行动提示，不引导提 Issue
                       return h('div', null, [
-                        h('div', { className: styles.failPrepareHint }, t('failProfileLockHint')),
+                        h('div', { className: styles.failPrepareHint }, t('failProfileLockHint', { action: actionWord })),
+                      ])
+                    }
+                    if (kind === 'hostCliSpawn') {
+                      // 宿主自身入口起不来：环境问题，给提示、不引导提 Issue
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failHostCliSpawnHint')),
                       ])
                     }
                     // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
                     return h('div', null, [
                       kind === 'pnpmIgnoredBuild'
                         ? h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild'))
-                        : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint')),
+                        : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint', { action: actionWord })),
                       h('a', {
                         className: styles.failBigIssue,
-                        href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts),
+                        href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts, 'triage', action),
                         target: '_blank',
                         rel: 'noopener noreferrer',
                         title: t('failHubIssueHint'),

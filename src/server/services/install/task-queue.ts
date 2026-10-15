@@ -149,6 +149,13 @@ function pushLine(task: InstallTask, line: string): void {
   }
 }
 
+/** spawn 的 cwd：profile 目录（asar 路径不能作 cwd）；目录不存在时回退进程工作目录，
+ *  否则 Node 报的是 `spawn <file> ENOENT`，与「可执行文件不存在」无法区分。 */
+function spawnCwdFor(profile: string): string {
+  const dir = profileDirectory(profile)
+  return existsSync(dir) ? dir : process.cwd()
+}
+
 function cliInvocation(profile: string): Invocation {
   const entry = process.argv[1]
   if (entry !== undefined) {
@@ -162,8 +169,8 @@ function cliInvocation(profile: string): Invocation {
       return {
         file: process.execPath,
         prefixArgs: ['--expose-internals', bootstrap],
-        // 工作目录用 profile 目录（真实存在的目录）：asar 内的路径不能作为 spawn 的 cwd
-        cwd: profileDirectory(profile),
+        // cwd 用 profile 目录（asar 路径不能作 cwd），不存在时由 spawnCwdFor 回退
+        cwd: spawnCwdFor(profile),
         useShell: false,
         // Electron 可执行文件只有带这个变量才按 Node 运行引导脚本
         env: { ELECTRON_RUN_AS_NODE: '1' },
@@ -475,15 +482,19 @@ function spawnMutation(options: {
         stdio: ['ignore', 'pipe', 'pipe'],
       })
     } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      // 宿主自身入口起不来 → 补标记，前端据此归因
+      const marker = hostSpawnMarker(invocation, error)
       if (task) {
         task.status = 'failed'
         task.exitCode = null
-        pushLine(task, `[error] ${error instanceof Error ? error.message : String(error)}`)
+        pushLine(task, `[error] ${detail}`)
+        if (marker !== null) pushLine(task, marker)
       }
       resolveOnce({
         exitCode: null,
         timedOut: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: marker === null ? detail : `${detail}\n${marker}`,
         stdout,
         stderr,
       })
@@ -554,12 +565,15 @@ function spawnMutation(options: {
     })
 
     child.once('error', (error) => {
+      // 同同步抛出那条路径：宿主自身入口起不来 → 补标记
+      const marker = hostSpawnMarker(invocation, error)
       if (task && task.status !== 'cancelled') {
         task.status = 'failed'
         task.exitCode = null
         pushLine(task, `[error] ${error.message}`)
+        if (marker !== null) pushLine(task, marker)
       }
-      settleOnce({ exitCode: null, timedOut: false, error: error.message, stdout, stderr })
+      settleOnce({ exitCode: null, timedOut: false, error: marker === null ? error.message : `${error.message}\n${marker}`, stdout, stderr })
     })
 
     child.once('close', (code) => {
@@ -712,10 +726,8 @@ function annotateNpmTooLow(result: InstallResult, options: {
   return { ...result, stderr: `${result.stderr}\n${line}`, error: result.error ? `${result.error}\n${line}` : line }
 }
 
-/** 包在 registry 不存在（404）→ 用官方源复查一次，把「作者依赖缺失/包被删」与「本机镜像源滞后」
- *  分开（两者的提示与去向不同：前者引导投作者、后者只提示换源）。检测逻辑在独立的
- *  registry-check.ts；这里之所以是异步，是因为要联网查官方 registry —— 只在安装失败且日志含 404
- *  时发生，代价可忽略。 */
+/** 安装失败且日志含 404 时，用官方源复查一次并注入标记（逻辑见 registry-check.ts）。
+ *  异步是因为要联网；只在失败路径上发生。 */
 async function annotateRegistryMissing(result: InstallResult, options: {
   action: 'add' | 'remove' | 'update'
   profile: string
@@ -728,6 +740,17 @@ async function annotateRegistryMissing(result: InstallResult, options: {
   if (line === null) return result
   if (options.task && options.task.status !== 'cancelled') pushLine(options.task, line)
   return { ...result, stderr: `${result.stderr}\n${line}`, error: result.error ? `${result.error}\n${line}` : line }
+}
+
+/**
+ * 宿主自身 CLI 调不起来时的 ASCII 标记行：spawn 我们解析出的宿主入口报 ENOENT 时返回
+ * `[host-spawn]`，供前端单独归因、不引导提 Issue。PATH 上的 dsh/npm 各有自己的标记，返回 null。
+ * 导出供单测覆盖判据。
+ */
+export function hostSpawnMarker(invocation: Invocation, error: unknown): string | null {
+  if ((error as NodeJS.ErrnoException | null)?.code !== 'ENOENT') return null
+  if (invocation.file === 'dsh' || invocation.file === 'npm') return null
+  return `[host-spawn] the DSH host could not be launched (${invocation.file}: ENOENT)`
 }
 
 /**

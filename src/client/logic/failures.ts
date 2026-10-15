@@ -151,7 +151,26 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
+
+/** 失败动作口径：标题、上报正文与提示文案按安装/更新/卸载取词，不写死「安装」。 */
+export type FailureAction = 'install' | 'update' | 'uninstall'
+
+/** 动作词（英文）：名词短语，标题与句子里都成立。 */
+export function actionWordEn(action: FailureAction): string {
+  return action === 'uninstall' ? 'removal' : action === 'update' ? 'update' : 'install'
+}
+
+/** 动作词（中文）：安装 / 更新 / 卸载。 */
+export function actionWordZh(action: FailureAction): string {
+  return action === 'uninstall' ? '卸载' : action === 'update' ? '更新' : '安装'
+}
+
+/** 记录的动作：老记录只有 kind，按 kind 兜底。 */
+export function actionOfRecord(rec: { kind: NotificationRecord['kind']; action?: FailureAction }): FailureAction {
+  if (rec.action !== undefined) return rec.action
+  return rec.kind === 'uninstall' ? 'uninstall' : rec.kind === 'update' ? 'update' : 'install'
+}
 
 /** Match the pnpm error code, not a generic mention of checksum or integrity. */
 function missingTarballIntegrity(message: string): boolean {
@@ -230,10 +249,7 @@ export function classifyFailure(message: string): FailureKind {
   // 装后校验发现入口文件缺失（[packaging]）= git 分发缺构建产物
   if (/\[packaging\]|entry file missing/i.test(message)) return 'pluginPrepare'
   // registry 上不存在的依赖（404），profile 任何安装都会卡在这条。必须在 pluginPrepare 之前判
-  // 官方源复核结论：缺的包在官方 registry 上也不存在，且不是本机 profile 声明的残留依赖 →
-  // 该包来自插件的依赖树，属**作者侧**问题（依赖没发布/已被删除）。标记由服务端联网复查后注入。
-  // 必须排在 pnpmMissingDep 之前 —— 日志里同样含 ERR_PNPM_FETCH_404，靠标记区分「作者的锅」
-  // 与「本机 profile 残留依赖（#73）/ 镜像源滞后」。
+  // [registry-missing]（服务端官方源复核后注入）= 作者侧缺依赖，须先于 pnpmMissingDep（同样含 404 文本）
   if (/\[registry-missing\]/i.test(message)) return 'pluginMissingDep'
   if (/ERR_PNPM_FETCH_404|404 Not Found|Not Found - 404/i.test(message)) return 'pnpmMissingDep'
   // 要装的版本在实际安装源里没有（镜像滞后或版本写错）。必须在 pluginPrepare 之前判
@@ -257,12 +273,11 @@ export function classifyFailure(message: string): FailureKind {
   // dsh 进程或安装任务在写，锁一直没释放。既不是插件问题、也不是用户环境坏了 —— 把并发收掉重试即可。
   // 摆放位置同样在一切错误码分支之后：日志里真有 pnpm 报错时仍以真实报错为准。
   if (/atomic-write: timed out waiting for the writer lock|timed out waiting for the writer lock/i.test(message)) return 'profileLock'
-  // 宿主 DSH 自己的 allowBuilds 摘要行（#210）：新版宿主把 pnpm 报错只写进 diagnostics 日志文件，
-  // 终端里只留这一句「git-hosted plugins build … add the exact key … then re-run」，日志里因此
-  // 一条原始 ERR_PNPM_* 码都没有 —— 只能靠这句话识别为「构建脚本被白名单拦截」。
-  // 摆放位置在一切错误码分支之后：日志里真有 ERR_PNPM_PREPARE_PACKAGE / ERR_PNPM_IGNORED_BUILDS
-  // 时（构建确实跑挂、或不带摘要的旧宿主），仍以原始报错为准，不会被这句摘要改写。
+  // 宿主自己的 allowBuilds 摘要行（pnpm 原文只写进 diagnostics 日志文件，终端只剩这一句）
   if (/git-hosted plugins build on install via their prepare script|add the exact key pnpm printed above under allowBuilds/i.test(message)) return 'pnpmIgnoredBuild'
+  // 宿主自身入口起不来（服务端 [host-spawn] 标记）：环境问题，给提示、不引导提 Issue。
+  // 不匹配 `spawn … ENOENT` 文本 —— 那个形态任何 spawn（curl/git/taskkill…）都会产出
+  if (/\[host-spawn\]/i.test(message)) return 'hostCliSpawn'
   // 其余未知失败：引导到插件中心仓库排查
   return 'hub'
 }

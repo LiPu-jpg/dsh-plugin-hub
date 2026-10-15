@@ -18,6 +18,7 @@ import { ProgressView } from './ProgressView.tsx'
 import { installCommandOf } from '../../logic/install-command.ts'
 import { pluginDetailUrl, pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import type { FailureAction } from '../../logic/failures.ts'
 
 /** 完成结果视图：绿色对勾 + 标题/描述；
  *  终态只有两种：
@@ -336,12 +337,11 @@ export function UninstallModal(props: UninstallModalProps) {
   )
 }
 
-/** 预填插件仓库的 GitHub Issue 链接：标题带插件名，正文附完整错误信息，方便用户一键反馈。 */
-/** 安装/卸载失败弹窗：布局与失败记录一致（类型徽标 + 仓库超链接 + 隐蔽复制按钮），报错完整展示，底部一键提交 Issue。 */
-export function ErrorModal({ message, repo, kind, command, attempts, t, env, onCopy, onClose, onRunDiagnostics }: {
+/** 安装/更新/卸载失败弹窗：标题、徽标、提示文案与 issue 正文都按传入的动作取词。 */
+export function ErrorModal({ message, repo, action, command, attempts, t, env, onCopy, onClose, onRunDiagnostics }: {
   message: string
   repo: string | null
-  kind: 'install' | 'uninstall'
+  action: FailureAction
   command?: string
   /** 尝试过的安装方式（npm 反查 + 实际执行命令）：issue 预填一并贴给作者，便于反推正确的 npm 包名 */
   attempts?: string[]
@@ -354,6 +354,8 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
 }) {
   // 失败归类：当前安装通道（npm/git）装不上 = 插件分发/依赖的问题，一律引导提 Issue
   const failureKind = classifyFailure(message)
+  // 动作词：标题、徽标与提示里的 {action} 统一取这一个词
+  const actionWord = t(action === 'uninstall' ? 'actionUninstall' : action === 'update' ? 'actionUpdate' : 'actionInstall')
   // 服务端 [npm-too-low] 标记里带的本机 npm 版本（无标记为 null，提示文案降级为「怀疑」）
   const npmVersion = npmTooLowVersion(message)
   // 复制完整错误：实际执行/尝试过的安装命令（如有）+ 完整错误正文。
@@ -372,8 +374,9 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
   },
     h('div', { className: styles.errorModal, role: 'dialog', 'aria-modal': 'true' },
       h('div', { className: styles.modalHead },
-        // 标题按操作类型明确区分：安装失败 / 卸载失败
-        h('div', { className: styles.errorTitle }, kind === 'install' ? t('errorTitleInstall') : t('errorTitleUninstall')),
+        // 标题按动作明确区分：安装失败 / 更新失败 / 卸载失败
+        h('div', { className: styles.errorTitle },
+          t(action === 'uninstall' ? 'errorTitleUninstall' : action === 'update' ? 'errorTitleUpdate' : 'errorTitleInstall')),
         h('button', {
           className: styles.modalClose,
           'aria-label': t('errorClose'),
@@ -385,8 +388,8 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
         h('div', { className: styles.failRow },
           h('div', { className: styles.failHead },
             h('span', {
-              className: kind === 'install' ? styles.failKindInstall : styles.failKindUninstall,
-            }, kind === 'install' ? t('install') : t('uninstall')),
+              className: action === 'install' ? styles.failKindInstall : styles.failKindUninstall,
+            }, actionWord),
             // 仓库地址（用户名/仓库）统一显示为可点击超链接，跳转到官网详情页（含插件收录信息），而非直接跳 GitHub
             repo ? h('a', {
               className: styles.failRepo,
@@ -458,7 +461,7 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                 h('div', { className: styles.failPrepareHint }, t('failPluginMissingDepHint')),
                 repo ? h('a', {
                   className: styles.failBigIssue,
-                  href: pluginIssueUrl(repo, message, env, command, attempts),
+                  href: pluginIssueUrl(repo, message, env, command, attempts, action),
                   target: '_blank',
                   rel: 'noopener noreferrer',
                   title: t('failIssueHint'),
@@ -498,7 +501,7 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                 // registry 被指向内网/自定义源（tarball 从非官方源下载失败）：直接给出换源指引，
                 // 否则用户外网是通的会困惑「为什么连不上」
                 (() => { const host = registryHostOf(message); return host ? h('div', { className: styles.failPrepareHint }, t('failNetworkRegistryHint', { host })) : null })(),
-                h('div', { className: styles.failPrepareHint }, t('failNetworkHint')),
+                h('div', { className: styles.failPrepareHint }, t('failNetworkHint', { action: actionWord })),
                 onRunDiagnostics ? h('button', {
                   className: styles.failDiagBtn,
                   onClick: onRunDiagnostics,
@@ -511,7 +514,7 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                 h('div', { className: styles.failPrepareHint }, /\[packaging\]/i.test(message) ? t('failPackagingHint') : t('failPrepareHint')),
                 repo ? h('a', {
                   className: styles.failBigIssue,
-                  href: pluginIssueUrl(repo, message, env, command, attempts),
+                  href: pluginIssueUrl(repo, message, env, command, attempts, action),
                   target: '_blank',
                   rel: 'noopener noreferrer',
                   title: t('failIssueHint'),
@@ -523,7 +526,7 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                   h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),
                   h('a', {
                     className: styles.failMisjudgeLink,
-                    href: hubIssueUrl(repo, message, env, command, attempts, 'misjudge'),
+                    href: hubIssueUrl(repo, message, env, command, attempts, 'misjudge', action),
                     target: '_blank',
                     rel: 'noopener noreferrer',
                     title: t('failHubIssueHint'),
@@ -533,7 +536,7 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
               : failureKind === 'hubState'
               ? h('div', null, [
                 // 插件中心的列表状态已过期（安装器自身守卫消息）：不是插件问题、也不是 bug，只给可行动提示，不引导提 Issue
-                h('div', { className: styles.failPrepareHint }, t('failHubStateHint')),
+                h('div', { className: styles.failPrepareHint }, t('failHubStateHint', { action: actionWord })),
               ])
               : failureKind === 'timeout'
               ? h('div', null, [
@@ -543,16 +546,21 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
               : failureKind === 'profileLock'
               ? h('div', null, [
                 // DSH 写 profile 的锁超时（同一 profile 被别的 dsh/安装任务占着）：给可行动提示，不引导提 Issue
-                h('div', { className: styles.failPrepareHint }, t('failProfileLockHint')),
+                h('div', { className: styles.failPrepareHint }, t('failProfileLockHint', { action: actionWord })),
+              ])
+              : failureKind === 'hostCliSpawn'
+              ? h('div', null, [
+                // 宿主自身入口起不来：环境问题，给提示、不引导提 Issue
+                h('div', { className: styles.failPrepareHint }, t('failHostCliSpawnHint')),
               ])
               : h('div', null, [
                 // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
                 failureKind === 'pnpmIgnoredBuild'
                   ? h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild'))
-                  : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint')),
+                  : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint', { action: actionWord })),
                 h('a', {
                   className: styles.failBigIssue,
-                  href: hubIssueUrl(repo, message, env, command, attempts),
+                  href: hubIssueUrl(repo, message, env, command, attempts, 'triage', action),
                   target: '_blank',
                   rel: 'noopener noreferrer',
                   title: t('failHubIssueHint'),

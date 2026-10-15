@@ -3,20 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * 官方 registry 存在性复核：把「包在 registry 上不存在」这类失败的责任方分开。
- *
- * 背景：安装失败日志出现 `ERR_PNPM_FETCH_404` / `Not Found - 404` 时，光看日志分不清三种情形：
- *   ① 缺的包是 **profile 自己声明的依赖**（历史残留条目，指向一个从未发布的包）—— 用户环境问题：
- *      pnpm 每次解析依赖都会先卡在它上面，任何插件都装不进来（issue #73），提示删掉该条目即可；
- *   ② 缺的包来自**插件的依赖树**，且该包在官方 registry 上也不存在 —— 作者侧问题（漏声明依赖、
- *      依赖被删除或从未发布），应引导用户投插件作者仓库；
- *   ③ 缺的包来自插件依赖树，但官方 registry 上有 —— 用户本机 registry 指向的镜像/私有源未同步
- *      该包，属用户环境问题，提示换源即可。
- * 故本模块先排除 ①（读 profile 的 package.json），再用**官方** registry（registry.npmjs.org，
- * 绕开本机可能配置的镜像）复查存在性，产出 ② / ③ 的标记行。
- *
- * 与 npm-check.ts 同构：本模块只产出「标记行」，由 task-queue 追加到任务输出，前端按标记分类。
- * fetch 与 profile 目录都可注入，便于单测覆盖全部结论而不依赖网络。
+ * 官方 registry 存在性复核：用官方源（绕开本机镜像）复查 404 的包，产出标记行区分
+ * 「profile 残留依赖」「插件依赖在官方源也不存在（作者侧）」「本机镜像未同步」三种情形；
+ * 标记由 task-queue 追加到任务输出，前端按标记归类。fetch 与 profile 目录可注入，便于单测。
  */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
