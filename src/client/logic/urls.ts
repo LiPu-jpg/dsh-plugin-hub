@@ -66,6 +66,7 @@ function reasonTitleOf(kind: FailureKind): string {
     case 'hubState': return 'stale install state in the plugin hub'
     case 'timeout': return 'install timed out'
     case 'profileLock': return 'DSH profile is locked by another process'
+    case 'pluginMissingDep': return 'a dependency of the plugin is not published on npm'
     case 'hub': return 'install failed (cause unclassified)'
     default: return 'plugin install failed'
   }
@@ -90,6 +91,9 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
   const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`
   const reason = /\[packaging\]/i.test(message)
     ? 'plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published package (github tarball or npm package); please commit build output or publish a complete package'
+      : /\[registry-missing\]/i.test(message)
+        // 服务端用官方 registry 复核过：缺的包在官方源上也不存在，且不是用户 profile 的残留依赖
+        ? 'a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin'
       : kind === 'network'
         ? 'network connectivity issue on the user side (DNS, proxy, firewall, or a blocked connection)'
         : kind === 'pluginPrepare'

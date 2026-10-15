@@ -18,7 +18,7 @@ import type { MouseEvent } from 'react'
 import styles from '../../styles/Modal.module.css'
 import type { EnvInfo, Translate } from '../../types.ts'
 import type { NotificationRecord } from '../../logic/failures.ts'
-import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
 import type { PendingRestart, QueueTask } from '../../hooks/useTaskQueue.ts'
 import { pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { CloseIcon } from '../ui/icons.tsx'
@@ -311,7 +311,24 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       const pkg = missingRegistryPackageOf(r.message)
                       return h('div', null, [
                         pkg ? h('div', { className: styles.failNetworkTarget }, t('failPnpmMissingDepTarget', { pkg })) : null,
-                        h('div', { className: styles.failPrepareHint }, t('failPnpmMissingDepHint')),
+                        h('div', { className: styles.failPrepareHint }, t(registryMissingHintOf(r.message))),
+                      ])
+                    }
+                    if (kind === 'pluginMissingDep') {
+                      // 服务端用**官方** registry 复核过：插件依赖树里的包在官方源上也不存在，且不是用户
+                      // profile 的残留依赖 → 作者侧问题（依赖没发布/已被删除），引导到插件作者仓库提 Issue
+                      //（判据是源上的客观存在性，不是我们的启发式判断，故不设「市场误判」次要入口）
+                      const pkg = missingRegistryPackageOf(r.message)
+                      return h('div', null, [
+                        pkg ? h('div', { className: styles.failNetworkTarget }, t('failPluginMissingDepTarget', { pkg })) : null,
+                        h('div', { className: styles.failPrepareHint }, t('failPluginMissingDepHint')),
+                        r.repo && shownRepo ? h('a', {
+                          className: styles.failBigIssue,
+                          href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
+                          target: '_blank',
+                          rel: 'noopener noreferrer',
+                          title: t('failIssueHint'),
+                        }, t('failIssueBig')) : null,
                       ])
                     }
                     if (kind === 'registryVersionStale') {

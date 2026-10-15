@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyFailure, coreErrorCode, missingRegistryPackageOf, npmTooLowVersion, summarizeError, unreachableTargetOf, registryHostOf } from '../src/client/logic/failures.ts'
+import { classifyFailure, coreErrorCode, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf } from '../src/client/logic/failures.ts'
 
 const dshTailHint = 'dsh: git-hosted plugins build on install via their prepare script, which pnpm blocks until allowed — add the exact key pnpm printed above under allowBuilds in /Users/x/.dsh/profiles/web/pnpm-workspace.yaml, then re-run'
 
@@ -45,6 +45,15 @@ test('classifyFailure: ignored native-module builds are a plugin issue, even wit
     'Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.',
     dshTailHint,
     '[exit 1]',
+  ].join('\n')
+  assert.equal(classifyFailure(msg), 'pnpmIgnoredBuild')
+})
+
+test('classifyFailure: the host hint alone (no raw pnpm code in the log) is still an allowlist block (issue #210)', () => {
+  // 新版宿主把 pnpm 报错只写进 diagnostics 日志文件，终端里只留摘要行 —— 日志里一条 ERR_PNPM_* 都没有
+  const msg = [
+    'dsh: plugin command failed; diagnostics: C:\\Users\\wanda\\.dsh\\profiles\\desktop\\.plugin-manager\\logs\\operation-qmFtOx\\pnpm.log',
+    dshTailHint,
   ].join('\n')
   assert.equal(classifyFailure(msg), 'pnpmIgnoredBuild')
 })
@@ -349,6 +358,26 @@ test('classifyFailure: DSH waiting on its own profile writer lock is a profileLo
   ].join('\n')
   assert.equal(classifyFailure(msg), 'profileLock')
   assert.notEqual(classifyFailure(msg), 'hub')
+})
+
+test('classifyFailure: 官方 registry 复核结果决定「缺包」的责任方（作者侧 vs 本机镜像）', () => {
+  // 服务端用官方源复查：官方上也没有 → 作者侧问题（插件的依赖没发布/已被删除）
+  const missing = [
+    '[ERR_PNPM_FETCH_404] GET https://registry.npmjs.org/foo-dep: Not Found - 404',
+    '[registry-missing] foo-dep is not published on the official npm registry (registry.npmjs.org) — a dependency of this plugin is missing or was removed; author-side issue',
+  ].join('\n')
+  assert.equal(classifyFailure(missing), 'pluginMissingDep')
+  // 官方上有 → 本机镜像源未同步：维持「用户环境」分类，不改归属
+  const mirrorLag = [
+    '[ERR_PNPM_FETCH_404] GET https://registry.npmmirror.com/foo-dep: Not Found - 404',
+    '[registry-mirror-lag] foo-dep exists on the official npm registry — the configured registry or mirror has not synced it; local environment issue',
+  ].join('\n')
+  assert.equal(classifyFailure(mirrorLag), 'pnpmMissingDep')
+  // 无标记（服务端没复核、或复核不出结论）时沿用既有判定：profile 残留依赖（#73）
+  assert.equal(classifyFailure('[ERR_PNPM_FETCH_404] GET https://registry.npmjs.org/x: Not Found - 404'), 'pnpmMissingDep')
+  // 提示变体：镜像滞后提示换源；其余沿用「删除 profile 里的残留依赖」
+  assert.equal(registryMissingHintOf(mirrorLag), 'failRegistryMirrorLagHint')
+  assert.equal(registryMissingHintOf('[ERR_PNPM_FETCH_404] GET https://registry.npmjs.org/x: Not Found - 404'), 'failPnpmMissingDepHint')
 })
 
 test('classifyFailure: a dependency missing from the registry is an environment issue (issue #73), not a plugin issue', () => {

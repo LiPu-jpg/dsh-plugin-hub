@@ -14,6 +14,7 @@ import { dirname, join, resolve } from 'node:path'
 import type { InstallResult, InstallTask, Invocation, QueueItem } from './install-types.ts'
 import { CAPTURE_LIMIT_BYTES, MAX_TASKS, MAX_TASK_LINES } from './install-types.ts'
 import { npmTooLowMarker } from './npm-check.ts'
+import { registryMissingMarker } from './registry-check.ts'
 import { backfillOperationLog } from './operation-log.ts'
 import { cleanLine, estimateProgress } from '../profile/progress.ts'
 import type { LoaderHandle } from '../loader.ts'
@@ -711,6 +712,24 @@ function annotateNpmTooLow(result: InstallResult, options: {
   return { ...result, stderr: `${result.stderr}\n${line}`, error: result.error ? `${result.error}\n${line}` : line }
 }
 
+/** 包在 registry 不存在（404）→ 用官方源复查一次，把「作者依赖缺失/包被删」与「本机镜像源滞后」
+ *  分开（两者的提示与去向不同：前者引导投作者、后者只提示换源）。检测逻辑在独立的
+ *  registry-check.ts；这里之所以是异步，是因为要联网查官方 registry —— 只在安装失败且日志含 404
+ *  时发生，代价可忽略。 */
+async function annotateRegistryMissing(result: InstallResult, options: {
+  action: 'add' | 'remove' | 'update'
+  profile: string
+  task?: InstallTask
+}): Promise<InstallResult> {
+  if (options.action === 'remove' || result.exitCode === 0 || result.timedOut) return result
+  const line = await registryMissingMarker(`${result.stderr}\n${result.stdout}`, {
+    profileDir: profileDirectory(options.profile),
+  })
+  if (line === null) return result
+  if (options.task && options.task.status !== 'cancelled') pushLine(options.task, line)
+  return { ...result, stderr: `${result.stderr}\n${line}`, error: result.error ? `${result.error}\n${line}` : line }
+}
+
 /**
  * Run a plugin mutation with one recovery path: when `add` fails because
  * pnpm's allowBuilds gate blocks a build script — either the git-hosted
@@ -804,6 +823,8 @@ export async function runPluginMutation(options: {
       result = { ...result, stderr: `${result.stderr}\n${backfilled}` }
     }
   }
+  // 包在 registry 不存在（404）→ 官方源复查，区分「作者的依赖缺失/包被删」与「本机镜像源滞后」
+  result = await annotateRegistryMissing(result, options)
   // npm arborist edgesOut 崩溃 + 本机 npm 版本过低 → 追加 [npm-too-low] 标记，前端据此给准确原因
   return annotateNpmTooLow(result, options)
 }

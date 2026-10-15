@@ -17,7 +17,7 @@ import { CloseIcon, ConfirmIcon, CopyIcon, LinkIcon } from '../ui/icons.tsx'
 import { ProgressView } from './ProgressView.tsx'
 import { installCommandOf } from '../../logic/install-command.ts'
 import { pluginDetailUrl, pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
-import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
 
 /** 完成结果视图：绿色对勾 + 标题/描述；
  *  终态只有两种：
@@ -444,7 +444,25 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                   const pkg = missingRegistryPackageOf(message)
                   return pkg ? h('div', { className: styles.failNetworkTarget }, t('failPnpmMissingDepTarget', { pkg })) : null
                 })(),
-                h('div', { className: styles.failPrepareHint }, t('failPnpmMissingDepHint')),
+                h('div', { className: styles.failPrepareHint }, t(registryMissingHintOf(message))),
+              ])
+              : failureKind === 'pluginMissingDep'
+              // 服务端用**官方** registry 复核过：插件依赖树里的某个包在官方源上也不存在，且不是用户
+              // profile 的残留依赖 → 作者侧问题（依赖没发布/已被删除）。判据是源上的客观存在性，
+              // 不是我们的启发式判断，故不给「市场误判」次要入口，直接引导到插件作者仓库提 Issue。
+              ? h('div', null, [
+                (() => {
+                  const pkg = missingRegistryPackageOf(message)
+                  return pkg ? h('div', { className: styles.failNetworkTarget }, t('failPluginMissingDepTarget', { pkg })) : null
+                })(),
+                h('div', { className: styles.failPrepareHint }, t('failPluginMissingDepHint')),
+                repo ? h('a', {
+                  className: styles.failBigIssue,
+                  href: pluginIssueUrl(repo, message, env, command, attempts),
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  title: t('failIssueHint'),
+                }, t('failIssueBig')) : null,
               ])
               : failureKind === 'registryVersionStale'
               // 要装的版本在「实际执行安装的那个源」里查不到（ERR_PNPM_NO_MATCHING_VERSION / ETARGET）：

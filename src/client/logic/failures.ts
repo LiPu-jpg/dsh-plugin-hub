@@ -151,7 +151,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
 
 /** Match the pnpm error code, not a generic mention of checksum or integrity. */
 function missingTarballIntegrity(message: string): boolean {
@@ -230,6 +230,11 @@ export function classifyFailure(message: string): FailureKind {
   // 装后校验发现入口文件缺失（[packaging]）= git 分发缺构建产物
   if (/\[packaging\]|entry file missing/i.test(message)) return 'pluginPrepare'
   // registry 上不存在的依赖（404），profile 任何安装都会卡在这条。必须在 pluginPrepare 之前判
+  // 官方源复核结论：缺的包在官方 registry 上也不存在，且不是本机 profile 声明的残留依赖 →
+  // 该包来自插件的依赖树，属**作者侧**问题（依赖没发布/已被删除）。标记由服务端联网复查后注入。
+  // 必须排在 pnpmMissingDep 之前 —— 日志里同样含 ERR_PNPM_FETCH_404，靠标记区分「作者的锅」
+  // 与「本机 profile 残留依赖（#73）/ 镜像源滞后」。
+  if (/\[registry-missing\]/i.test(message)) return 'pluginMissingDep'
   if (/ERR_PNPM_FETCH_404|404 Not Found|Not Found - 404/i.test(message)) return 'pnpmMissingDep'
   // 要装的版本在实际安装源里没有（镜像滞后或版本写错）。必须在 pluginPrepare 之前判
   if (/\bERR_PNPM_NO_MATCHING_VERSION\b|\bETARGET\b|No matching version found/i.test(message)) return 'registryVersionStale'
@@ -252,6 +257,12 @@ export function classifyFailure(message: string): FailureKind {
   // dsh 进程或安装任务在写，锁一直没释放。既不是插件问题、也不是用户环境坏了 —— 把并发收掉重试即可。
   // 摆放位置同样在一切错误码分支之后：日志里真有 pnpm 报错时仍以真实报错为准。
   if (/atomic-write: timed out waiting for the writer lock|timed out waiting for the writer lock/i.test(message)) return 'profileLock'
+  // 宿主 DSH 自己的 allowBuilds 摘要行（#210）：新版宿主把 pnpm 报错只写进 diagnostics 日志文件，
+  // 终端里只留这一句「git-hosted plugins build … add the exact key … then re-run」，日志里因此
+  // 一条原始 ERR_PNPM_* 码都没有 —— 只能靠这句话识别为「构建脚本被白名单拦截」。
+  // 摆放位置在一切错误码分支之后：日志里真有 ERR_PNPM_PREPARE_PACKAGE / ERR_PNPM_IGNORED_BUILDS
+  // 时（构建确实跑挂、或不带摘要的旧宿主），仍以原始报错为准，不会被这句摘要改写。
+  if (/git-hosted plugins build on install via their prepare script|add the exact key pnpm printed above under allowBuilds/i.test(message)) return 'pnpmIgnoredBuild'
   // 其余未知失败：引导到插件中心仓库排查
   return 'hub'
 }
@@ -318,13 +329,21 @@ export function coreErrorCode(message: string): string | null {
   return m ? m[0].replace(/^\[|\]$/g, '') : null
 }
 
+/** 「包在 registry 不存在」失败的提示变体：服务端用官方源复核过（会注入 `[registry-mirror-lag]`）
+ *  时，说明包在官方源上存在、是本机镜像源未同步 → 提示换源；否则沿用既有的「profile 残留依赖」
+ *  提示（#73：指向从未发布包的残留条目，任何插件都装不进来）。 */
+export function registryMissingHintOf(message: string): 'failPnpmMissingDepHint' | 'failRegistryMirrorLagHint' {
+  return /\[registry-mirror-lag\]/i.test(message) ? 'failRegistryMirrorLagHint' : 'failPnpmMissingDepHint'
+}
+
 /** 提取「registry 上不存在的包名」：从 404 行（`ERR_PNPM_FETCH_404 GET <registry>/<pkg>: Not Found - 404`）
  *  里取请求路径中的包名（含 scope，如 `@scope/name`）；非 404 或提取不到返回 null。 */
 export function missingRegistryPackageOf(message: string): string | null {
   for (const line of message.split(/\r?\n/)) {
     if (!/ERR_PNPM_FETCH_404|404/.test(line)) continue
     const m = line.match(/GET\s+https?:\/\/[^\s/]+\/((?:@[^/\s:]+\/)?[^/\s:]+)/)
-    if (m) return m[1]
+    // pnpm 输出里 scope 包是 URL 编码形态（`@scope%2Fname`）：还原成 `@scope/name` 再展示
+    if (m) return m[1].replace(/%40/gi, '@').replace(/%2f/gi, '/')
   }
   return null
 }
