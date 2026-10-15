@@ -88,6 +88,19 @@ test('classifyFailure: DNS / connection-reset / TLS failures are network issues,
   assert.equal(classifyFailure('SSL certificate problem: unable to get local issuer certificate'), 'network')
 })
 
+test('classifyFailure: a symbolic undici error code in a tarball retry line is a network issue (issue #217)', () => {
+  // #217：pnpm 重试行括号里是 undici 的符号错误码（UND_ERR_SOCKET），不是数字码 —— 同样是网络问题
+  const msg = [
+    '[WARN] GET https://registry.npmjs.org/@img/sharp-libvips-darwin-x64/-/sharp-libvips-darwin-x64-1.3.4.tgz error (UND_ERR_SOCKET). Will retry in 10 seconds. 2 retries left.',
+    'dsh: pnpm failed in profile directory C:\\Users\\Administrator\\.dsh\\profiles\\desktop',
+  ].join('\n')
+  assert.equal(classifyFailure(msg), 'network')
+  assert.notEqual(classifyFailure(msg), 'hub')
+  // 数字码（#32 的 error (0)）与符号码两种形态都要认，且不依赖其它关键字
+  assert.equal(classifyFailure('[WARN] GET https://registry.npmjs.org/x/-/x-1.0.0.tgz error (0). Will retry in 10 seconds. 2 retries left.'), 'network')
+  assert.equal(classifyFailure('[WARN] GET https://registry.npmjs.org/x/-/x-1.0.0.tgz error (UND_ERR_CONNECT_TIMEOUT). Will retry in 10 seconds. 2 retries left.'), 'network')
+})
+
 test('classifyFailure: allowBuilds rejection wins over trailing connection-failure noise (graph-memory #82-#84)', () => {
   // #84：主因是插件 prepare 脚本被 allowBuilds 拦截（tarball 已下载、网络是通的），
   // 日志尾部混着重试残留的 ETIMEDOUT / Failed to connect —— 不能误判成网络问题
