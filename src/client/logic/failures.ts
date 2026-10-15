@@ -263,7 +263,7 @@ export function classifyFailure(message: string): FailureKind {
   // 安装器自身产生的状态类消息（未安装 / 不在此处卸载 / 已在队列中 / 已安装）：这几句由本服务的
   // 守卫发出，不是 CLI 输出、也不是插件问题，而是插件中心的已安装列表与实读快照不同步。
   // 单独归类，让前端给「刷新后重试」这类可行动提示，而不是当作未知失败引导去提 Issue。
-  // already installed 只认「整行就是它」的短形态（旧版本守卫留下的历史记录）；带「——」说明的
+  // already installed 只认「整行就是它」的短形态；带「——」说明的
   // 包名冲突另有处置，不能按状态不同步提示。
   if (/plugin is not installed|plugin cannot be uninstalled here|already queued:|^already installed: \S+$/im.test(message)) return 'hubState'
   // 安装器自己的超时标记（命令跑满上限被强杀）：既不是插件问题、也不是用户环境问题，而且很可能是
@@ -346,8 +346,8 @@ export function coreErrorCode(message: string): string | null {
 }
 
 /** 「包在 registry 不存在」失败的提示变体：服务端用官方源复核过（会注入 `[registry-mirror-lag]`）
- *  时，说明包在官方源上存在、是本机镜像源未同步 → 提示换源；否则沿用既有的「profile 残留依赖」
- *  提示（#73：指向从未发布包的残留条目，任何插件都装不进来）。 */
+ *  时，说明包在官方源上存在、是本机镜像源未同步 → 提示换源；否则按「profile 残留依赖」提示
+ *  （删掉 profile 里那条依赖即可）。 */
 export function registryMissingHintOf(message: string): 'failPnpmMissingDepHint' | 'failRegistryMirrorLagHint' {
   return /\[registry-mirror-lag\]/i.test(message) ? 'failRegistryMirrorLagHint' : 'failPnpmMissingDepHint'
 }

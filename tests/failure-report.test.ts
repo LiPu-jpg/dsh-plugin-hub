@@ -9,7 +9,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { pluginIssueUrl, hubIssueUrl } from '../src/client/logic/urls.ts'
 
-/** #212 报错：宿主自身入口 spawn 不到（服务端会补 [host-spawn] 标记） */
+/** 宿主自身入口 spawn 不到时报错（服务端会补 [host-spawn] 标记） */
 const spawnEnoent = [
   '[error] spawn D:\\DSH\\DSH Desktop\\DSH Desktop.exe ENOENT',
   '[host-spawn] the DSH host could not be launched (D:\\DSH\\DSH Desktop\\DSH Desktop.exe: ENOENT)',
@@ -52,7 +52,7 @@ test('pluginIssueUrl: the default action keeps the historical install wording', 
   assert.ok(body.includes('安装 Plugin 失败错误信息'), body)
 })
 
-test('hubIssueUrl: title and body follow the action (unclassified removal, issue #212)', () => {
+test('hubIssueUrl: title and body follow the action (unclassified removal)', () => {
   const url = hubIssueUrl('elysia395/dsh-wallpaper-engine', spawnEnoent, null, executed, [executed], 'triage', 'uninstall')
   const { title, body } = decodeTargets(url)
   // 标题点明「调不起宿主」，并明确是卸载

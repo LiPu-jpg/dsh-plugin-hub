@@ -151,7 +151,7 @@ start_fresh() {
 
 # 清理 DSH 全局写锁残留：强杀进程时，credentials 写锁（atomic-write）可能留下
 # 0 字节空锁文件（正常应含 PID）。空锁无法被 takeover，会让下次启动在
-# withFileLock 上超时（issue #246 同类）。启动新进程前清掉，确保干净拿锁。
+# withFileLock 上超时。启动新进程前清掉，确保干净拿锁。
 clear_stale_locks() {
   local lock="$HOME/.dsh/.credentials.yaml.lock"
   if [[ -f "$lock" ]]; then

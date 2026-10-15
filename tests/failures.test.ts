@@ -49,7 +49,7 @@ test('classifyFailure: ignored native-module builds are a plugin issue, even wit
   assert.equal(classifyFailure(msg), 'pnpmIgnoredBuild')
 })
 
-test('classifyFailure: the host hint alone (no raw pnpm code in the log) is still an allowlist block (issue #210)', () => {
+test('classifyFailure: the host hint alone (no raw pnpm code in the log) is still an allowlist block', () => {
   // 新版宿主把 pnpm 报错只写进 diagnostics 日志文件，终端里只留摘要行 —— 日志里一条 ERR_PNPM_* 都没有
   const msg = [
     'dsh: plugin command failed; diagnostics: C:\\Users\\wanda\\.dsh\\profiles\\desktop\\.plugin-manager\\logs\\operation-qmFtOx\\pnpm.log',
@@ -67,7 +67,7 @@ test('classifyFailure: prepare script actually failing is a plugin issue, even w
   assert.equal(classifyFailure(msg), 'pluginPrepare')
 })
 
-test('classifyFailure: git fetch timeout (issue #10) is a network issue, not a plugin issue', () => {
+test('classifyFailure: git fetch timeout is a network issue, not a plugin issue', () => {
   const msg = [
     'ERR_PNPM_GIT_FETCH_FAILED Git fetch failed: "git fetch https://github.com/adoresever/graph-memory HEAD ..."',
     'fatal: unable to access \'https://github.com/adoresever/graph-memory/\': Failed to connect to github.com port 443: Timed out',
@@ -88,21 +88,21 @@ test('classifyFailure: DNS / connection-reset / TLS failures are network issues,
   assert.equal(classifyFailure('SSL certificate problem: unable to get local issuer certificate'), 'network')
 })
 
-test('classifyFailure: a symbolic undici error code in a tarball retry line is a network issue (issue #217)', () => {
-  // #217：pnpm 重试行括号里是 undici 的符号错误码（UND_ERR_SOCKET），不是数字码 —— 同样是网络问题
+test('classifyFailure: a symbolic undici error code in a tarball retry line is a network issue', () => {
+  // pnpm 重试行括号里是 undici 的符号错误码（UND_ERR_SOCKET），不是数字码 —— 同样是网络问题
   const msg = [
     '[WARN] GET https://registry.npmjs.org/@img/sharp-libvips-darwin-x64/-/sharp-libvips-darwin-x64-1.3.4.tgz error (UND_ERR_SOCKET). Will retry in 10 seconds. 2 retries left.',
     'dsh: pnpm failed in profile directory C:\\Users\\Administrator\\.dsh\\profiles\\desktop',
   ].join('\n')
   assert.equal(classifyFailure(msg), 'network')
   assert.notEqual(classifyFailure(msg), 'hub')
-  // 数字码（#32 的 error (0)）与符号码两种形态都要认，且不依赖其它关键字
+  // 数字码（error (0)）与符号码两种形态都要认，且不依赖其它关键字
   assert.equal(classifyFailure('[WARN] GET https://registry.npmjs.org/x/-/x-1.0.0.tgz error (0). Will retry in 10 seconds. 2 retries left.'), 'network')
   assert.equal(classifyFailure('[WARN] GET https://registry.npmjs.org/x/-/x-1.0.0.tgz error (UND_ERR_CONNECT_TIMEOUT). Will retry in 10 seconds. 2 retries left.'), 'network')
 })
 
-test('classifyFailure: allowBuilds rejection wins over trailing connection-failure noise (graph-memory #82-#84)', () => {
-  // #84：主因是插件 prepare 脚本被 allowBuilds 拦截（tarball 已下载、网络是通的），
+test('classifyFailure: allowBuilds rejection wins over trailing connection-failure noise', () => {
+  // 主因是插件 prepare 脚本被 allowBuilds 拦截（tarball 已下载、网络是通的），
   // 日志尾部混着重试残留的 ETIMEDOUT / Failed to connect —— 不能误判成网络问题
   const mixed = [
     '[ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED] Failed to prepare git-hosted package fetched from "https://codeload.github.com/adoresever/graph-memory/tar.gz/66183143": The git-hosted package "graph-memory@1.6.0-beta.8" needs to execute build scripts but is not in the "allowBuilds" allowlist.',
@@ -110,13 +110,13 @@ test('classifyFailure: allowBuilds rejection wins over trailing connection-failu
     '[ERR_PNPM_GIT_RESOLVE_FAILED] Failed to resolve git dependency "git+https://github.com/adoresever/graph-memory.git": git ls-remote failed: fatal: unable to access \'https://github.com/adoresever/graph-memory.git/\': Failed to connect to github.com:443 after 21356 ms: Could not connect to server',
   ].join('\n')
   assert.equal(classifyFailure(mixed), 'pnpmIgnoredBuild')
-  // #82 / #83：PREPARE_NOT_ALLOWED + PREPARE_PACKAGE（prepare 被白名单拦截后脚本链失败）
+  // PREPARE_NOT_ALLOWED + PREPARE_PACKAGE（prepare 被白名单拦截后脚本链失败）
   assert.equal(classifyFailure('[ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED] ... needs to execute build scripts but is not in the "allowBuilds" allowlist.\n[ERR_PNPM_PREPARE_PACKAGE] Failed to prepare git-hosted package fetched from "...": graph-memory@1.6.0-beta.8 npm-install: `npm install`'), 'pnpmIgnoredBuild')
   // 纯 IGNORED_BUILDS（原生模块构建被忽略）仍是 pnpmIgnoredBuild
   assert.equal(classifyFailure('pnpm-install: [ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: node-pty, esbuild'), 'pnpmIgnoredBuild')
 })
 
-test('classifyFailure: pure git fetch timeout without allowBuilds noise stays a network issue (graph-memory #87)', () => {
+test('classifyFailure: pure git fetch timeout without allowBuilds noise stays a network issue', () => {
   const msg = [
     '[WARN] HEAD https://github.com/adoresever/graph-memory error (ETIMEDOUT). Will retry in 500 milliseconds. 2 retries left.',
     '[ERR_PNPM_GIT_FETCH_FAILED] Failed to fetch from the git repository "https://github.com/adoresever/graph-memory.git": fatal: unable to access \'https://github.com/adoresever/graph-memory.git/\': Failed to connect to github.com port 443 after 21027 ms: Timed out',
@@ -130,7 +130,7 @@ test('npmTooLowVersion extracts the version from the marker, null otherwise', ()
   assert.equal(npmTooLowVersion('no marker here'), null)
 })
 
-test('classifyFailure: dsh command missing on the machine is an environment issue (issue #12), not a plugin issue', () => {
+test('classifyFailure: dsh command missing on the machine is an environment issue, not a plugin issue', () => {
   // Windows cmd: 'dsh' 不是内部或外部命令
   assert.equal(classifyFailure("'dsh' \u4e0d\u662f\u5185\u90e8\u6216\u5916\u90e8\u547d\u4ee4\uff0c\u4e5f\u4e0d\u662f\u53ef\u8fd0\u884c\u7684\u7a0b\u5e8f\n\u6216\u6279\u5904\u7406\u6587\u4ef6\u3002"), 'dshMissing')
   // Windows cmd (English)
@@ -147,7 +147,7 @@ test('classifyFailure: dsh command missing on the machine is an environment issu
   assert.equal(classifyFailure("Command failed: dsh plugin add github:owner/repo\n'dsh' \u4e0d\u662f\u5185\u90e8\u6216\u5916\u90e8\u547d\u4ee4\uff0c\u4e5f\u4e0d\u662f\u53ef\u8fd0\u884c\u7684\u7a0b\u5e8f\u3002"), 'dshMissing')
 })
 
-test('classifyFailure: missing git executable is an environment issue (issue #21), not a plugin issue', () => {
+test('classifyFailure: missing git executable is an environment issue, not a plugin issue', () => {
   // Windows cmd (Chinese)
   assert.equal(classifyFailure("'git' \u4e0d\u662f\u5185\u90e8\u6216\u5916\u90e8\u547d\u4ee4\uff0c\u4e5f\u4e0d\u662f\u53ef\u8fd0\u884c\u7684\u7a0b\u5e8f\u3002"), 'gitMissing')
   // Windows cmd (English)
@@ -183,8 +183,8 @@ test('classifyFailure: missing npm executable is an environment issue, not a plu
   assert.equal(classifyFailure("Command failed: npm install -g foo\n'npm' is not recognized as an internal or external command"), 'npmMissing')
 })
 
-test('classifyFailure: pnpm command missing is an environment issue (issue #13), not a plugin issue', () => {
-  // dsh 存在但缺 pnpm（dsh 用它管理 profile 插件）：issue #13 的真实报错（Linux）
+test('classifyFailure: pnpm command missing is an environment issue, not a plugin issue', () => {
+  // dsh 存在但缺 pnpm（dsh 用它管理 profile 插件）：真实报错来自 Linux
   assert.equal(classifyFailure('dsh: pnpm not found on PATH — install pnpm to manage profile plugins'), 'pnpmMissing')
   // POSIX shell
   assert.equal(classifyFailure('sh: pnpm: command not found'), 'pnpmMissing')
@@ -199,14 +199,14 @@ test('classifyFailure: pnpm command missing is an environment issue (issue #13),
   assert.equal(classifyFailure('Command failed: dsh plugin add github:owner/repo\nsh: pnpm: command not found'), 'pnpmMissing')
 })
 
-test('classifyFailure: pnpm store version mismatch is an environment issue (issue #14), not a plugin issue', () => {
+test('classifyFailure: pnpm store version mismatch is an environment issue, not a plugin issue', () => {
   assert.equal(classifyFailure('[ERR_PNPM_UNEXPECTED_STORE] Unexpected store location\n(This error may happen if the node_modules was installed with a different major version of pnpm)\ndsh: pnpm failed in profile directory /Users/xxx/.dsh/profiles/web'), 'pnpmStore')
   assert.equal(classifyFailure('dsh: pnpm failed in profile directory /Users/xxx/.dsh/profiles/web\n[ERR_PNPM_UNEXPECTED_STORE] Unexpected store location'), 'pnpmStore')
   // 裸 Unexpected store location（无 ERR_ 前缀）也要能归到 pnpmStore
   assert.equal(classifyFailure('Unexpected store location: expected /Users/xxx/.pnpm-store, got /Users/xxx/.pnpm-store/v10'), 'pnpmStore')
 })
 
-test('classifyFailure: virtual store location mismatch is an environment issue (issue #30), not a plugin issue', () => {
+test('classifyFailure: virtual store location mismatch is an environment issue, not a plugin issue', () => {
   // profile 目录被复制/移动、virtual-store-dir 配置变化 → ERR_PNPM_UNEXPECTED_VIRTUAL_STORE
   assert.equal(classifyFailure('[ERR_PNPM_UNEXPECTED_VIRTUAL_STORE] Unexpected virtual store location\ndsh: pnpm failed in profile directory C:\\Users\\zijin\\.dsh-desktop\\profiles\\web'), 'pnpmStore')
   // 裸 Unexpected virtual store location（无 ERR_ 前缀）也要能归到 pnpmStore
@@ -215,32 +215,32 @@ test('classifyFailure: virtual store location mismatch is an environment issue (
   assert.equal(classifyFailure('[ERR_PNPM_UNEXPECTED_VIRTUAL_STORE] Unexpected virtual store location'), 'pnpmStore')
 })
 
-test('classifyFailure: pnpm supply-chain policy blocks are environment issues (issues #15/#16), not plugin issues', () => {
-  // #15：minimumReleaseAge —— 锁文件里包的发布时间太近被 pnpm 11 拒收（用户装刚发布的官方插件）
+test('classifyFailure: pnpm supply-chain policy blocks are environment issues, not plugin issues', () => {
+  // minimumReleaseAge —— 锁文件里包的发布时间太近被 pnpm 11 拒收（用户装刚发布的官方插件）
   assert.equal(classifyFailure('[ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION] 2 lockfile entries failed verification\nSome packages are not released long enough to be installed\n(use minimumReleaseAge setting to adjust)'), 'pnpmPolicy')
   assert.equal(classifyFailure('Minimum release age of @scope/pkg is 1 day, but the package was published 2 hours ago'), 'pnpmPolicy')
-  // #16：untrusted origin —— 依赖来源未受本机 pnpm 信任
+  // untrusted origin —— 依赖来源未受本机 pnpm 信任
   assert.equal(classifyFailure('untrusted origin\ndsh: pnpm failed in profile directory /Users/xxx/.dsh/profiles/web'), 'pnpmPolicy')
   assert.equal(classifyFailure('ERR_PNPM_UNTRUSTED_ORIGIN untrusted origin for @scope/pkg'), 'pnpmPolicy')
   // 这两类都必须优先于「构建脚本被白名单拦截 / Command failed / 兜底 repo」
   assert.equal(classifyFailure('ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION ... Command failed: pnpm add'), 'pnpmPolicy')
 })
 
-test('classifyFailure: the local hub service\'s bare `untrusted origin` 403 is originRejected, not pnpmPolicy (issue #70)', () => {
+test('classifyFailure: the local hub service\'s bare `untrusted origin` 403 is originRejected, not pnpmPolicy', () => {
   // 服务端 requireTrustedPost 的 403 正文恰好是裸 `untrusted origin`（整行以它结尾）：
   // 请求在进入安装流程前就被拦下，与 pnpm 无关 —— 不能与 pnpmPolicy 同归一类，后者的
-  // 解法（删 profile 的 node_modules + pnpm-lock.yaml）对本类无效（dsh-plugin-hub#70）
+  // 解法（删 profile 的 node_modules + pnpm-lock.yaml）对本类无效
   assert.equal(classifyFailure('untrusted origin'), 'originRejected')
   // useTaskQueue 把服务端 error 字段拼在 install 命令行之后，同样以它结尾
   assert.equal(classifyFailure('[install] dsh-plugin\nuntrusted origin'), 'originRejected')
   // 尾随空白不影响判定
   assert.equal(classifyFailure('untrusted origin\n'), 'originRejected')
-  // 反过来：pnpm 的真实报错尾部还有 dsh 的上下文，不能被抢走（见上一条 #16 用例，仍是 pnpmPolicy）
+  // 反过来：pnpm 的真实报错尾部还有 dsh 的上下文，不能被抢走（见上一条用例，仍是 pnpmPolicy）
   assert.notEqual(classifyFailure('untrusted origin\ndsh: pnpm failed in profile directory /Users/xxx/.dsh/profiles/web'), 'originRejected')
 })
 
-test('classifyFailure: pnpm workspace-root check is an environment issue (issue #40), not a plugin issue', () => {
-  // #40：宿主在 profile 目录（pnpm 视为 workspace 根）执行 pnpm add 时未声明在根操作 →
+test('classifyFailure: pnpm workspace-root check is an environment issue, not a plugin issue', () => {
+  // 宿主在 profile 目录（pnpm 视为 workspace 根）执行 pnpm add 时未声明在根操作 →
   // pnpm 直接拒绝，任何插件都装不上
   assert.equal(
     classifyFailure('ERR_PNPM_ADDING_TO_ROOT  Running this command will add the dependency to the workspace root, which might not be what you want - if you really meant it, make it explicit by running this command again with the -w flag (or --workspace-root). If you do not want to see this warning anymore, you may set the ignore-workspace-root-check setting to true.\ndsh: pnpm failed in profile directory C:\\Users\\five\\.dsh\\profiles\\web'),
@@ -252,22 +252,22 @@ test('classifyFailure: pnpm workspace-root check is an environment issue (issue 
   assert.equal(classifyFailure('ERR_PNPM_ADDING_TO_ROOT'), 'pnpmWorkspace')
 })
 
-test('classifyFailure: a stale pnpm patch entry on the machine is an environment issue (issue #48), not a plugin issue', () => {
-  // #48：profile 里留着指向旧版本 dsh-plugin 的 patch 声明，本次安装解析到的版本已不是它，
+test('classifyFailure: a stale pnpm patch entry on the machine is an environment issue, not a plugin issue', () => {
+  // profile 里留着指向旧版本 dsh-plugin 的 patch 声明，本次安装解析到的版本已不是它，
   // pnpm 发现补丁没被用上即中止整次安装 —— 任何插件都装不进来
   const msg = [
     '[ERR_PNPM_UNUSED_PATCH] The following patches were not used: dsh-plugin@1.4.2',
     'dsh: pnpm failed in profile directory /home/zhongsy/.dsh/profiles/web',
   ].join('\n')
   assert.equal(classifyFailure(msg), 'pnpmUnusedPatch')
-  // 不能被 repo 兜底吞掉：旧逻辑会把 #48 误报成「插件侧安装失败」引导去提 Issue
+  // 不能被 repo 兜底吞掉，否则会误引导用户去插件仓库提 Issue
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 只带说明句（无错误码）也要能归到 pnpmUnusedPatch，且优先于「Command failed」的插件侧判定
   assert.equal(classifyFailure('The following patches were not used: dsh-plugin@1.4.2\nCommand failed: pnpm add'), 'pnpmUnusedPatch')
 })
 
-test('classifyFailure: a locked file inside the profile is an environment issue (issue #47), not a plugin issue', () => {
-  // #47：Windows 下 profile 里的文件被其他进程占用，pnpm 无法替换。中文原文经解码后可能残缺，
+test('classifyFailure: a locked file inside the profile is an environment issue, not a plugin issue', () => {
+  // Windows 下 profile 里的文件被其他进程占用，pnpm 无法替换。中文原文经解码后可能残缺，
   // 靠 ASCII 特征 os error 32 命中（乱码免疫），不能要求匹配中文原句
   const msg = [
     'Error:',
@@ -281,8 +281,8 @@ test('classifyFailure: a locked file inside the profile is an environment issue 
   assert.equal(classifyFailure('Error: the process cannot access the file because it is being used by another process'), 'fileLocked')
 })
 
-test('classifyFailure: a write access denial inside the profile is an environment issue (issue #50), not a plugin issue', () => {
-  // #50：Windows 下 pnpm 在 swap 阶段替换 profile 里的文件被系统拒绝（os error 5 = ERROR_ACCESS_DENIED，
+test('classifyFailure: a write access denial inside the profile is an environment issue, not a plugin issue', () => {
+  // Windows 下 pnpm 在 swap 阶段替换 profile 里的文件被系统拒绝（os error 5 = ERROR_ACCESS_DENIED，
   // 中文为「拒绝访问」）。中文原文经 GBK→UTF-8 解码会残缺，靠 ASCII 特征 os error 5 命中（乱码免疫）
   const msg = [
     'Error:',
@@ -319,13 +319,13 @@ test('classifyFailure: a file system that cannot accept writes is an environment
   assert.equal(classifyFailure('Command failed: pnpm add some-plugin'), 'pluginPrepare')
 })
 
-test('classifyFailure: the browser "Failed to fetch" on the host request is an environment issue (issue #45), not a plugin issue', () => {
+test('classifyFailure: the browser "Failed to fetch" on the host request is an environment issue, not a plugin issue', () => {
   const msg = '安装失败 — Failed to fetch'
   assert.equal(classifyFailure(msg), 'network')
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
 })
 
-test('classifyFailure: hub state-guard messages are hubState, not plugin-side (issue #187)', () => {
+test('classifyFailure: hub state-guard messages are hubState, not plugin-side', () => {
   // 这些字符串由本服务的守卫发出（未安装 / 不在此处卸载 / 已在队列中），不是 CLI 输出、也不是插件问题
   assert.equal(classifyFailure('plugin is not installed'), 'hubState')
   assert.equal(classifyFailure('plugin cannot be uninstalled here'), 'hubState')
@@ -335,7 +335,7 @@ test('classifyFailure: hub state-guard messages are hubState, not plugin-side (i
   assert.notEqual(classifyFailure('plugin is not installed'), 'hub')
 })
 
-test('classifyFailure: the short "already installed" guard line is hubState, not an unknown failure (issue #193)', () => {
+test('classifyFailure: the short "already installed" guard line is hubState, not an unknown failure', () => {
   // 旧版本守卫在「目标已安装」时返回的整行短消息：已装列表与服务端实读不同步，不是插件问题
   assert.equal(classifyFailure('already installed: dsh-cuigengji-plugin'), 'hubState')
   // 前面带一行说明（自定义安装会先加一行入口渠道）时同样命中
@@ -347,7 +347,7 @@ test('classifyFailure: the short "already installed" guard line is hubState, not
   )
 })
 
-test('classifyFailure: our own timeout marker is a timeout, not an unknown failure (issue #197)', () => {
+test('classifyFailure: our own timeout marker is a timeout, not an unknown failure', () => {
   // 命令跑满本地上限被强杀时安装器打的标记：既不是插件问题、也不是用户环境问题，而且可能其实已装成功
   const msg = [
     'Progress: resolved 68, reused 26, downloaded 21, added 21, done',
@@ -362,7 +362,7 @@ test('classifyFailure: our own timeout marker is a timeout, not an unknown failu
   assert.notEqual(classifyFailure('[timeout] the install had already completed — treating it as a success'), 'timeout')
 })
 
-test('classifyFailure: DSH waiting on its own profile writer lock is a profileLock, not an unknown failure (issue #206)', () => {
+test('classifyFailure: DSH waiting on its own profile writer lock is a profileLock, not an unknown failure', () => {
   // DSH 原子写 profile 时等不到 package.json.lock（同一 profile 有别的 dsh 进程/安装任务在写）：
   // 既不是插件问题、也不是用户环境坏了，给「收掉并发再重试」的可行动提示，不引导提 Issue
   const msg = [
@@ -386,14 +386,14 @@ test('classifyFailure: 官方 registry 复核结果决定「缺包」的责任�
     '[registry-mirror-lag] foo-dep exists on the official npm registry — the configured registry or mirror has not synced it; local environment issue',
   ].join('\n')
   assert.equal(classifyFailure(mirrorLag), 'pnpmMissingDep')
-  // 无标记（服务端没复核、或复核不出结论）时沿用既有判定：profile 残留依赖（#73）
+  // 无标记（服务端没复核、或复核不出结论）时沿用既有判定：profile 残留依赖
   assert.equal(classifyFailure('[ERR_PNPM_FETCH_404] GET https://registry.npmjs.org/x: Not Found - 404'), 'pnpmMissingDep')
   // 提示变体：镜像滞后提示换源；其余沿用「删除 profile 里的残留依赖」
   assert.equal(registryMissingHintOf(mirrorLag), 'failRegistryMirrorLagHint')
   assert.equal(registryMissingHintOf('[ERR_PNPM_FETCH_404] GET https://registry.npmjs.org/x: Not Found - 404'), 'failPnpmMissingDepHint')
 })
 
-test('classifyFailure: a dependency missing from the registry is an environment issue (issue #73), not a plugin issue', () => {
+test('classifyFailure: a dependency missing from the registry is an environment issue, not a plugin issue', () => {
   // profile 里既存依赖 dsh-our-free-model 在 npm 上不存在：pnpm 解析依赖时先卡在它上面，
   // 日志尾部只有宿主那句通用的 `dsh: plugin command failed`
   const msg = [
@@ -411,8 +411,8 @@ test('classifyFailure: a dependency missing from the registry is an environment 
   assert.equal(classifyFailure('npm error 404 Not Found - GET https://registry.npmjs.org/foo - Not found'), 'pnpmMissingDep')
 })
 
-test('classifyFailure: a version missing from the install registry is an environment issue (issue #175), not a plugin issue', () => {
-  // #175：反查包名走设置里的 npmRegistry，实际安装沿用本机 ~/.npmrc 的源；镜像滞后于官方时
+test('classifyFailure: a version missing from the install registry is an environment issue, not a plugin issue', () => {
+  // 反查包名走设置里的 npmRegistry，实际安装沿用本机 ~/.npmrc 的源；镜像滞后于官方时
   // 就会出现「解析挑到新版本 → 安装源里没有」—— 与插件作者无关，不能落 repo 兜底推给作者仓库
   const msg = [
     '[ERR_PNPM_NO_MATCHING_VERSION] No matching version found for @caob23/dsh-browser-control@1.0.10',
@@ -426,8 +426,8 @@ test('classifyFailure: a version missing from the install registry is an environ
   assert.equal(classifyFailure('No matching version found for dsh-plugin@1.9.9'), 'registryVersionStale')
 })
 
-test('classifyFailure: the 24h release-age gate (ERR_PNPM_NO_MATURE_MATCHING_VERSION) is a policy issue (issue #175), not a plugin issue', () => {
-  // #175 补充：dsh profile 自带 minimumReleaseAge=1440，刚发布的版本被包龄闸门拦下时报这个码 ——
+test('classifyFailure: the 24h release-age gate (ERR_PNPM_NO_MATURE_MATCHING_VERSION) is a policy issue, not a plugin issue', () => {
+  // dsh profile 自带 minimumReleaseAge=1440，刚发布的版本被包龄闸门拦下时报这个码 ——
   // 那是 dsh 自己的供应链策略在正常工作，不是任何人的错，不能落 repo 变成作者邮箱里的工单
   const msg = [
     '[ERR_PNPM_NO_MATURE_MATCHING_VERSION] 1 version does not meet the minimumReleaseAge constraint:',
@@ -446,7 +446,7 @@ test('pnpmPolicyHintOf: minimumReleaseAge via ERR_PNPM_NO_MATURE_MATCHING_VERSIO
   assert.equal(releaseAgeRetryAfter(msg), '2026-10-13T14:02Z')
 })
 
-test('classifyFailure: a dangling local (link:) dependency in the profile is an environment issue (issue #172), not a plugin issue', () => {
+test('classifyFailure: a dangling local (link:) dependency in the profile is an environment issue, not a plugin issue', () => {
   const msg = [
     '[ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND] Could not install from "C:\\Users\\23812\\.dsh\\Documents\\deepseek-harness\\default-workspace\\dsh-menu-opaque" as it does not exist.',
     'This error happened while installing a direct dependency of C:\\Users\\23812\\.dsh\\profiles\\desktop',
@@ -501,8 +501,8 @@ test('unreachableTargetOf extracts the exact unreachable address for the dialog'
   assert.equal(unreachableTargetOf('pnpm error code ECONNRESET'), null)
 })
 
-test('classifyFailure: registry tarball download failure is a network/registry issue (issue #32), not a plugin issue', () => {
-  // #32 真实报错：pnpm 被配成公司内网 Artifactory 源，tarball 拉取失败 → fetch failed
+test('classifyFailure: registry tarball download failure is a network/registry issue, not a plugin issue', () => {
+  // 真实报错：pnpm 被配成公司内网 Artifactory 源，tarball 拉取失败 → fetch failed
   const msg = [
     '[WARN] GET https://cmc.centralrepo.rnd.huawei.com/artifactory/api/npm/npm-public/dsh-plugin/-/dsh-plugin-1.4.2.tgz error (0). Will retry in 10 seconds. 2 retries left.',
     '[WARN] GET https://cmc.centralrepo.rnd.huawei.com/artifactory/api/npm/npm-public/dsh-plugin/-/dsh-plugin-1.4.2.tgz error (0). Will retry in 1 minute. 1 retries left.',
@@ -513,7 +513,7 @@ test('classifyFailure: registry tarball download failure is a network/registry i
   assert.equal(classifyFailure(msg), 'network')
   // 只有 TypeError: fetch failed（pnpm 各版本输出形态不同）也要能归到 network
   assert.equal(classifyFailure('TypeError: fetch failed\ndsh: pnpm failed in profile directory /Users/x/.dsh/profiles/web'), 'network')
-  // 不能被 repo 兜底吞掉：旧逻辑会把 #32 误报成「插件侧安装失败」引导去提 Issue
+  // 不能被 repo 兜底吞掉，否则会误引导用户去插件仓库提 Issue
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
 })
 
@@ -522,7 +522,7 @@ test('classifyFailure: generic "network error while fetching" without the tarbal
   assert.equal(classifyFailure('network error while fetching'), 'hub')
 })
 
-test('classifyFailure: the host-spawn marker is its own cause (issue #212)', () => {
+test('classifyFailure: the host-spawn marker is its own cause', () => {
   // 带标记 → 单独归类
   assert.equal(
     classifyFailure('[error] spawn D:\\DSH\\DSH Desktop\\DSH Desktop.exe ENOENT\n[host-spawn] the DSH host could not be launched (D:\\DSH\\DSH Desktop\\DSH Desktop.exe: ENOENT)'),
@@ -550,7 +550,7 @@ test('actionOfRecord / action words: a removal is never described as an install'
 })
 
 test('registryHostOf reports a private/internal registry host, null for official or public mirrors', () => {
-  // 内网/自定义源（#32：华为内网 Artifactory）→ 返回主机名，前端据此给出换源指引
+  // 内网/自定义源（华为内网 Artifactory）→ 返回主机名，前端据此给出换源指引
   assert.equal(
     registryHostOf('GET https://cmc.centralrepo.rnd.huawei.com/artifactory/api/npm/npm-public/dsh-plugin/-/dsh-plugin-1.4.2.tgz error (0)'),
     'cmc.centralrepo.rnd.huawei.com')
@@ -597,7 +597,7 @@ test('summarizeError keeps only the diagnostic lines, deduplicated', () => {
   assert.equal(out.split('ERR_PNPM_PREPARE_PACKAGE').length, 2) // deduped
 })
 
-test('summarizeError drops harmless peer-dependency WARNs so the real error surfaces (issue #28)', () => {
+test('summarizeError drops harmless peer-dependency WARNs so the real error surfaces', () => {
   const msg = [
     'WARN Issues with peer dependencies found',
     '└─ ✕ missing peer @deepseek-ai/cordis',
@@ -663,7 +663,7 @@ test('missing tarball integrity is a pnpm policy rejection with specific recover
 
 test('minimum release age rejection gets its own hint with the exact retry time', async () => {
   const { pnpmPolicyHintOf, pnpmPolicyHintParams, releaseAgeRetryAfter } = await import('../src/client/logic/failures.ts')
-  // #121：pnpm 拒收「刚发布」包的报错文本（真实样例见 issue #121）
+  // pnpm 拒收「刚发布」包的报错文本（真实样例）
   const message = '[ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION] 1 lockfile entries failed verification:\n'
     + '  dsh-plugin@1.5.2 was published at 2026-10-08T00:51:35.776Z, within the minimumReleaseAge cutoff (2026-10-07T06:45:12.810Z)'
   assert.equal(classifyFailure(message), 'pnpmPolicy')

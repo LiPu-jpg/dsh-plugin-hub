@@ -14,7 +14,7 @@ test('githubTarget: emits an explicit HTTPS Git URL', () => {
   assert.equal(githubTarget('unsafe/value/with/too/many/segments'), null)
 })
 
-test('githubTarget: preserves an explicitly pinned Git ref (issue #130)', () => {
+test('githubTarget: preserves an explicitly pinned Git ref', () => {
   assert.equal(
     githubTarget('GanyuanRan/Aegis', 'v2.12.2'),
     'git+https://github.com/GanyuanRan/Aegis.git#v2.12.2',
@@ -97,7 +97,7 @@ test('globalNpmPackagesOf: extracts package lists from official `npm install -g`
   assert.equal(globalNpmPackagesOf('npm install -g'), null)
 })
 
-test('profileFromArgv: CLI 的 --profile 优先，Electron 桌面宿主按位置参数里的 profile 目录识别（#65）', () => {
+test('profileFromArgv: CLI 的 --profile 优先，Electron 桌面宿主按位置参数里的 profile 目录识别', () => {
   const node = '/usr/local/bin/node'
   const entry = '/app/dsh/node_modules/@deepseek-ai/dsh-desktop-host/lib/index.js'
   // Electron 桌面宿主：不传 --profile，把 profile 目录作为位置参数传入 ——

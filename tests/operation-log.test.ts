@@ -5,7 +5,7 @@
  *
  * 失败回捞（src/server/services/install/operation-log.ts）的单元测试：
  * 从 DSH 输出里解析 operation 日志路径、只读白名单内的 DSH 日志、读不到时静默降级，
- * 以及回捞内容能被 classifyFailure 正确归类（issue #192 的回归）。
+ * 以及回捞内容能被 classifyFailure 正确归类。
  *
  * Run with the Node built-in test runner: `npm test`.
  */
@@ -26,7 +26,7 @@ function makeOperationLog(root: string, content: string): string {
   return file
 }
 
-test('operationLogPathOf: extracts the path from the host summary line (issue #192)', () => {
+test('operationLogPathOf: extracts the path from the host summary line', () => {
   const line = 'dsh: plugin command failed; diagnostics: C:\\Users\\29491\\.dsh\\profiles\\desktop\\.plugin-manager\\logs\\operation-cuZjxW\\pnpm.log'
   assert.equal(
     operationLogPathOf(`some earlier line\n${line}\n`),

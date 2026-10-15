@@ -69,8 +69,8 @@ export async function registryMissingMarker(
 ): Promise<string | null> {
   const name = missingPackageOf(output)
   if (name === null) return null
-  // ① profile 自己声明的残留依赖（#73）：用户环境问题，交给既有的 pnpmMissingDep 提示（该提示就是
-  // 教用户删 profile 里那条依赖），这里不再产出标记、不改归属
+  // 该包是 profile 自己声明的依赖（用户环境里留下的条目）→ 用户环境问题，交给既有的 pnpmMissingDep
+  // 提示处理（那条提示就是教用户删掉它），不产出标记、不改归属
   if (profileDependencyNames(opts.profileDir).some((dep) => dep.toLowerCase() === name.toLowerCase())) return null
   const exists = await existsOnOfficialRegistry(name, opts.fetchImpl ?? fetch, opts.timeoutMs ?? 8000)
   if (exists === false) {

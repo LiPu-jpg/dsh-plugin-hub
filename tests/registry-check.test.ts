@@ -2,9 +2,9 @@
  * 官方 registry 存在性复核（services/install/registry-check.ts）单测。
  *
  * 固化「包在 registry 不存在」的三种责任方，避免归属漂移：
- *   ① profile 自己声明的残留依赖（#73）→ 用户环境，本模块不产出标记（既有提示负责）
- *   ② 官方源上也不存在 → 作者侧，`[registry-missing]`
- *   ③ 官方源上存在 → 本机镜像源未同步，`[registry-mirror-lag]`
+ * profile 自己声明的残留依赖 → 用户环境，本模块不产出标记（既有提示负责）
+ * 官方源上也不存在 → 作者侧，`[registry-missing]`
+ * 官方源上存在 → 本机镜像源未同步，`[registry-mirror-lag]`
  * fetch 与 profile 目录都注入，全程不依赖网络。
  */
 import { test } from 'node:test'
@@ -59,7 +59,7 @@ test('profileDependencyNames: 读 profile 声明的依赖，缺失或损坏时�
   }
 })
 
-test('registryMissingMarker: 缺的包是本机 profile 的残留依赖时不产出标记（#73 归用户环境）', async () => {
+test('registryMissingMarker: 缺的包是本机 profile 的残留依赖时不产出标记', async () => {
   await withProfile(['dsh-our-free-model'], async (dir) => {
     // 官方源上也查不到，但它就在 profile 的 dependencies 里 → 属既有的「删除残留条目」提示
     assert.equal(await registryMissingMarker(NOT_FOUND_LOG, { profileDir: dir, fetchImpl: fakeFetch(404) }), null)

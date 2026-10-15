@@ -55,7 +55,7 @@ test('curlRevokeFlagUnsupported: 只认「退出码 2 + stderr 指向该参数�
 })
 
 test('tlsRevocationBlocked: 认得出 Schannel 取不到吊销信息的握手失败，不误伤其它报错', () => {
-  // #7093 里 Windows 用户的原始报错
+  // Windows 用户的原始报错
   assert.equal(
     tlsRevocationBlocked('curl: (35) schannel: next InitializeSecurityContext failed: CRYPT_E_NO_REVOCATION_CHECK (0x80092012)'),
     true,
@@ -67,7 +67,7 @@ test('tlsRevocationBlocked: 认得出 Schannel 取不到吊销信息的握手失
   assert.equal(tlsRevocationBlocked(''), false)
 })
 
-test('parseWinProxyServer: 注册表值带 scheme 时不再把 // 吞进主机名（#66）', () => {
+test('parseWinProxyServer: 注册表值带 scheme 时不再把 // 吞进主机名', () => {
   // reg query 的真实输出形态：首行是键名，值行以若干空格 + 值名 + REG_SZ + 值分隔
   const regOut = (value: string) =>
     `HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\r\n    ProxyServer    REG_SZ    ${value}\r\n\r\n`
@@ -156,7 +156,7 @@ async function withFakeCurl(fn: () => Promise<void>): Promise<void> {
   }
 }
 
-test('curlProbe: 降级后仍被吊销检查拦死时，再用 --ssl-no-revoke 兜底一次（issue #71）', async () => {
+test('curlProbe: 降级后仍被吊销检查拦死时，再用 --ssl-no-revoke 兜底一次', async () => {
   await withFakeCurl(async () => {
     const r = await probeUrl('https://github.com/', '', 5000)
     // 首次（--ssl-revoke-best-effort）失败 → 二级兜底重跑后取到 200，判为可达而非 [network]

@@ -3,7 +3,7 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * 打包桌面端（Electron）CLI 引导脚本的路径推导测试（issue #71 缺陷 2）：
+ * 打包桌面端（Electron）CLI 引导脚本的路径推导测试：
  * 宿主入口落在 app.asar 内时，必须找到官方引导脚本 desktop-cli.js，
  * 才能按内置终端/官方插件页同一条路径调起打包 CLI，而不是回退 PATH 上的 dsh。
  */
@@ -76,7 +76,7 @@ test('desktopCliBootstrap: 布局不认识时返回 null，调用方回退原逻
   assert.equal(desktopCliBootstrap(join(tmpdir(), 'app.asar.bak', 'lib', 'index.js')), null)
 })
 
-test('hostSpawnMarker: 仅「宿主自身入口起不来」打标（#212）', () => {
+test('hostSpawnMarker: 仅「宿主自身入口起不来」打标', () => {
   const hostExe = { file: 'D:\\DSH\\DSH Desktop\\DSH Desktop.exe', prefixArgs: [], cwd: '.', useShell: false }
   assert.equal(
     hostSpawnMarker(hostExe, Object.assign(new Error('spawn x ENOENT'), { code: 'ENOENT' })),

@@ -832,10 +832,9 @@ export async function runPluginMutation(options: {
       return { exitCode: 1, timedOut: false, error: `declared file missing: ${verified.missing}`, stdout: result.stdout, stderr: `${result.stderr}\n${detail}` }
     }
   }
-  // DSH 只把一行摘要（`dsh: plugin command failed; diagnostics: <path>`）回显到控制台时，
-  // 控制台里没有任何错误特征，前端只能把失败归为「未知」（issue #192）。这里按该路径回捞
-  // operation 日志尾部补进失败信息：用户直接看到真实报错，自动归类也有据可依。
-  // 只在本就不含任何错误码时回捞 —— pnpm 已把报错回显出来时无需多读一次文件。
+  // 宿主只把一行摘要（`dsh: plugin command failed; diagnostics: <path>`）回显到控制台、真正的报错
+  // 写进该日志文件时，前端拿不到任何错误特征、只能归为「未知」。按该路径回捞日志尾部补进失败信息。
+  // 只在输出本就不含错误码时回捞 —— pnpm 已回显报错时无需多读一次文件。
   if (result.exitCode !== 0 && !result.timedOut && !/\bERR_[A-Z0-9_]+\b/.test(`${result.stderr}\n${result.stdout}`)) {
     const output = `${result.stderr}\n${result.stdout}`
     const backfilled = backfillOperationLog(output)
