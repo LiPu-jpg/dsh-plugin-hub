@@ -375,12 +375,30 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                           rel: 'noopener noreferrer',
                           title: t('failIssueHint'),
                         }, t('failIssueBig')) : null,
+                        // 次要入口：这条分支的判据（[packaging] 预检/装后校验、prepare 摘要）是插件中心
+                        // 自己产出的，不是 pnpm 原文 —— 判错时用户会被送去作者仓库、我们永远收不到反馈
+                        r.repo && shownRepo ? h('div', null, [
+                          h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),
+                          h('a', {
+                            className: styles.failMisjudgeLink,
+                            href: hubIssueUrl(shownRepo, r.message, env, r.command, r.attempts, 'misjudge'),
+                            target: '_blank',
+                            rel: 'noopener noreferrer',
+                            title: t('failHubIssueHint'),
+                          }, t('failMisjudgeLink')),
+                        ]) : null,
                       ])
                     }
                     if (kind === 'hubState') {
                       // 插件中心的列表状态已过期（安装器自身守卫消息）：非插件问题、也不是 bug，只给可行动提示，不引导提 Issue
                       return h('div', null, [
                         h('div', { className: styles.failPrepareHint }, t('failHubStateHint')),
+                      ])
+                    }
+                    if (kind === 'timeout') {
+                      // 安装命令超时被强杀（日志里 pnpm 可能已 Done）：可能其实已装成功 —— 只给可行动提示，不引导提 Issue
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failTimeoutHint')),
                       ])
                     }
                     // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查

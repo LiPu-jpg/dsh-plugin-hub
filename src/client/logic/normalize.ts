@@ -29,10 +29,12 @@ export function normalize(raw: Record<string, unknown>): HubPlugin {
           }
           : undefined,
       // 安装信息：wi 仅在 false 时下发（缺省视为 true 可一键安装）；
+      // mi 仅在 true 时下发（人工干预：网页端替不了终端，只引导用户自己去终端装）；
       // ic/igc = 目录下发的权威安装命令（npm/git 通道各一条，CLI-only 插件如 dsh-tui 必须用）
-      install: raw.wi === false || typeof raw.ic === 'string' || typeof raw.igc === 'string'
+      install: raw.wi === false || raw.mi === true || typeof raw.ic === 'string' || typeof raw.igc === 'string'
         ? {
           webInstallable: raw.wi === false ? false : undefined,
+          manualInstall: raw.mi === true ? true : undefined,
           command: typeof raw.ic === 'string' ? raw.ic : undefined,
           githubCommand: typeof raw.igc === 'string' ? raw.igc : undefined,
         }

@@ -30,8 +30,13 @@ export const zh = {
   failedDescProxy: '你的网络似乎不通，或设置里的 HTTP 代理地址不可达，无法获取插件目录数据。请检查代理设置与网络连接后重试；或点击右上角按钮在浏览器中打开插件市场。',
   retry: '重试',
   install: '安装',
-  // AI 识别可能需要命令行辅助的插件（webInstallable=false）：仍可尝试一键安装，失败时复制命令去 dsh 终端
-  cliOnlyHint: '此插件需在命令行安装（网页端无法代执行），请复制上方命令到终端运行',
+  // 需在终端手动安装的插件（webInstallable=false）：两种情形共用一句 —— 命令网页端代执行不了
+  //（npx 安装器 / 本地 link），或命令能跑但装机过程要在终端完成（仓库带 prepare 构建钩子、
+  // 需要装配子目录等）。措辞覆盖两者，不承诺"网页端一定能装"。
+  cliOnlyHint: '此插件的安装需要在 dsh 终端里完成（网页端无法代跑它所需的构建或装配步骤），请复制上方命令到终端执行',
+  // 人工干预标记（manualInstall）：安装要在终端里跑构建/分步装配，网页一键安装替不了终端。
+  // 注意 key 不能叫 manualInstallHint —— 那个是「已安装」页来源筛选的文案（目录插件 / 手动安装）
+  manualInstallOnlyHint: '此插件需要你在 dsh 终端手动安装：网页端的一键安装替代不了终端里的构建与装配步骤。请复制上方命令到终端执行（Windows 用 Git Bash 或 PowerShell，macOS/Linux 用终端），完整步骤见作者仓库的安装说明。',
   failedCopyHint: '安装失败。请复制上方安装命令到 dsh 终端手动执行（原生依赖构建脚本可能需要人工放行，如 pnpm approve-builds）',
   toastCopied: '安装命令已复制，去 dsh 终端粘贴即可安装',
   installed: '已安装',
@@ -317,12 +322,18 @@ export const zh = {
   failUnclassifiedHint: '安装失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。',
   // 插件中心自身状态类消息（插件未安装 / 不在此处卸载 / 已在队列中）：已安装列表与实读快照不同步，非插件问题，不引导提 Issue
   failHubStateHint: '插件列表状态已过期或与本地不一致：该插件可能已经装过了（无需重复安装，要升级请点「更新」），也可能已不在已安装列表中，或已在队列中。这不是插件本身的问题 —— 请刷新页面后重试。',
+  // 安装命令超时被强杀：可能其实已装成功（安装器超时后会先核对已安装列表），给可行动提示，不引导提 Issue
+  failTimeoutHint: '安装耗时超过本地上限、已被中断 —— 但很可能其实已经装上了（安装器在超时后会先核对本地已安装列表）。请刷新页面确认该插件是否已装上；若确实没装上，可在终端手动执行一次安装命令查看完整输出。这不是插件本身的问题。',
   // prepare 构建脚本实际执行失败（git 分发缺子模块/构建产物）：插件打包分发问题，应提 Issue
   failPrepareHint: '该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。',
+  // 「插件打包问题」分支的次要入口：该判据由插件中心自己的预检/装后校验产出（不是 pnpm 原文），
+  // 一旦误报，用户会被引导去作者仓库、插件中心永远收不到反馈 —— 故留一条反馈路径
+  failMisjudgeHint: '如果这个插件其实能正常安装（上面这个判定是插件中心误报的），请反馈给插件中心：文字提示里的判据由市场自身产出，误报只有靠你的反馈才能被发现。',
+  failMisjudgeLink: '插件能装却被拦下？反馈给插件中心',
   // 安装前预检 / 装后校验拦截（[packaging]）：git 分发缺插件需要的文件（入口 / 补丁 mount 的入口 / bundle 补丁）= 插件未适配官方默认安装方式
   failPackagingHint: '该插件不支持官方默认安装方式：其 git 分发缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁），说明作者未适配官方安装流程。请到作者仓库提交 Issue 反馈，请其提交构建产物、改用预构建 release `.tgz` 直链（`releases/download/<tag>/<asset>.tgz`），或发布完整的 npm 版。',
   // 原生依赖构建脚本被 pnpm 默认拦截（如 node-pty 的 ERR_PNPM_IGNORED_BUILDS）：不单独算插件问题，引导到插件中心仓库排查
-  failIgnoredBuild: '该插件或其依赖需要执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截导致安装失败（如原生模块 node-pty、或 git 安装时插件的 prepare 脚本）。这不一定是插件自身的问题（也可能是插件中心反查失败后回退到 git 安装所致），请先反馈给插件中心排查；若确认为插件依赖问题，可建议作者改用预编译版本（如 node-pty-prebuilt-multiarch）或移除安装期构建。',
+  failIgnoredBuild: '该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，安装因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败通常说明构建本身没通过。可先在终端手动执行一次安装命令查看完整构建错误；若确属插件的构建/分发问题，建议作者预置构建产物、发布 npm 包或预构建 .tgz。需要协助排查时也可反馈给插件中心。',
   // npm arborist 内部崩溃（edgesOut）＋ 本机 npm 版本过低：npm 自身已知缺陷，不是插件问题，升级 npm 即可
   failNpmTooLow: '怀疑本机 npm 版本过低：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
   failNpmTooLowV: '本机 npm 版本过低（当前 v{v}）：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
@@ -428,9 +439,13 @@ export const en = {
   failedDescProxy: 'Your network seems unreachable, or the HTTP proxy in Settings is unreachable, so the plugin catalog could not be loaded. Please check the proxy address and your connection, then retry; or open the hub in your browser with the button above.',
   retry: 'Retry',
   install: 'Install',
-  // AI-flagged plugins that may need command-line help (webInstallable=false): one-click install still allowed,
-  // on failure the user is guided to copy the command into the dsh terminal
-  cliOnlyHint: 'This plugin must be installed from the command line (it cannot be run from the web UI) — copy the command above and run it in your terminal',
+  // Plugins that must be installed by hand (webInstallable=false): one wording for both cases —
+  // the web UI cannot run the command at all (npx installers, local links), or it can run it but
+  // the install needs terminal-side work (repos with a prepare build hook, sub-directory assembly).
+  cliOnlyHint: 'This plugin has to be installed in your dsh terminal (the web UI cannot run the build or assembly steps it needs) — copy the command above and run it there',
+  // Manual-intervention flag (manualInstall): the install needs a build / step-by-step assembly in the terminal.
+  // The key cannot be manualInstallHint — that one is the source filter on the Installed page.
+  manualInstallOnlyHint: 'This plugin has to be installed by hand in your dsh terminal — one-click install from the web UI cannot run the build and assembly steps it needs. Copy the command above and run it there (Git Bash or PowerShell on Windows, Terminal on macOS/Linux); the author\'s repo has the full steps.',
   failedCopyHint: 'Install failed. Copy the command above and run it manually in your dsh terminal (native build scripts may need manual approval, e.g. pnpm approve-builds)',
   toastCopied: 'Install command copied — paste it in your dsh terminal',
   installed: 'Installed',
@@ -717,12 +732,19 @@ export const en = {
   failUnclassifiedHint: 'The install failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.',
   // The hub's own state-guard messages (plugin not installed / cannot be uninstalled here / already queued / already installed): the installed list is out of sync with the live snapshot — not a plugin issue, no issue prompt
   failHubStateHint: 'The plugin list is out of date or out of sync: this plugin may already be installed (no need to reinstall — use "Update" to upgrade), or may no longer be in the installed list, or may already be queued. This is not a plugin problem — refresh the page and retry.',
+  // The install command hit the local time limit and was killed: it may well have installed successfully (the installer re-checks the installed list after a timeout) — actionable hint, no issue prompt
+  failTimeoutHint: 'The install exceeded the local time limit and was interrupted — but it may well have completed already (the installer re-checks your installed list after a timeout). Refresh the page to see whether the plugin is installed; if it is not, run the install command in a terminal to see the full output. This is not a plugin problem.',
   // prepare script actually failed (git tarball misses submodules/build output): a packaging issue of the plugin itself — file an issue
   failPrepareHint: 'This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.',
+  // Secondary entry on the "plugin packaging" branch: that verdict comes from the hub's own
+  // pre/post-install check, not from pnpm output — a false positive sends users to the author
+  // repo and the hub never hears about it, so keep a feedback path here.
+  failMisjudgeHint: 'If this plugin actually installs fine (the verdict above is the Plugin Hub misjudging it), please report it to the Hub: that verdict is produced by the marketplace itself, so a false positive can only be found through your feedback.',
+  failMisjudgeLink: 'Plugin installs fine but got blocked? Report to the Plugin Hub',
   // Pre-install / post-install guard hit ([packaging]): git distribution lacks a file the package needs (entry / entry a patch mounts / bundle patch) = not adapted to the official default install method
   failPackagingHint: 'This plugin does not support the official default install method: its git distribution lacks a file the package needs (the entry from `main` / `exports`, an entry its own patch mounts by name, or the patch declared by `dsh.bundle.patch`), so it has not been adapted to the official install flow. Please file an Issue on the author\'s repo asking for committed build output, a prebuilt release `.tgz` (`releases/download/<tag>/<asset>.tgz`), or a complete npm release.',
   // native-module build scripts ignored by pnpm by default (e.g. node-pty, ERR_PNPM_IGNORED_BUILDS): not a plugin-side issue on its own, route to the hub repo for triage
-  failIgnoredBuild: 'This plugin (or its dependencies) needs to run build scripts, which pnpm blocks by default via its allowBuilds allowlist, so the install fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). This is not necessarily the plugin itself (it may be caused by the hub falling back to a git install after npm lookup failed). Please report it to the Plugin Hub first; if it turns out to be a plugin dependency issue, the author can ship a prebuilt variant (e.g. node-pty-prebuilt-multiarch) or drop install-time builds.',
+  failIgnoredBuild: 'This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so the install fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is usually the problem. Run the install command in a terminal to see the full build error; if it is indeed the plugin\'s build or distribution, the author can ship prebuilt output, an npm release, or a prebuilt .tgz. You can also report it to the Plugin Hub for triage.',
   failNpmTooLow: 'Your local npm may be too old: npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   failNpmTooLowV: 'Your local npm is too old (v{v}): npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   // Pre-install connectivity probe / connection failure in the install log ([network] / git fetch timeout / DNS / TLS): a local network or proxy issue, not a plugin issue — no issue link

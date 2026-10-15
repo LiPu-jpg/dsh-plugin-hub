@@ -64,6 +64,7 @@ function reasonTitleOf(kind: FailureKind): string {
     case 'pluginPrepare': return 'plugin distribution incomplete'
     case 'network': return 'network failure on the user side'
     case 'hubState': return 'stale install state in the plugin hub'
+    case 'timeout': return 'install timed out'
     case 'hub': return 'install failed (cause unclassified)'
     default: return 'plugin install failed'
   }
@@ -190,11 +191,28 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
  * 以及 pnpm allowBuilds 拦截这类不再归到插件作者的情形）。正文带上目标插件与完整
  * 错误摘要，供插件中心维护者分诊 —— 不再把环境问题/插件中心自身问题误投给插件作者。
  */
-export function hubIssueUrl(pluginRepo: string | null, message: string, env?: EnvInfo | null, command?: string, attempts?: string[]): string {
+export type HubIssueVariant =
+  /** 缺省：安装器主动把失败送到插件中心分诊（未分类兜底 / allowBuilds 门禁） */
+  | 'triage'
+  /** 从「插件打包问题」分支的次要入口提交：该判定由插件中心自己产出，用户怀疑是误报 */
+  | 'misjudge'
+
+export function hubIssueUrl(
+  pluginRepo: string | null,
+  message: string,
+  env?: EnvInfo | null,
+  command?: string,
+  attempts?: string[],
+  /** 见 HubIssueVariant；缺省 'triage'，既有正文保持不变 */
+  variant: HubIssueVariant = 'triage',
+): string {
   const kind = classifyFailure(message)
   const executed = executedCommandOf(command, attempts)
   const repo = pluginRepo && pluginRepo.trim() !== '' ? pluginRepo.trim() : 'unknown'
-  const title = `[dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`
+  const title = variant === 'misjudge'
+    // 标题就点明「可能是误判」，维护者一眼能区分它和未分类兜底
+    ? `[dsh-plugin-hub] possible misjudgment: ${repo}`
+    : `[dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`
   const code = coreErrorCode(message)
   const build = (coreChars: number): string => {
     const body = [
@@ -203,7 +221,15 @@ export function hubIssueUrl(pluginRepo: string | null, message: string, env?: En
       `- Target plugin: \`${repo}\``,
       ...(code ? [`- Key error: \`${code}\``] : []),
       // 为什么投递到这里而非插件仓库：只有确有证据是插件自身构建失败（pluginPrepare）才投插件仓库
-      '- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage.',
+      ...(variant === 'misjudge'
+        // 这条入口的判据（[packaging] 预检/装后校验、prepare 摘要）是插件中心自己产出的，
+        // 不是 pnpm 原文 —— 一旦我们自己误报，用户就被送去作者仓库、我们永远收不到反馈。
+        // 正文写清它来自哪条分支、判据是谁给的，维护者才不会把它当成未分类兜底。
+        ? [
+          '- Filed from: the plugin-prepare path (which normally routes to the plugin repo) — filed here because that verdict may be our own misjudgment.',
+          '- Source of that verdict: produced by dsh-plugin-hub\'s own pre/post-install check, not by pnpm output.',
+        ]
+        : ['- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage.']),
       '',
       `## [DSH Plugin 插件市场](${SITE_URL}) · 安装 Plugin 失败错误信息`,
       `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次安装失败一并提交。`,

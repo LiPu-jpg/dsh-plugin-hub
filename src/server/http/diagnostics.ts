@@ -40,15 +40,33 @@ function hostDshVersion(): string | null {
   return null
 }
 
+/** 从命令输出里抽出版本号本体：pnpm/npm 直接打印 `11.7.0`，而 `git --version` 打印
+ *  `git version 2.55.0.windows.5` —— 原样取首行会让 issue 正文（统一再加 `v` 前缀）拼成
+ *  `vgit version 2.55.0.windows.5`。只取版本号，顺带兼容 `v1.2.3` 这类自带前缀的输出。 */
+function versionOf(output: string): string | null {
+  const first = output.trim().split(/\r?\n/)[0]?.trim() ?? ''
+  if (!first) return null
+  const match = /\d+\.\d+[0-9A-Za-z.\-+]*/.exec(first)
+  return match === null ? null : match[0]
+}
+
 /** 探测命令行工具的版本号（pnpm --version / npm --version / git --version）：
  *  未安装 / 不在 PATH / 超时一律返回 null —— issue 环境快照如实写 unknown，绝不挂起。
- *  （同步探测仅用于启动期/请求期的低频率 /env 快照，安装通道不经过这里。） */
+ *  （同步探测仅用于启动期/请求期的低频率 /env 快照，安装通道不经过这里。）
+ *
+ *  Windows 上 pnpm/npm 是 .cmd shim，不带 shell 的 spawnSync 起不来 —— 上报的 issue 里
+ *  因此长期是 `pnpm: unknown` / `npm: unknown`，而 pnpm 版本恰恰是 allowBuilds 那类问题的
+ *  关键信息（门禁行为随版本变）。故 win32 走 shell 让 cmd 解析 shim；参数是固定的
+ *  `--version`，没有注入面。 */
 function toolVersion(cmd: string, args: string[]): string | null {
   try {
-    const r = spawnSync(cmd, args, { timeout: 1500, encoding: 'utf8' })
+    const r = spawnSync(cmd, args, {
+      timeout: 1500,
+      encoding: 'utf8',
+      shell: process.platform === 'win32',
+    })
     if (r.error || r.status !== 0) return null
-    const v = (r.stdout ?? '').trim().split(/\r?\n/)[0]
-    return v || null
+    return versionOf(r.stdout ?? '')
   } catch {
     return null
   }

@@ -151,7 +151,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hubState' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hubState' | 'timeout' | 'hub'
 
 /** Match the pnpm error code, not a generic mention of checksum or integrity. */
 function missingTarballIntegrity(message: string): boolean {
@@ -244,6 +244,10 @@ export function classifyFailure(message: string): FailureKind {
   // already installed 只认「整行就是它」的短形态（旧版本守卫留下的历史记录）；带「——」说明的
   // 包名冲突另有处置，不能按状态不同步提示。
   if (/plugin is not installed|plugin cannot be uninstalled here|already queued:|^already installed: \S+$/im.test(message)) return 'hubState'
+  // 安装器自己的超时标记（命令跑满上限被强杀）：既不是插件问题、也不是用户环境问题，而且很可能是
+  // 「其实已经装上了」——摆放位置在一切错误码分支之后，日志里真有 pnpm 报错时仍以真实报错为准。
+  // 单独归类，给「刷新确认是否已安装」这类可行动提示，不引导提 Issue。
+  if (/^\[timed out\]$/m.test(message)) return 'timeout'
   // 其余未知失败：引导到插件中心仓库排查
   return 'hub'
 }

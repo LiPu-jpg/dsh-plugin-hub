@@ -1264,6 +1264,22 @@
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
 }
 
+/* 「插件打包问题」分支的次要入口（可能是市场误判）：主按钮是去作者仓库，这条只在用户
+   怀疑我们判定有误时才用 —— 做成弱化的文字链接，不与主按钮抢注意力 */
+.failMisjudgeLink {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--hub-text-tertiary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.failMisjudgeLink:hover {
+  color: var(--hub-text-secondary);
+}
+
 /* 网络类失败弹窗的「无法访问 …」醒目行：红色加粗，直接告诉用户具体哪个地址连不上
    （URL 较长允许换行断词），与下方琥珀色说明区分主次 */
 .failNetworkTarget {

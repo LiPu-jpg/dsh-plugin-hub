@@ -193,8 +193,10 @@ export function InstallModal(props: InstallModalProps) {
           globalNpm !== undefined && globalNpm.length > 0
             ? h('div', { className: styles.cliOnlyHint }, t('globalNpmHint'))
             : null,
-          // AI 识别可能需要命令行辅助的插件（webInstallable=false）：提示但不拦截，仍允许尝试一键安装
-          cliOnly ? h('div', { className: styles.cliOnlyHint }, t('cliOnlyHint')) : null,
+          // 需在终端手动安装的插件（webInstallable=false）：按钮位只给提示与复制通道，不提供一键安装；
+          // 人工干预标记（manualInstall）另给一条更明确的终端引导
+          cliOnly ? h('div', { className: styles.cliOnlyHint },
+            t(plugin?.install?.manualInstall === true ? 'manualInstallOnlyHint' : 'cliOnlyHint')) : null,
           task && task.status === 'pending' ? h('div', { className: styles.queuedHint }, t('queuedHint')) : null,
           task ? h(ProgressView, { task }) : null,
           // 安装失败：引导用户复制上方命令到 dsh 终端手动安装（如 node-pty 等原生依赖构建脚本需人工放行）
@@ -496,11 +498,29 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                   rel: 'noopener noreferrer',
                   title: t('failIssueHint'),
                 }, t('failIssueBig')) : null,
+                // 次要入口：这条分支的判据（[packaging] 预检/装后校验、prepare 摘要）是插件中心
+                // 自己产出的，不是 pnpm 原文 —— 判错时用户会被送去作者仓库、我们永远收不到反馈，
+                // 故另给一条「可能是市场误判」的反馈通道（正文自我说明它来自哪条分支）
+                repo ? h('div', null, [
+                  h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),
+                  h('a', {
+                    className: styles.failMisjudgeLink,
+                    href: hubIssueUrl(repo, message, env, command, attempts, 'misjudge'),
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    title: t('failHubIssueHint'),
+                  }, t('failMisjudgeLink')),
+                ]) : null,
               ])
               : failureKind === 'hubState'
               ? h('div', null, [
                 // 插件中心的列表状态已过期（安装器自身守卫消息）：不是插件问题、也不是 bug，只给可行动提示，不引导提 Issue
                 h('div', { className: styles.failPrepareHint }, t('failHubStateHint')),
+              ])
+              : failureKind === 'timeout'
+              ? h('div', null, [
+                // 安装命令超时被强杀（日志里 pnpm 可能已 Done）：可能其实已装成功 —— 给可行动提示，不引导提 Issue
+                h('div', { className: styles.failPrepareHint }, t('failTimeoutHint')),
               ])
               : h('div', null, [
                 // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查

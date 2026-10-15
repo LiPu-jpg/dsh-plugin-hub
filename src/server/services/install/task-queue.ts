@@ -567,6 +567,9 @@ function spawnMutation(options: {
   })
 
   return (async () => {
+    // 超时复核用基线：本次任务开始前目标是否已在 profile 里。已安装的话，超时后核对无法区分
+    // 「旧版本还在」与「刚装上」，那种情形（更新超时）不冒认成功。
+    const wasInstalled = action !== 'remove' && !isGlobalNpm && verifyInstalledEntry(profile, target).name !== null
     let result = await spawnOnce(args)
     // npm 11 的 arborist peer-set bug（`Cannot read properties of null (reading 'children')`）
     // 会让 `npm install -g` 在解析阶段直接崩溃。首次失败后自动带 `--legacy-peer-deps` 重试一次：
@@ -577,6 +580,16 @@ function spawnMutation(options: {
       if (task && !task.attempts.includes(retryExecuted)) task.attempts.push(retryExecuted)
       if (task) pushLine(task, '[npm] peer-set resolution crashed npm (known npm bug) — retrying with --legacy-peer-deps')
       result = await spawnOnce(retryArgs)
+    }
+    // 超时被强杀 ≠ 没装上：命中的安装可能已经落盘（日志里 pnpm 已打印 Done，只是 dsh 进程迟迟不退出
+    // 而被我们超时掐掉）。判失败之前先复核 profile —— 目标已在依赖里、且声明分发的入口文件都在，
+    // 就按成功收尾，避免「其实装好了却报安装失败」并被自动归档成未知失败。
+    if (result.timedOut && !wasInstalled && action !== 'remove' && !isGlobalNpm && task?.status !== 'cancelled') {
+      const verified = verifyInstalledEntry(profile, target)
+      if (verified.name !== null && verified.missing === null) {
+        result = { ...result, timedOut: false, exitCode: 0, error: null }
+        if (task) pushLine(task, '[timeout] the install had already completed — treating it as a success')
+      }
     }
     // 统一终态后处理：exitCode/status/needsRestart 以最后一次尝试为准
     if (task) {

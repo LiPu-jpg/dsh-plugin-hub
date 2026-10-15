@@ -325,6 +325,21 @@ test('classifyFailure: the short "already installed" guard line is hubState, not
   )
 })
 
+test('classifyFailure: our own timeout marker is a timeout, not an unknown failure (issue #197)', () => {
+  // 命令跑满本地上限被强杀时安装器打的标记：既不是插件问题、也不是用户环境问题，而且可能其实已装成功
+  const msg = [
+    'Progress: resolved 68, reused 26, downloaded 21, added 21, done',
+    'Done in 7.1s using pnpm v11.7.0',
+    '[timed out]',
+  ].join('\n')
+  assert.equal(classifyFailure(msg), 'timeout')
+  assert.notEqual(classifyFailure(msg), 'hub')
+  // 日志里真有 pnpm 报错时以真实报错为准（超时归类只是兜底）
+  assert.equal(classifyFailure('[ERR_PNPM_FETCH_404] GET https://registry.npmjs.org/x: Not Found - 404\n[timed out]'), 'pnpmMissingDep')
+  // 超时后复核「其实已装成功」时打的说明行不是失败信号
+  assert.notEqual(classifyFailure('[timeout] the install had already completed — treating it as a success'), 'timeout')
+})
+
 test('classifyFailure: a dependency missing from the registry is an environment issue (issue #73), not a plugin issue', () => {
   // profile 里既存依赖 dsh-our-free-model 在 npm 上不存在：pnpm 解析依赖时先卡在它上面，
   // 日志尾部只有宿主那句通用的 `dsh: plugin command failed`

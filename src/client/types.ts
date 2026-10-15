@@ -59,10 +59,11 @@ export interface HubPlugin {
   description?: string
   source?: { repo?: string; npmPackage?: string }
   /** 安装信息：能否网页一键安装（false = 仅支持命令行/专属 profile，缺省视为 true）；
+   *  manualInstall = 人工干预标记（网页端一键安装替代不了终端的构建/装配，必须用户自己去终端装）；
    *  command/githubCommand = 目录下发的权威安装命令（npm/git 通道各一条），
    *  仅供展示/复制 —— CLI-only 插件（如 dsh-tui）需专属 profile（--profile dsh-tui），
    *  无法从 repo/npm 包名推断，必须用目录命令。 */
-  install?: { webInstallable?: boolean; command?: string; githubCommand?: string }
+  install?: { webInstallable?: boolean; manualInstall?: boolean; command?: string; githubCommand?: string }
   compatibility?: { status?: string }
   dates?: { repoUpdatedAt?: string; addedAt?: string }
   stats?: { stargazers_count?: number; forks_count?: number }
