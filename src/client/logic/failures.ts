@@ -151,7 +151,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hubState' | 'timeout' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
 
 /** Match the pnpm error code, not a generic mention of checksum or integrity. */
 function missingTarballIntegrity(message: string): boolean {
@@ -248,6 +248,10 @@ export function classifyFailure(message: string): FailureKind {
   // 「其实已经装上了」——摆放位置在一切错误码分支之后，日志里真有 pnpm 报错时仍以真实报错为准。
   // 单独归类，给「刷新确认是否已安装」这类可行动提示，不引导提 Issue。
   if (/^\[timed out\]$/m.test(message)) return 'timeout'
+  // DSH 自身的 profile 写锁超时（atomic-write 等不到 package.json.lock）：同一 profile 上还有另一个
+  // dsh 进程或安装任务在写，锁一直没释放。既不是插件问题、也不是用户环境坏了 —— 把并发收掉重试即可。
+  // 摆放位置同样在一切错误码分支之后：日志里真有 pnpm 报错时仍以真实报错为准。
+  if (/atomic-write: timed out waiting for the writer lock|timed out waiting for the writer lock/i.test(message)) return 'profileLock'
   // 其余未知失败：引导到插件中心仓库排查
   return 'hub'
 }

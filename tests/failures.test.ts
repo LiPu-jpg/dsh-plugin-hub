@@ -340,6 +340,17 @@ test('classifyFailure: our own timeout marker is a timeout, not an unknown failu
   assert.notEqual(classifyFailure('[timeout] the install had already completed — treating it as a success'), 'timeout')
 })
 
+test('classifyFailure: DSH waiting on its own profile writer lock is a profileLock, not an unknown failure (issue #206)', () => {
+  // DSH 原子写 profile 时等不到 package.json.lock（同一 profile 有别的 dsh 进程/安装任务在写）：
+  // 既不是插件问题、也不是用户环境坏了，给「收掉并发再重试」的可行动提示，不引导提 Issue
+  const msg = [
+    'if (Date.now() >= deadline) throw new Error(`atomic-write: timed out waiting for the writer lock at ${lockPath}`);',
+    'Error: atomic-write: timed out waiting for the writer lock at /home/UOS/.dsh/profiles/web/package.json.lock',
+  ].join('\n')
+  assert.equal(classifyFailure(msg), 'profileLock')
+  assert.notEqual(classifyFailure(msg), 'hub')
+})
+
 test('classifyFailure: a dependency missing from the registry is an environment issue (issue #73), not a plugin issue', () => {
   // profile 里既存依赖 dsh-our-free-model 在 npm 上不存在：pnpm 解析依赖时先卡在它上面，
   // 日志尾部只有宿主那句通用的 `dsh: plugin command failed`

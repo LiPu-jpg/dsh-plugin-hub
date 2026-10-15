@@ -65,6 +65,7 @@ function reasonTitleOf(kind: FailureKind): string {
     case 'network': return 'network failure on the user side'
     case 'hubState': return 'stale install state in the plugin hub'
     case 'timeout': return 'install timed out'
+    case 'profileLock': return 'DSH profile is locked by another process'
     case 'hub': return 'install failed (cause unclassified)'
     default: return 'plugin install failed'
   }

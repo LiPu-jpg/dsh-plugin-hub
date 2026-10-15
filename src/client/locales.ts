@@ -324,6 +324,7 @@ export const zh = {
   failHubStateHint: '插件列表状态已过期或与本地不一致：该插件可能已经装过了（无需重复安装，要升级请点「更新」），也可能已不在已安装列表中，或已在队列中。这不是插件本身的问题 —— 请刷新页面后重试。',
   // 安装命令超时被强杀：可能其实已装成功（安装器超时后会先核对已安装列表），给可行动提示，不引导提 Issue
   failTimeoutHint: '安装耗时超过本地上限、已被中断 —— 但很可能其实已经装上了（安装器在超时后会先核对本地已安装列表）。请刷新页面确认该插件是否已装上；若确实没装上，可在终端手动执行一次安装命令查看完整输出。这不是插件本身的问题。',
+  failProfileLockHint: 'DSH 在写入插件清单时等不到文件锁、超时中止 —— 通常是同时有另一个 DSH 进程或安装任务在写同一个 profile（也可能是上一次的进程没退干净留下的锁）。请先关掉其他 dsh 窗口或正在跑的命令，再重试一次；若反复出现，重启一次 DSH。这不是插件本身的问题，也不需要重复安装。',
   // prepare 构建脚本实际执行失败（git 分发缺子模块/构建产物）：插件打包分发问题，应提 Issue
   failPrepareHint: '该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。',
   // 「插件打包问题」分支的次要入口：该判据由插件中心自己的预检/装后校验产出（不是 pnpm 原文），
@@ -734,6 +735,7 @@ export const en = {
   failHubStateHint: 'The plugin list is out of date or out of sync: this plugin may already be installed (no need to reinstall — use "Update" to upgrade), or may no longer be in the installed list, or may already be queued. This is not a plugin problem — refresh the page and retry.',
   // The install command hit the local time limit and was killed: it may well have installed successfully (the installer re-checks the installed list after a timeout) — actionable hint, no issue prompt
   failTimeoutHint: 'The install exceeded the local time limit and was interrupted — but it may well have completed already (the installer re-checks your installed list after a timeout). Refresh the page to see whether the plugin is installed; if it is not, run the install command in a terminal to see the full output. This is not a plugin problem.',
+  failProfileLockHint: 'DSH timed out waiting for the file lock while writing the plugin list — usually because another DSH process or install task is writing the same profile (sometimes a previous run left the lock behind). Close other dsh windows or running commands, then retry; if it keeps happening, restart DSH once. This is not a plugin problem, and the plugin does not need to be reinstalled.',
   // prepare script actually failed (git tarball misses submodules/build output): a packaging issue of the plugin itself — file an issue
   failPrepareHint: 'This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.',
   // Secondary entry on the "plugin packaging" branch: that verdict comes from the hub's own

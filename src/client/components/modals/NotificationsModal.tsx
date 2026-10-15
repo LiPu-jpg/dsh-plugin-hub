@@ -401,6 +401,12 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         h('div', { className: styles.failPrepareHint }, t('failTimeoutHint')),
                       ])
                     }
+                    if (kind === 'profileLock') {
+                      // DSH 写 profile 的锁超时（同一 profile 被别的 dsh/安装任务占着）：只给可行动提示，不引导提 Issue
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failProfileLockHint')),
+                      ])
+                    }
                     // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
                     return h('div', null, [
                       kind === 'pnpmIgnoredBuild'

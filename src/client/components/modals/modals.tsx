@@ -522,6 +522,11 @@ export function ErrorModal({ message, repo, kind, command, attempts, t, env, onC
                 // 安装命令超时被强杀（日志里 pnpm 可能已 Done）：可能其实已装成功 —— 给可行动提示，不引导提 Issue
                 h('div', { className: styles.failPrepareHint }, t('failTimeoutHint')),
               ])
+              : failureKind === 'profileLock'
+              ? h('div', null, [
+                // DSH 写 profile 的锁超时（同一 profile 被别的 dsh/安装任务占着）：给可行动提示，不引导提 Issue
+                h('div', { className: styles.failPrepareHint }, t('failProfileLockHint')),
+              ])
               : h('div', null, [
                 // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
                 failureKind === 'pnpmIgnoredBuild'
