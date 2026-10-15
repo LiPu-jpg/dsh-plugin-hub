@@ -283,6 +283,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			errorTitleInstall: "安装失败",
 			errorTitleUninstall: "卸载失败",
 			errorTitleUpdate: "更新失败",
+			actionInstall: "安装",
+			actionUpdate: "更新",
+			actionUninstall: "卸载",
 			errorPlugin: "插件",
 			errorClose: "知道了",
 			errorCopy: "复制错误信息",
@@ -292,18 +295,19 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failIssueBig: "一键提交 BUG 到 GitHub Issue 为开源作贡献",
 			failHubIssueHint: "此失败已被判定为环境或插件中心自身问题（非插件作者问题），带着错误日志到插件中心仓库一键提交 Issue",
 			failHubIssueBig: "反馈给插件中心排查",
-			failUnclassifiedHint: "安装失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。",
-			failHubStateHint: "插件列表状态已过期或与本地不一致：该插件可能已经装过了（无需重复安装，要升级请点「更新」），也可能已不在已安装列表中，或已在队列中。这不是插件本身的问题 —— 请刷新页面后重试。",
-			failTimeoutHint: "安装耗时超过本地上限、已被中断 —— 但很可能其实已经装上了（安装器在超时后会先核对本地已安装列表）。请刷新页面确认该插件是否已装上；若确实没装上，可在终端手动执行一次安装命令查看完整输出。这不是插件本身的问题。",
-			failProfileLockHint: "DSH 在写入插件清单时等不到文件锁、超时中止 —— 通常是同时有另一个 DSH 进程或安装任务在写同一个 profile（也可能是上一次的进程没退干净留下的锁）。请先关掉其他 dsh 窗口或正在跑的命令，再重试一次；若反复出现，重启一次 DSH。这不是插件本身的问题，也不需要重复安装。",
+			failUnclassifiedHint: "{action}失败，原因未能自动识别。这通常不是插件自身的问题（可能与本机环境或插件中心有关），请将错误信息反馈给插件中心，由维护者排查。",
+			failHubStateHint: "插件列表状态已过期或与本地不一致：这次{action}的目标可能已经在列表里了（要升级请点「更新」），也可能已经不在已安装列表中，或已在队列中。这不是插件本身的问题 —— 请刷新页面后重试。",
+			failTimeoutHint: "本次操作耗时超过本地上限、已被中断 —— 但很可能其实已经生效了（安装器在超时后会先核对本地已安装列表）。请刷新页面确认当前状态；若确实没生效，可在终端手动执行一次对应命令查看完整输出。这不是插件本身的问题。",
+			failProfileLockHint: "DSH 在写入插件清单时等不到文件锁、超时中止 —— 通常是同时有另一个 DSH 进程或安装任务在写同一个 profile（也可能是上一次的进程没退干净留下的锁）。请先关掉其他 dsh 窗口或正在跑的命令，再重试一次；若反复出现，重启一次 DSH。这不是插件本身的问题，也不需要重复{action}。",
+			failHostCliSpawnHint: "DSH 没能启动自身来完成这次操作（系统报「找不到可执行文件」）：通常是因为 DSH 的安装目录被移动或正在更新，或该 profile 目录还不存在。请重启一次 DSH 后重试；若反复出现，重新安装 DSH。这不是插件本身的问题，换别的插件也一样。",
 			failPrepareHint: "该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。",
 			failMisjudgeHint: "如果这个插件其实能正常安装（上面这个判定是插件中心误报的），请反馈给插件中心：文字提示里的判据由市场自身产出，误报只有靠你的反馈才能被发现。",
 			failMisjudgeLink: "插件能装却被拦下？反馈给插件中心",
 			failPackagingHint: "该插件不支持官方默认安装方式：其 git 分发缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁），说明作者未适配官方安装流程。请到作者仓库提交 Issue 反馈，请其提交构建产物、改用预构建 release `.tgz` 直链（`releases/download/<tag>/<asset>.tgz`），或发布完整的 npm 版。",
-			failIgnoredBuild: "该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，安装因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败通常说明构建本身没通过。可先在终端手动执行一次安装命令查看完整构建错误；若确属插件的构建/分发问题，建议作者预置构建产物、发布 npm 包或预构建 .tgz。需要协助排查时也可反馈给插件中心。",
+			failIgnoredBuild: "该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，本次操作因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败通常说明构建本身没通过。可先在终端手动执行一次安装命令查看完整构建错误；若确属插件的构建/分发问题，建议作者预置构建产物、发布 npm 包或预构建 .tgz。需要协助排查时也可反馈给插件中心。",
 			failNpmTooLow: "怀疑本机 npm 版本过低：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest",
 			failNpmTooLowV: "本机 npm 版本过低（当前 v{v}）：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest",
-			failNetworkHint: "安装前检测到网络不通：无法连接到安装源（可能是断网、DNS 解析失败、被防火墙拦截，或代理配置有问题）。这不是插件本身的问题 —— 请检查网络连接，或到「设置」里确认 HTTP 代理配置，再到「系统诊断」运行一次连通性检测，然后重试。",
+			failNetworkHint: "{action}前检测到网络不通：无法连接到安装源（可能是断网、DNS 解析失败、被防火墙拦截，或代理配置有问题）。这不是插件本身的问题 —— 请检查网络连接，或到「设置」里确认 HTTP 代理配置，再到「系统诊断」运行一次连通性检测，然后重试。",
 			failNetworkRegistryHint: "你的 npm/pnpm 源（registry）被配置为 {host}，插件包需从该源下载但失败了。这通常是内网/自定义源没有同步该包（或需要内网认证）—— 请把 npm/pnpm 的 registry 指回官方源 https://registry.npmjs.org（或确认此源可访问该包）后重试。",
 			failNetworkTarget: "无法访问 {url} —— 你的网络连接不通",
 			failNetworkRunDiag: "去系统诊断检测网络",
@@ -642,6 +646,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			errorTitleInstall: "Install failed",
 			errorTitleUninstall: "Removal failed",
 			errorTitleUpdate: "Update failed",
+			actionInstall: "install",
+			actionUpdate: "update",
+			actionUninstall: "removal",
 			errorPlugin: "Plugin",
 			errorClose: "Got it",
 			errorCopy: "Copy error",
@@ -651,18 +658,19 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failIssueBig: "Report this bug to GitHub — contribute to open source",
 			failHubIssueHint: "This failure was classified as an environment or Plugin Hub issue (not a plugin-author issue). Open a pre-filled issue on the Plugin Hub repo with this error log.",
 			failHubIssueBig: "Report to the Plugin Hub for triage",
-			failUnclassifiedHint: "The install failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.",
-			failHubStateHint: "The plugin list is out of date or out of sync: this plugin may already be installed (no need to reinstall — use \"Update\" to upgrade), or may no longer be in the installed list, or may already be queued. This is not a plugin problem — refresh the page and retry.",
-			failTimeoutHint: "The install exceeded the local time limit and was interrupted — but it may well have completed already (the installer re-checks your installed list after a timeout). Refresh the page to see whether the plugin is installed; if it is not, run the install command in a terminal to see the full output. This is not a plugin problem.",
-			failProfileLockHint: "DSH timed out waiting for the file lock while writing the plugin list — usually because another DSH process or install task is writing the same profile (sometimes a previous run left the lock behind). Close other dsh windows or running commands, then retry; if it keeps happening, restart DSH once. This is not a plugin problem, and the plugin does not need to be reinstalled.",
+			failUnclassifiedHint: "The {action} failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.",
+			failHubStateHint: "The plugin list is out of date or out of sync: the target of this {action} may already be in the list (use \"Update\" to upgrade), may no longer be in the installed list, or may already be queued. This is not a plugin problem — refresh the page and retry.",
+			failTimeoutHint: "This operation exceeded the local time limit and was interrupted — but it may well have taken effect already (the installer re-checks the installed list after a timeout). Refresh the page to confirm the current state; if it did not take effect, run the corresponding command in a terminal to see the full output. This is not a plugin problem.",
+			failProfileLockHint: "DSH timed out waiting for the file lock while writing the plugin list — usually because another DSH process or install task is writing the same profile (sometimes a previous run left the lock behind). Close other dsh windows or running commands, then retry; if it keeps happening, restart DSH once. This is not a plugin problem, and there is no need to repeat the {action}.",
+			failHostCliSpawnHint: "DSH could not start itself to perform this operation (the system reported that the executable was not found). This usually means the DSH installation folder has been moved or is being updated, or that the profile directory does not exist yet. Restart DSH and retry; if it keeps happening, reinstall DSH. This is not a plugin problem — other plugins would fail the same way.",
 			failPrepareHint: "This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.",
 			failMisjudgeHint: "If this plugin actually installs fine (the verdict above is the Plugin Hub misjudging it), please report it to the Hub: that verdict is produced by the marketplace itself, so a false positive can only be found through your feedback.",
 			failMisjudgeLink: "Plugin installs fine but got blocked? Report to the Plugin Hub",
 			failPackagingHint: "This plugin does not support the official default install method: its git distribution lacks a file the package needs (the entry from `main` / `exports`, an entry its own patch mounts by name, or the patch declared by `dsh.bundle.patch`), so it has not been adapted to the official install flow. Please file an Issue on the author's repo asking for committed build output, a prebuilt release `.tgz` (`releases/download/<tag>/<asset>.tgz`), or a complete npm release.",
-			failIgnoredBuild: "This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so the install fails (e.g. native modules like node-pty, or the plugin's own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is usually the problem. Run the install command in a terminal to see the full build error; if it is indeed the plugin's build or distribution, the author can ship prebuilt output, an npm release, or a prebuilt .tgz. You can also report it to the Plugin Hub for triage.",
+			failIgnoredBuild: "This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so this operation fails (e.g. native modules like node-pty, or the plugin's own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is usually the problem. Run the install command in a terminal to see the full build error; if it is indeed the plugin's build or distribution, the author can ship prebuilt output, an npm release, or a prebuilt .tgz. You can also report it to the Plugin Hub for triage.",
 			failNpmTooLow: "Your local npm may be too old: npm crashed internally while resolving the plugin's dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest",
 			failNpmTooLowV: "Your local npm is too old (v{v}): npm crashed internally while resolving the plugin's dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest",
-			failNetworkHint: "The network could not be reached before install: the install source is unreachable (offline, DNS failure, firewall block, or a misconfigured proxy). This is not a problem with the plugin itself — please check your connection, confirm the HTTP proxy in Settings, run a connectivity check under System Diagnostics, then retry.",
+			failNetworkHint: "The network could not be reached before the {action}: the install source is unreachable (offline, DNS failure, firewall block, or a misconfigured proxy). This is not a problem with the plugin itself — please check your connection, confirm the HTTP proxy in Settings, run a connectivity check under System Diagnostics, then retry.",
 			failNetworkRegistryHint: "Your npm/pnpm registry is set to {host}, and the package tarball could not be downloaded from it. This usually means a private/internal mirror that has not synced the package (or requires intranet auth) — point the registry back to https://registry.npmjs.org (or make sure this source can serve the package), then retry.",
 			failNetworkTarget: "Cannot reach {url} — your network connection is down",
 			failNetworkRunDiag: "Run a network diagnostic",
@@ -744,42 +752,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$11
 		});
 		var Header_module_css_default = {
-			"search": "qikqja_search",
-			"tabActive": "qikqja_tabActive",
-			"tabCount": "qikqja_tabCount",
-			"adArrow": "qikqja_adArrow",
-			"segLabel": "qikqja_segLabel",
-			"version": "qikqja_version",
-			"logoIcon": "qikqja_logoIcon",
-			"segBtnActive": "qikqja_segBtnActive",
-			"title": "qikqja_title",
-			"brandTitle": "qikqja_brandTitle",
-			"langBtn": "qikqja_langBtn",
-			"controls": "qikqja_controls",
-			"aboutBtn": "qikqja_aboutBtn",
-			"adBadge": "qikqja_adBadge",
-			"tab": "qikqja_tab",
-			"headerTitleRow": "qikqja_headerTitleRow",
-			"taglineLink": "qikqja_taglineLink",
-			"versionBtn": "qikqja_versionBtn",
-			"adText": "qikqja_adText",
-			"copyIcon": "qikqja_copyIcon",
-			"adBanner": "qikqja_adBanner",
-			"tabsRow": "qikqja_tabsRow",
-			"headerRight": "qikqja_headerRight",
-			"resultSeg": "qikqja_resultSeg",
-			"root": "qikqja_root",
-			"tagline": "qikqja_tagline",
-			"segBtn": "qikqja_segBtn",
-			"searchRow": "qikqja_searchRow",
-			"githubIcon": "qikqja_githubIcon",
-			"tabs": "qikqja_tabs",
-			"sortGroup": "qikqja_sortGroup",
-			"segGroup": "qikqja_segGroup",
-			"header": "qikqja_header",
-			"githubLink": "qikqja_githubLink",
 			"resultCount": "qikqja_resultCount",
-			"hubUpdateBadge": "qikqja_hubUpdateBadge"
+			"logoIcon": "qikqja_logoIcon",
+			"headerRight": "qikqja_headerRight",
+			"segGroup": "qikqja_segGroup",
+			"githubLink": "qikqja_githubLink",
+			"aboutBtn": "qikqja_aboutBtn",
+			"header": "qikqja_header",
+			"resultSeg": "qikqja_resultSeg",
+			"langBtn": "qikqja_langBtn",
+			"adText": "qikqja_adText",
+			"tabActive": "qikqja_tabActive",
+			"brandTitle": "qikqja_brandTitle",
+			"versionBtn": "qikqja_versionBtn",
+			"sortGroup": "qikqja_sortGroup",
+			"root": "qikqja_root",
+			"segBtnActive": "qikqja_segBtnActive",
+			"adArrow": "qikqja_adArrow",
+			"tabCount": "qikqja_tabCount",
+			"search": "qikqja_search",
+			"copyIcon": "qikqja_copyIcon",
+			"segBtn": "qikqja_segBtn",
+			"version": "qikqja_version",
+			"githubIcon": "qikqja_githubIcon",
+			"hubUpdateBadge": "qikqja_hubUpdateBadge",
+			"tabsRow": "qikqja_tabsRow",
+			"controls": "qikqja_controls",
+			"tagline": "qikqja_tagline",
+			"searchRow": "qikqja_searchRow",
+			"tab": "qikqja_tab",
+			"adBadge": "qikqja_adBadge",
+			"title": "qikqja_title",
+			"headerTitleRow": "qikqja_headerTitleRow",
+			"adBanner": "qikqja_adBanner",
+			"taglineLink": "qikqja_taglineLink",
+			"segLabel": "qikqja_segLabel",
+			"tabs": "qikqja_tabs"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Modal.module.css.mjs
@@ -798,137 +806,137 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$10
 		});
 		var Modal_module_css_default = {
-			"noticeRowMain": "BiQ1zG_noticeRowMain",
-			"toastFail": "BiQ1zG_toastFail",
-			"noticeTextOk": "BiQ1zG_noticeTextOk",
-			"noticeRemove": "BiQ1zG_noticeRemove",
 			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
-			"queueRowBody": "BiQ1zG_queueRowBody",
-			"modalHead": "BiQ1zG_modalHead",
-			"noticeFoot": "BiQ1zG_noticeFoot",
-			"dangerConfirm": "BiQ1zG_dangerConfirm",
-			"progressHead": "BiQ1zG_progressHead",
-			"modalBody": "BiQ1zG_modalBody",
-			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
-			"modalValue": "BiQ1zG_modalValue",
-			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
-			"toastIn": "BiQ1zG_toastIn",
-			"queuedHint": "BiQ1zG_queuedHint",
 			"noticeRow": "BiQ1zG_noticeRow",
-			"modalLink": "BiQ1zG_modalLink",
-			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
-			"failRow": "BiQ1zG_failRow",
-			"toast": "BiQ1zG_toast",
-			"queueRowPct": "BiQ1zG_queueRowPct",
-			"modalIn": "BiQ1zG_modalIn",
-			"failPrepareHint": "BiQ1zG_failPrepareHint",
-			"noticeHead": "BiQ1zG_noticeHead",
-			"failCopy": "BiQ1zG_failCopy",
-			"confirmPrimary": "BiQ1zG_confirmPrimary",
-			"noticeVersion": "BiQ1zG_noticeVersion",
-			"overlay": "BiQ1zG_overlay",
-			"resultTitle": "BiQ1zG_resultTitle",
-			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
-			"detailPathBtn": "BiQ1zG_detailPathBtn",
-			"detailStatusText": "BiQ1zG_detailStatusText",
-			"helpModal": "BiQ1zG_helpModal",
-			"queueSection": "BiQ1zG_queueSection",
-			"errorBox": "BiQ1zG_errorBox",
-			"noticeTime": "BiQ1zG_noticeTime",
-			"errorModal": "BiQ1zG_errorModal",
-			"resultDesc": "BiQ1zG_resultDesc",
-			"detailPath": "BiQ1zG_detailPath",
-			"detailPathActions": "BiQ1zG_detailPathActions",
-			"detailModal": "BiQ1zG_detailModal",
 			"modalTitle": "BiQ1zG_modalTitle",
-			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
-			"restartNow": "BiQ1zG_restartNow",
-			"failEmpty": "BiQ1zG_failEmpty",
-			"modalWide": "BiQ1zG_modalWide",
-			"failList": "BiQ1zG_failList",
-			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
-			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
-			"failClear": "BiQ1zG_failClear",
-			"progressFillFail": "BiQ1zG_progressFillFail",
-			"queueRowStatus": "BiQ1zG_queueRowStatus",
-			"detailGrid": "BiQ1zG_detailGrid",
-			"queueRowHead": "BiQ1zG_queueRowHead",
-			"aboutMeta": "BiQ1zG_aboutMeta",
-			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
-			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
-			"noticeRowOk": "BiQ1zG_noticeRowOk",
-			"detailStars": "BiQ1zG_detailStars",
-			"stripCancel": "BiQ1zG_stripCancel",
 			"progressTrack": "BiQ1zG_progressTrack",
-			"failDiagBtn": "BiQ1zG_failDiagBtn",
-			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
-			"detailPathText": "BiQ1zG_detailPathText",
-			"noticeIgnore": "BiQ1zG_noticeIgnore",
-			"modalRow": "BiQ1zG_modalRow",
-			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
-			"errorCopySoft": "BiQ1zG_errorCopySoft",
-			"result": "BiQ1zG_result",
-			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
-			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
-			"modalCmd": "BiQ1zG_modalCmd",
-			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
-			"modalCmdText": "BiQ1zG_modalCmdText",
-			"queueRowTarget": "BiQ1zG_queueRowTarget",
-			"errorHint": "BiQ1zG_errorHint",
-			"detailLink": "BiQ1zG_detailLink",
-			"restartLater": "BiQ1zG_restartLater",
-			"modalCopy": "BiQ1zG_modalCopy",
-			"linkIcon": "BiQ1zG_linkIcon",
-			"failedCopyHint": "BiQ1zG_failedCopyHint",
-			"failKindUninstall": "BiQ1zG_failKindUninstall",
-			"overlayIn": "BiQ1zG_overlayIn",
-			"restartNowWarning": "BiQ1zG_restartNowWarning",
-			"queueRowTrack": "BiQ1zG_queueRowTrack",
-			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
-			"queueRow": "BiQ1zG_queueRow",
-			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
-			"noticeList": "BiQ1zG_noticeList",
-			"detailDim": "BiQ1zG_detailDim",
-			"modalInstall": "BiQ1zG_modalInstall",
-			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
-			"progressText": "BiQ1zG_progressText",
-			"failBigIssue": "BiQ1zG_failBigIssue",
-			"progressFill": "BiQ1zG_progressFill",
-			"detailLabel": "BiQ1zG_detailLabel",
+			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
 			"detailMono": "BiQ1zG_detailMono",
-			"modalCancel": "BiQ1zG_modalCancel",
-			"detailValue": "BiQ1zG_detailValue",
-			"errorTitle": "BiQ1zG_errorTitle",
-			"modalLabel": "BiQ1zG_modalLabel",
-			"logModal": "BiQ1zG_logModal",
-			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
-			"failKindInstall": "BiQ1zG_failKindInstall",
-			"aboutContent": "BiQ1zG_aboutContent",
-			"detailStatusPending": "BiQ1zG_detailStatusPending",
-			"trustHint": "BiQ1zG_trustHint",
-			"failRepo": "BiQ1zG_failRepo",
-			"modal": "BiQ1zG_modal",
-			"modalClose": "BiQ1zG_modalClose",
-			"modalDesc": "BiQ1zG_modalDesc",
-			"pendingRowActions": "BiQ1zG_pendingRowActions",
-			"noticeMain": "BiQ1zG_noticeMain",
-			"failHead": "BiQ1zG_failHead",
-			"resultCheck": "BiQ1zG_resultCheck",
 			"noticeTextFail": "BiQ1zG_noticeTextFail",
-			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
-			"queueRowDesc": "BiQ1zG_queueRowDesc",
-			"detailArrow": "BiQ1zG_detailArrow",
-			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
-			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
-			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
-			"modalActions": "BiQ1zG_modalActions",
-			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
+			"resultDesc": "BiQ1zG_resultDesc",
+			"failClear": "BiQ1zG_failClear",
+			"overlay": "BiQ1zG_overlay",
+			"modalClose": "BiQ1zG_modalClose",
+			"noticeTime": "BiQ1zG_noticeTime",
+			"failBigIssue": "BiQ1zG_failBigIssue",
+			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
+			"errorCopySoft": "BiQ1zG_errorCopySoft",
+			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
+			"failRow": "BiQ1zG_failRow",
+			"detailGrid": "BiQ1zG_detailGrid",
+			"modal": "BiQ1zG_modal",
+			"detailPathActions": "BiQ1zG_detailPathActions",
+			"detailLabel": "BiQ1zG_detailLabel",
+			"toastFail": "BiQ1zG_toastFail",
 			"progress": "BiQ1zG_progress",
-			"detailRow": "BiQ1zG_detailRow",
-			"resultRestarting": "BiQ1zG_resultRestarting",
+			"toastIn": "BiQ1zG_toastIn",
+			"noticeTextOk": "BiQ1zG_noticeTextOk",
+			"linkIcon": "BiQ1zG_linkIcon",
+			"stripCancel": "BiQ1zG_stripCancel",
+			"queueRowStatus": "BiQ1zG_queueRowStatus",
+			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
+			"modalValue": "BiQ1zG_modalValue",
+			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
+			"failedCopyHint": "BiQ1zG_failedCopyHint",
+			"noticeFoot": "BiQ1zG_noticeFoot",
+			"queueRowTarget": "BiQ1zG_queueRowTarget",
+			"resultTitle": "BiQ1zG_resultTitle",
+			"modalIn": "BiQ1zG_modalIn",
+			"queuedHint": "BiQ1zG_queuedHint",
+			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
+			"queueRow": "BiQ1zG_queueRow",
+			"modalHead": "BiQ1zG_modalHead",
+			"result": "BiQ1zG_result",
+			"restartNowWarning": "BiQ1zG_restartNowWarning",
+			"failCopy": "BiQ1zG_failCopy",
+			"logModal": "BiQ1zG_logModal",
+			"failKindUninstall": "BiQ1zG_failKindUninstall",
+			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
+			"modalWide": "BiQ1zG_modalWide",
+			"queueRowBody": "BiQ1zG_queueRowBody",
+			"failHead": "BiQ1zG_failHead",
+			"progressFill": "BiQ1zG_progressFill",
+			"failKindInstall": "BiQ1zG_failKindInstall",
+			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
 			"confirmIcon": "BiQ1zG_confirmIcon",
+			"failRepo": "BiQ1zG_failRepo",
+			"failPrepareHint": "BiQ1zG_failPrepareHint",
+			"pendingRowActions": "BiQ1zG_pendingRowActions",
+			"failDiagBtn": "BiQ1zG_failDiagBtn",
+			"detailPath": "BiQ1zG_detailPath",
+			"toast": "BiQ1zG_toast",
+			"errorTitle": "BiQ1zG_errorTitle",
+			"detailValue": "BiQ1zG_detailValue",
+			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
+			"noticeRowMain": "BiQ1zG_noticeRowMain",
+			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
+			"noticeMain": "BiQ1zG_noticeMain",
+			"modalCmd": "BiQ1zG_modalCmd",
+			"queueRowDesc": "BiQ1zG_queueRowDesc",
+			"noticeHead": "BiQ1zG_noticeHead",
+			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
+			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
+			"detailPathText": "BiQ1zG_detailPathText",
+			"errorBox": "BiQ1zG_errorBox",
+			"failKind": "BiQ1zG_failKind",
+			"failEmpty": "BiQ1zG_failEmpty",
+			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
+			"modalDesc": "BiQ1zG_modalDesc",
+			"queueRowHead": "BiQ1zG_queueRowHead",
+			"modalCopy": "BiQ1zG_modalCopy",
 			"aboutModal": "BiQ1zG_aboutModal",
-			"failKind": "BiQ1zG_failKind"
+			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
+			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
+			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
+			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
+			"errorModal": "BiQ1zG_errorModal",
+			"modalLink": "BiQ1zG_modalLink",
+			"noticeVersion": "BiQ1zG_noticeVersion",
+			"detailArrow": "BiQ1zG_detailArrow",
+			"detailStatusPending": "BiQ1zG_detailStatusPending",
+			"restartLater": "BiQ1zG_restartLater",
+			"aboutMeta": "BiQ1zG_aboutMeta",
+			"progressText": "BiQ1zG_progressText",
+			"restartNow": "BiQ1zG_restartNow",
+			"modalLabel": "BiQ1zG_modalLabel",
+			"detailStatusText": "BiQ1zG_detailStatusText",
+			"noticeRemove": "BiQ1zG_noticeRemove",
+			"progressFillFail": "BiQ1zG_progressFillFail",
+			"failList": "BiQ1zG_failList",
+			"modalBody": "BiQ1zG_modalBody",
+			"detailModal": "BiQ1zG_detailModal",
+			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
+			"modalCmdText": "BiQ1zG_modalCmdText",
+			"modalActions": "BiQ1zG_modalActions",
+			"modalRow": "BiQ1zG_modalRow",
+			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
+			"resultCheck": "BiQ1zG_resultCheck",
+			"resultRestarting": "BiQ1zG_resultRestarting",
+			"noticeList": "BiQ1zG_noticeList",
+			"noticeRowOk": "BiQ1zG_noticeRowOk",
+			"errorHint": "BiQ1zG_errorHint",
+			"queueSection": "BiQ1zG_queueSection",
+			"noticeIgnore": "BiQ1zG_noticeIgnore",
+			"aboutContent": "BiQ1zG_aboutContent",
+			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
+			"progressHead": "BiQ1zG_progressHead",
+			"detailPathBtn": "BiQ1zG_detailPathBtn",
+			"confirmPrimary": "BiQ1zG_confirmPrimary",
+			"overlayIn": "BiQ1zG_overlayIn",
+			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
+			"detailDim": "BiQ1zG_detailDim",
+			"detailLink": "BiQ1zG_detailLink",
+			"dangerConfirm": "BiQ1zG_dangerConfirm",
+			"helpModal": "BiQ1zG_helpModal",
+			"detailRow": "BiQ1zG_detailRow",
+			"modalCancel": "BiQ1zG_modalCancel",
+			"trustHint": "BiQ1zG_trustHint",
+			"detailStars": "BiQ1zG_detailStars",
+			"modalInstall": "BiQ1zG_modalInstall",
+			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
+			"queueRowTrack": "BiQ1zG_queueRowTrack",
+			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
+			"queueRowPct": "BiQ1zG_queueRowPct"
 		};
 		//#endregion
 		//#region src/server/services/install/release-target.ts
@@ -1871,6 +1879,19 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			save(next);
 			return next;
 		}
+		/** 动作词（英文）：名词短语，标题与句子里都成立。 */
+		function actionWordEn(action) {
+			return action === "uninstall" ? "removal" : action === "update" ? "update" : "install";
+		}
+		/** 动作词（中文）：安装 / 更新 / 卸载。 */
+		function actionWordZh(action) {
+			return action === "uninstall" ? "卸载" : action === "update" ? "更新" : "安装";
+		}
+		/** 记录的动作：老记录只有 kind，按 kind 兜底。 */
+		function actionOfRecord(rec) {
+			if (rec.action !== void 0) return rec.action;
+			return rec.kind === "uninstall" ? "uninstall" : rec.kind === "update" ? "update" : "install";
+		}
 		/** Match the pnpm error code, not a generic mention of checksum or integrity. */
 		function missingTarballIntegrity(message) {
 			return /\bERR_PNPM_MISSING_TARBALL_INTEGRITY\b/.test(message);
@@ -1928,6 +1949,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			if (/^\[timed out\]$/m.test(message)) return "timeout";
 			if (/atomic-write: timed out waiting for the writer lock|timed out waiting for the writer lock/i.test(message)) return "profileLock";
 			if (/git-hosted plugins build on install via their prepare script|add the exact key pnpm printed above under allowBuilds/i.test(message)) return "pnpmIgnoredBuild";
+			if (/\[host-spawn\]/i.test(message)) return "hostCliSpawn";
 			return "hub";
 		}
 		/** 从服务端 `[npm-too-low]` 标记行提取本机 npm 版本（如 `[npm-too-low] npm@11.3.0` → "11.3.0"）；
@@ -2062,18 +2084,18 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		function pluginSiteUrl(repo) {
 			return siteUrl(`plugins/${repo}`);
 		}
-		/** 按失败类型给出简洁的错误原因标题（对外用英文）：
-		*  标题直接点明问题出在哪一侧（构建白名单/分发物/本机 npm/网络/插件侧），
-		*  让作者与用户扫一眼列表就能分流，而不是笼统的 Install/Remove 动作词。 */
-		function reasonTitleOf(kind) {
+		/** 错误原因标题（对外英文）：点明问题出在哪一侧，便于 issue 列表分流；
+		*  动作级原因（未分类/超时…）带动作词，卸载失败不写成 install failed。 */
+		function reasonTitleOf(kind, action) {
+			const word = actionWordEn(action);
 			switch (kind) {
-				case "npmTooOld": return "npm too old to install";
+				case "npmTooOld": return `npm too old for this ${word}`;
 				case "dshMissing": return "dsh command not found on the user machine";
 				case "pnpmMissing": return "pnpm command not found on the user machine";
 				case "pnpmStore": return "pnpm store version mismatch on the user machine";
-				case "pnpmWorkspace": return "pnpm workspace-root check blocked the install on the user machine";
+				case "pnpmWorkspace": return `pnpm workspace-root check blocked the ${word} on the user machine`;
 				case "originRejected": return "request origin rejected by the local service on the user machine";
-				case "pnpmPolicy": return "pnpm supply-chain policy blocked the install on the user machine";
+				case "pnpmPolicy": return `pnpm supply-chain policy blocked the ${word} on the user machine`;
 				case "pnpmUnusedPatch": return "stale pnpm patch entry on the user machine";
 				case "pnpmMissingDep": return "dependency not found on the npm registry on the user machine";
 				case "registryVersionStale": return "requested version not available on the npm registry in use on the user machine";
@@ -2084,12 +2106,13 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				case "pnpmIgnoredBuild": return "build scripts blocked by pnpm allowlist";
 				case "pluginPrepare": return "plugin distribution incomplete";
 				case "network": return "network failure on the user side";
-				case "hubState": return "stale install state in the plugin hub";
-				case "timeout": return "install timed out";
+				case "hostCliSpawn": return "the DSH host could not be launched on the user machine";
+				case "hubState": return `stale ${word} state in the plugin hub`;
+				case "timeout": return `${word} timed out`;
 				case "profileLock": return "DSH profile is locked by another process";
 				case "pluginMissingDep": return "a dependency of the plugin is not published on npm";
-				case "hub": return "install failed (cause unclassified)";
-				default: return "plugin install failed";
+				case "hub": return `${word} failed (cause unclassified)`;
+				default: return `plugin ${word} failed`;
 			}
 		}
 		/**
@@ -2101,10 +2124,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* attempts（尝试过的安装方式，npm 反查 + 实际执行命令）：作者看到我们查过/试过的命令，
 		* 组织 scope 与 GitHub 用户名不一致时也能直接指认正确的 npm 包名。
 		*/
-		function pluginIssueUrl(repo, message, env, command, attempts) {
+		function pluginIssueUrl(repo, message, env, command, attempts, action = "install") {
 			const kind = classifyFailure(message);
 			const executed = executedCommandOf(command, attempts);
-			const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`;
+			const zhWord = actionWordZh(action);
+			const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind, action)}: ${repo}`;
 			const reason = /\[packaging\]/i.test(message) ? "plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published package (github tarball or npm package); please commit build output or publish a complete package" : /\[registry-missing\]/i.test(message) ? "a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin" : kind === "network" ? "network connectivity issue on the user side (DNS, proxy, firewall, or a blocked connection)" : kind === "pluginPrepare" ? "plugin prepare/build script failed during install (packaging/distribution issue)" : kind === "pnpmIgnoredBuild" ? "plugin depends on a native module whose build script pnpm blocks by default (use a prebuilt variant)" : kind === "originRejected" ? "the request never reached the install flow — the local service rejected its origin (local environment issue)" : kind === "pnpmPolicy" ? pnpmPolicyHintOf(message) === "failPnpmTarballIntegrityHint" ? "pnpm rejected a lockfile entry without tarball integrity; inspect and back up the profile lockfile before resolving it again, keeping integrity checks enabled" : "the pnpm supply-chain policy on the user machine blocked the install (minimum release age for freshly published packages / untrusted origin)" : kind === "pnpmUnusedPatch" ? "the profile keeps a pnpm patch entry for an older dsh-plugin version, so pnpm aborted the install (local config issue)" : kind === "fileLocked" ? "a file in the profile is locked by another process on the user machine (local environment issue)" : kind === "accessDenied" ? "the system denied write access to a file in the profile on the user machine (local environment issue)" : kind === "fsUnavailable" ? "the local file system could not accept the write — no space left, read-only volume, or too many open file handles on the user machine (local environment issue)" : "plugin-side install failure";
 			const code = coreErrorCode(message);
 			const build = (coreChars) => {
@@ -2113,13 +2137,13 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					`- Cause: ${reason}`,
 					...code ? [`- Key error: \`${code}\``] : [],
 					"",
-					`## [DSH Plugin 插件市场](${SITE_URL}) · 安装 Plugin 失败错误信息`,
-					`本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次安装失败一并提交。`,
-					`- 实际执行的安装命令：${executed ? `\`${executed}\`` : "unknown (no executed command recorded)"}`,
-					`- 执行结果：安装失败，未能安装该插件。`,
+					`## [DSH Plugin 插件市场](${SITE_URL}) · ${zhWord} Plugin 失败错误信息`,
+					`本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次${zhWord}失败一并提交。`,
+					`- 实际执行的${zhWord}命令：${executed ? `\`${executed}\`` : "unknown (no executed command recorded)"}`,
+					`- 执行结果：${zhWord}失败，未能${zhWord}该插件。`,
 					...attempts && attempts.length > 0 ? [
 						"",
-						"## Attempted install channels（已尝试的安装方式）",
+						"## Attempted channels（已尝试的方式）",
 						...attempts.map((a) => `- ${a}`)
 					] : [],
 					.../\[packaging\]/i.test(message) ? [
@@ -2169,27 +2193,28 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			}
 			return url;
 		}
-		function hubIssueUrl(pluginRepo, message, env, command, attempts, variant = "triage") {
+		function hubIssueUrl(pluginRepo, message, env, command, attempts, variant = "triage", action = "install") {
 			const kind = classifyFailure(message);
 			const executed = executedCommandOf(command, attempts);
+			const zhWord = actionWordZh(action);
 			const repo = pluginRepo && pluginRepo.trim() !== "" ? pluginRepo.trim() : "unknown";
-			const title = variant === "misjudge" ? `[dsh-plugin-hub] possible misjudgment: ${repo}` : `[dsh-plugin-hub] ${reasonTitleOf(kind)}: ${repo}`;
+			const title = variant === "misjudge" ? `[dsh-plugin-hub] possible misjudgment: ${repo}` : `[dsh-plugin-hub] ${reasonTitleOf(kind, action)}: ${repo}`;
 			const code = coreErrorCode(message);
 			const build = (coreChars) => {
 				const body = [
 					"## Summary",
-					`- Auto-classified cause: ${reasonTitleOf(kind)}`,
+					`- Auto-classified cause: ${reasonTitleOf(kind, action)}`,
 					`- Target plugin: \`${repo}\``,
 					...code ? [`- Key error: \`${code}\``] : [],
 					...variant === "misjudge" ? ["- Filed from: the plugin-prepare path (which normally routes to the plugin repo) — filed here because that verdict may be our own misjudgment.", "- Source of that verdict: produced by dsh-plugin-hub's own pre/post-install check, not by pnpm output."] : ["- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage."],
 					"",
-					`## [DSH Plugin 插件市场](${SITE_URL}) · 安装 Plugin 失败错误信息`,
-					`本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次安装失败一并提交。`,
-					`- 实际执行的安装命令：${executed ? `\`${executed}\`` : "unknown (no executed command recorded)"}`,
-					`- 执行结果：安装失败，未能安装该插件。`,
+					`## [DSH Plugin 插件市场](${SITE_URL}) · ${zhWord} Plugin 失败错误信息`,
+					`本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次${zhWord}失败一并提交。`,
+					`- 实际执行的${zhWord}命令：${executed ? `\`${executed}\`` : "unknown (no executed command recorded)"}`,
+					`- 执行结果：${zhWord}失败，未能${zhWord}该插件。`,
 					...attempts && attempts.length > 0 ? [
 						"",
-						"## Attempted install channels（已尝试的安装方式）",
+						"## Attempted channels（已尝试的方式）",
 						...attempts.map((a) => `- ${a}`)
 					] : [],
 					"",
@@ -3524,10 +3549,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				onClick: onConfirm
 			}, busy ? task && task.status === "pending" ? t("queuedUninstallTitle") : t("uninstalling") : t("uninstallConfirm"))))));
 		}
-		/** 预填插件仓库的 GitHub Issue 链接：标题带插件名，正文附完整错误信息，方便用户一键反馈。 */
-		/** 安装/卸载失败弹窗：布局与失败记录一致（类型徽标 + 仓库超链接 + 隐蔽复制按钮），报错完整展示，底部一键提交 Issue。 */
-		function ErrorModal({ message, repo, kind, command, attempts, t, env, onCopy, onClose, onRunDiagnostics }) {
+		/** 安装/更新/卸载失败弹窗：标题、徽标、提示文案与 issue 正文都按传入的动作取词。 */
+		function ErrorModal({ message, repo, action, command, attempts, t, env, onCopy, onClose, onRunDiagnostics }) {
 			const failureKind = classifyFailure(message);
+			const actionWord = t(action === "uninstall" ? "actionUninstall" : action === "update" ? "actionUpdate" : "actionInstall");
 			const npmVersion = npmTooLowVersion(message);
 			const copyText = [
 				...command ? [command] : [],
@@ -3543,11 +3568,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				className: Modal_module_css_default.errorModal,
 				role: "dialog",
 				"aria-modal": "true"
-			}, (0, react.createElement)("div", { className: Modal_module_css_default.modalHead }, (0, react.createElement)("div", { className: Modal_module_css_default.errorTitle }, kind === "install" ? t("errorTitleInstall") : t("errorTitleUninstall")), (0, react.createElement)("button", {
+			}, (0, react.createElement)("div", { className: Modal_module_css_default.modalHead }, (0, react.createElement)("div", { className: Modal_module_css_default.errorTitle }, t(action === "uninstall" ? "errorTitleUninstall" : action === "update" ? "errorTitleUpdate" : "errorTitleInstall")), (0, react.createElement)("button", {
 				className: Modal_module_css_default.modalClose,
 				"aria-label": t("errorClose"),
 				onClick: onClose
-			}, (0, react.createElement)(CloseIcon))), (0, react.createElement)("div", { className: Modal_module_css_default.modalBody }, (0, react.createElement)("div", { className: Modal_module_css_default.failRow }, (0, react.createElement)("div", { className: Modal_module_css_default.failHead }, (0, react.createElement)("span", { className: kind === "install" ? Modal_module_css_default.failKindInstall : Modal_module_css_default.failKindUninstall }, kind === "install" ? t("install") : t("uninstall")), repo ? (0, react.createElement)("a", {
+			}, (0, react.createElement)(CloseIcon))), (0, react.createElement)("div", { className: Modal_module_css_default.modalBody }, (0, react.createElement)("div", { className: Modal_module_css_default.failRow }, (0, react.createElement)("div", { className: Modal_module_css_default.failHead }, (0, react.createElement)("span", { className: action === "install" ? Modal_module_css_default.failKindInstall : Modal_module_css_default.failKindUninstall }, actionWord), repo ? (0, react.createElement)("a", {
 				className: Modal_module_css_default.failRepo,
 				href: pluginSiteUrl(repo),
 				target: "_blank",
@@ -3567,7 +3592,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failPluginMissingDepHint")),
 				repo ? (0, react.createElement)("a", {
 					className: Modal_module_css_default.failBigIssue,
-					href: pluginIssueUrl(repo, message, env, command, attempts),
+					href: pluginIssueUrl(repo, message, env, command, attempts, action),
 					target: "_blank",
 					rel: "noopener noreferrer",
 					title: t("failIssueHint")
@@ -3581,7 +3606,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					const host = registryHostOf(message);
 					return host ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failNetworkRegistryHint", { host })) : null;
 				})(),
-				(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failNetworkHint")),
+				(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failNetworkHint", { action: actionWord })),
 				onRunDiagnostics ? (0, react.createElement)("button", {
 					className: Modal_module_css_default.failDiagBtn,
 					onClick: onRunDiagnostics
@@ -3590,21 +3615,21 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, /\[packaging\]/i.test(message) ? t("failPackagingHint") : t("failPrepareHint")),
 				repo ? (0, react.createElement)("a", {
 					className: Modal_module_css_default.failBigIssue,
-					href: pluginIssueUrl(repo, message, env, command, attempts),
+					href: pluginIssueUrl(repo, message, env, command, attempts, action),
 					target: "_blank",
 					rel: "noopener noreferrer",
 					title: t("failIssueHint")
 				}, t("failIssueBig")) : null,
 				repo ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failMisjudgeHint")), (0, react.createElement)("a", {
 					className: Modal_module_css_default.failMisjudgeLink,
-					href: hubIssueUrl(repo, message, env, command, attempts, "misjudge"),
+					href: hubIssueUrl(repo, message, env, command, attempts, "misjudge", action),
 					target: "_blank",
 					rel: "noopener noreferrer",
 					title: t("failHubIssueHint")
 				}, t("failMisjudgeLink"))]) : null
-			]) : failureKind === "hubState" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failHubStateHint"))]) : failureKind === "timeout" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failTimeoutHint"))]) : failureKind === "profileLock" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failProfileLockHint"))]) : (0, react.createElement)("div", null, [failureKind === "pnpmIgnoredBuild" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failIgnoredBuild")) : (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failUnclassifiedHint")), (0, react.createElement)("a", {
+			]) : failureKind === "hubState" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failHubStateHint", { action: actionWord }))]) : failureKind === "timeout" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failTimeoutHint"))]) : failureKind === "profileLock" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failProfileLockHint", { action: actionWord }))]) : failureKind === "hostCliSpawn" ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failHostCliSpawnHint"))]) : (0, react.createElement)("div", null, [failureKind === "pnpmIgnoredBuild" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failIgnoredBuild")) : (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failUnclassifiedHint", { action: actionWord })), (0, react.createElement)("a", {
 				className: Modal_module_css_default.failBigIssue,
-				href: hubIssueUrl(repo, message, env, command, attempts),
+				href: hubIssueUrl(repo, message, env, command, attempts, "triage", action),
 				target: "_blank",
 				rel: "noopener noreferrer",
 				title: t("failHubIssueHint")
@@ -4140,6 +4165,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					}
 				}, (0, react.createElement)(CloseIcon))), !r.ok && (() => {
 					const kind = classifyFailure(r.message);
+					const action = actionOfRecord(r);
+					const actionWord = t(action === "uninstall" ? "actionUninstall" : action === "update" ? "actionUpdate" : "actionInstall");
 					if (kind === "npmTooOld") {
 						const v = npmTooLowVersion(r.message);
 						return (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t(v ? "failNpmTooLowV" : "failNpmTooLow", v ? { v } : void 0));
@@ -4163,7 +4190,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 							(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failPluginMissingDepHint")),
 							r.repo && shownRepo ? (0, react.createElement)("a", {
 								className: Modal_module_css_default.failBigIssue,
-								href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
+								href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts, action),
 								target: "_blank",
 								rel: "noopener noreferrer",
 								title: t("failIssueHint")
@@ -4185,7 +4212,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 							const host = registryHostOf(r.message);
 							return host ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failNetworkRegistryHint", { host })) : null;
 						})(),
-						(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failNetworkHint")),
+						(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failNetworkHint", { action: actionWord })),
 						onRunDiagnostics ? (0, react.createElement)("button", {
 							className: Modal_module_css_default.failDiagBtn,
 							onClick: onRunDiagnostics
@@ -4195,25 +4222,26 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 						(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, /\[packaging\]/i.test(r.message) ? t("failPackagingHint") : t("failPrepareHint")),
 						r.repo && shownRepo ? (0, react.createElement)("a", {
 							className: Modal_module_css_default.failBigIssue,
-							href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts),
+							href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts, action),
 							target: "_blank",
 							rel: "noopener noreferrer",
 							title: t("failIssueHint")
 						}, t("failIssueBig")) : null,
 						r.repo && shownRepo ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failMisjudgeHint")), (0, react.createElement)("a", {
 							className: Modal_module_css_default.failMisjudgeLink,
-							href: hubIssueUrl(shownRepo, r.message, env, r.command, r.attempts, "misjudge"),
+							href: hubIssueUrl(shownRepo, r.message, env, r.command, r.attempts, "misjudge", action),
 							target: "_blank",
 							rel: "noopener noreferrer",
 							title: t("failHubIssueHint")
 						}, t("failMisjudgeLink"))]) : null
 					]);
-					if (kind === "hubState") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failHubStateHint"))]);
+					if (kind === "hubState") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failHubStateHint", { action: actionWord }))]);
 					if (kind === "timeout") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failTimeoutHint"))]);
-					if (kind === "profileLock") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failProfileLockHint"))]);
-					return (0, react.createElement)("div", null, [kind === "pnpmIgnoredBuild" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failIgnoredBuild")) : (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failUnclassifiedHint")), (0, react.createElement)("a", {
+					if (kind === "profileLock") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failProfileLockHint", { action: actionWord }))]);
+					if (kind === "hostCliSpawn") return (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failHostCliSpawnHint"))]);
+					return (0, react.createElement)("div", null, [kind === "pnpmIgnoredBuild" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failIgnoredBuild")) : (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failUnclassifiedHint", { action: actionWord })), (0, react.createElement)("a", {
 						className: Modal_module_css_default.failBigIssue,
-						href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts),
+						href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts, "triage", action),
 						target: "_blank",
 						rel: "noopener noreferrer",
 						title: t("failHubIssueHint")
@@ -4398,40 +4426,40 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$9
 		});
 		var List_module_css_default = {
-			"actions": "_3XaZHa_actions",
+			"versionBadge": "_3XaZHa_versionBadge",
+			"categoryBadge": "_3XaZHa_categoryBadge",
+			"footLink": "_3XaZHa_footLink",
+			"date": "_3XaZHa_date",
+			"installBtn": "_3XaZHa_installBtn",
+			"footer": "_3XaZHa_footer",
+			"stats": "_3XaZHa_stats",
+			"state": "_3XaZHa_state",
+			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
 			"verified": "_3XaZHa_verified",
-			"stateActions": "_3XaZHa_stateActions",
+			"uninstallBtn": "_3XaZHa_uninstallBtn",
+			"cardTitle": "_3XaZHa_cardTitle",
 			"body": "_3XaZHa_body",
-			"moreSentinel": "_3XaZHa_moreSentinel",
-			"cardHead": "_3XaZHa_cardHead",
+			"actions": "_3XaZHa_actions",
+			"topic": "_3XaZHa_topic",
+			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
+			"stateTitle": "_3XaZHa_stateTitle",
+			"star": "_3XaZHa_star",
+			"installBtnCopied": "_3XaZHa_installBtnCopied",
+			"card": "_3XaZHa_card",
 			"updateBadge": "_3XaZHa_updateBadge",
+			"cardMain": "_3XaZHa_cardMain",
+			"retryBtn": "_3XaZHa_retryBtn",
 			"fork": "_3XaZHa_fork",
 			"diagBtn": "_3XaZHa_diagBtn",
-			"footLink": "_3XaZHa_footLink",
-			"footer": "_3XaZHa_footer",
-			"versionBadge": "_3XaZHa_versionBadge",
 			"detailBtn": "_3XaZHa_detailBtn",
-			"state": "_3XaZHa_state",
-			"cardSide": "_3XaZHa_cardSide",
-			"cardMain": "_3XaZHa_cardMain",
 			"desc": "_3XaZHa_desc",
-			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
-			"retryBtn": "_3XaZHa_retryBtn",
-			"date": "_3XaZHa_date",
-			"categoryBadge": "_3XaZHa_categoryBadge",
-			"installBtn": "_3XaZHa_installBtn",
-			"installBtnCopied": "_3XaZHa_installBtnCopied",
-			"uninstallBtn": "_3XaZHa_uninstallBtn",
-			"topic": "_3XaZHa_topic",
-			"cardTitle": "_3XaZHa_cardTitle",
+			"cardHead": "_3XaZHa_cardHead",
+			"list": "_3XaZHa_list",
 			"stateDesc": "_3XaZHa_stateDesc",
-			"stateTitle": "_3XaZHa_stateTitle",
+			"stateActions": "_3XaZHa_stateActions",
 			"topics": "_3XaZHa_topics",
-			"card": "_3XaZHa_card",
-			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
-			"star": "_3XaZHa_star",
-			"stats": "_3XaZHa_stats",
-			"list": "_3XaZHa_list"
+			"moreSentinel": "_3XaZHa_moreSentinel",
+			"cardSide": "_3XaZHa_cardSide"
 		};
 		//#endregion
 		//#region src/client/hooks/useIncrementalList.ts
@@ -4638,15 +4666,15 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$8
 		});
 		var SectionTabs_module_css_default = {
-			"root": "_7tvizq_root",
-			"tab": "_7tvizq_tab",
 			"tabActive": "_7tvizq_tabActive",
+			"tab": "_7tvizq_tab",
 			"tabIcon": "_7tvizq_tabIcon",
-			"noticeBtn": "_7tvizq_noticeBtn",
-			"noticeCount": "_7tvizq_noticeCount",
-			"tabCount": "_7tvizq_tabCount",
 			"noticeIcon": "_7tvizq_noticeIcon",
-			"tabCountActive": "_7tvizq_tabCountActive"
+			"noticeCount": "_7tvizq_noticeCount",
+			"tabCountActive": "_7tvizq_tabCountActive",
+			"tabCount": "_7tvizq_tabCount",
+			"root": "_7tvizq_root",
+			"noticeBtn": "_7tvizq_noticeBtn"
 		};
 		//#endregion
 		//#region src/client/components/layout/SectionTabs.tsx
@@ -4723,42 +4751,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$7
 		});
 		var InstalledView_module_css_default = {
-			"empty": "_1nXeGW_empty",
-			"rowActions": "_1nXeGW_rowActions",
-			"emptyTitle": "_1nXeGW_emptyTitle",
-			"rowMain": "_1nXeGW_rowMain",
-			"versionBadge": "_1nXeGW_versionBadge",
-			"updateBadge": "_1nXeGW_updateBadge",
-			"rowDetail": "_1nXeGW_rowDetail",
-			"exampleRow": "_1nXeGW_exampleRow",
-			"rowUninstall": "_1nXeGW_rowUninstall",
-			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
-			"rowRestart": "_1nXeGW_rowRestart",
-			"rowCategory": "_1nXeGW_rowCategory",
-			"segGroup": "_1nXeGW_segGroup",
-			"segLabel": "_1nXeGW_segLabel",
-			"statusInactive": "_1nXeGW_statusInactive",
-			"row": "_1nXeGW_row",
-			"searchWrap": "_1nXeGW_searchWrap",
-			"segBtn": "_1nXeGW_segBtn",
 			"toolbar": "_1nXeGW_toolbar",
-			"searchInput": "_1nXeGW_searchInput",
-			"emptyDesc": "_1nXeGW_emptyDesc",
-			"rowTitleLine": "_1nXeGW_rowTitleLine",
-			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
-			"segRow": "_1nXeGW_segRow",
-			"rowTitle": "_1nXeGW_rowTitle",
-			"rowDesc": "_1nXeGW_rowDesc",
-			"statusDot": "_1nXeGW_statusDot",
-			"rowRepo": "_1nXeGW_rowRepo",
-			"rowSourceTag": "_1nXeGW_rowSourceTag",
-			"root": "_1nXeGW_root",
-			"statusPending": "_1nXeGW_statusPending",
-			"rowMeta": "_1nXeGW_rowMeta",
-			"rowUpdate": "_1nXeGW_rowUpdate",
+			"segLabel": "_1nXeGW_segLabel",
+			"searchWrap": "_1nXeGW_searchWrap",
+			"empty": "_1nXeGW_empty",
 			"list": "_1nXeGW_list",
+			"versionBadge": "_1nXeGW_versionBadge",
+			"exampleRow": "_1nXeGW_exampleRow",
+			"rowRestart": "_1nXeGW_rowRestart",
+			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
+			"exampleBadge": "_1nXeGW_exampleBadge",
+			"rowUninstall": "_1nXeGW_rowUninstall",
+			"rowMeta": "_1nXeGW_rowMeta",
+			"segBtn": "_1nXeGW_segBtn",
+			"rowDesc": "_1nXeGW_rowDesc",
+			"rowCategory": "_1nXeGW_rowCategory",
+			"root": "_1nXeGW_root",
+			"rowSourceTag": "_1nXeGW_rowSourceTag",
+			"statusDot": "_1nXeGW_statusDot",
+			"statusPending": "_1nXeGW_statusPending",
+			"rowDetail": "_1nXeGW_rowDetail",
+			"searchInput": "_1nXeGW_searchInput",
 			"segBtnActive": "_1nXeGW_segBtnActive",
-			"exampleBadge": "_1nXeGW_exampleBadge"
+			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"segGroup": "_1nXeGW_segGroup",
+			"emptyTitle": "_1nXeGW_emptyTitle",
+			"updateBadge": "_1nXeGW_updateBadge",
+			"rowActions": "_1nXeGW_rowActions",
+			"segRow": "_1nXeGW_segRow",
+			"rowTitleLine": "_1nXeGW_rowTitleLine",
+			"rowUpdate": "_1nXeGW_rowUpdate",
+			"row": "_1nXeGW_row",
+			"rowRepo": "_1nXeGW_rowRepo",
+			"rowTitle": "_1nXeGW_rowTitle",
+			"rowMain": "_1nXeGW_rowMain",
+			"statusInactive": "_1nXeGW_statusInactive",
+			"emptyDesc": "_1nXeGW_emptyDesc"
 		};
 		//#endregion
 		//#region src/client/components/views/InstalledView.tsx
@@ -5007,28 +5035,28 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$6
 		});
 		var CustomInstallView_module_css_default = {
-			"installExample": "zISxCG_installExample",
-			"installCardDisabled": "zISxCG_installCardDisabled",
-			"installRow": "zISxCG_installRow",
-			"channelOff": "zISxCG_channelOff",
-			"helpCmd": "zISxCG_helpCmd",
-			"helpBody": "zISxCG_helpBody",
-			"installInsertBtn": "zISxCG_installInsertBtn",
-			"helpNote": "zISxCG_helpNote",
-			"installError": "zISxCG_installError",
-			"installBtn": "zISxCG_installBtn",
-			"installLabel": "zISxCG_installLabel",
-			"helpLine": "zISxCG_helpLine",
-			"installCardHead": "zISxCG_installCardHead",
-			"installInputError": "zISxCG_installInputError",
-			"channelOffBtn": "zISxCG_channelOffBtn",
 			"root": "zISxCG_root",
 			"installInput": "zISxCG_installInput",
-			"installCard": "zISxCG_installCard",
-			"channelOffText": "zISxCG_channelOffText",
-			"installCards": "zISxCG_installCards",
 			"installHelpBtn": "zISxCG_installHelpBtn",
-			"desc": "zISxCG_desc"
+			"installBtn": "zISxCG_installBtn",
+			"installExample": "zISxCG_installExample",
+			"installCardDisabled": "zISxCG_installCardDisabled",
+			"helpCmd": "zISxCG_helpCmd",
+			"desc": "zISxCG_desc",
+			"channelOffBtn": "zISxCG_channelOffBtn",
+			"channelOff": "zISxCG_channelOff",
+			"installCardHead": "zISxCG_installCardHead",
+			"helpLine": "zISxCG_helpLine",
+			"installCards": "zISxCG_installCards",
+			"installRow": "zISxCG_installRow",
+			"installInsertBtn": "zISxCG_installInsertBtn",
+			"installLabel": "zISxCG_installLabel",
+			"channelOffText": "zISxCG_channelOffText",
+			"helpNote": "zISxCG_helpNote",
+			"installCard": "zISxCG_installCard",
+			"installInputError": "zISxCG_installInputError",
+			"installError": "zISxCG_installError",
+			"helpBody": "zISxCG_helpBody"
 		};
 		//#endregion
 		//#region src/client/components/views/CustomInstallView.tsx
@@ -5318,30 +5346,30 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$5
 		});
 		var SettingsView_module_css_default = {
+			"card": "_506LLG_card",
+			"root": "_506LLG_root",
+			"content": "_506LLG_content",
 			"settingControl": "_506LLG_settingControl",
-			"settingControlStack": "_506LLG_settingControlStack",
+			"controlDropdown": "_506LLG_controlDropdown",
 			"resetBtn": "_506LLG_resetBtn",
+			"proxyControl": "_506LLG_proxyControl",
+			"pageHeader": "_506LLG_pageHeader",
+			"settingRowStack": "_506LLG_settingRowStack",
+			"settingLabel": "_506LLG_settingLabel",
+			"textInput": "_506LLG_textInput",
+			"settingRow": "_506LLG_settingRow",
 			"settingDesc": "_506LLG_settingDesc",
-			"navIcon": "_506LLG_navIcon",
+			"settingControlStack": "_506LLG_settingControlStack",
 			"navItemActive": "_506LLG_navItemActive",
 			"proxyHint": "_506LLG_proxyHint",
-			"sidebar": "_506LLG_sidebar",
-			"card": "_506LLG_card",
-			"settingTitle": "_506LLG_settingTitle",
-			"pageDesc": "_506LLG_pageDesc",
-			"proxyHintOk": "_506LLG_proxyHintOk",
-			"pageTitle": "_506LLG_pageTitle",
 			"navItem": "_506LLG_navItem",
-			"root": "_506LLG_root",
-			"pageHeader": "_506LLG_pageHeader",
-			"settingLabel": "_506LLG_settingLabel",
-			"settingRow": "_506LLG_settingRow",
-			"content": "_506LLG_content",
-			"settingRowStack": "_506LLG_settingRowStack",
-			"textInput": "_506LLG_textInput",
-			"proxyControl": "_506LLG_proxyControl",
+			"navIcon": "_506LLG_navIcon",
+			"pageTitle": "_506LLG_pageTitle",
+			"proxyHintOk": "_506LLG_proxyHintOk",
 			"proxyHintFail": "_506LLG_proxyHintFail",
-			"controlDropdown": "_506LLG_controlDropdown"
+			"settingTitle": "_506LLG_settingTitle",
+			"sidebar": "_506LLG_sidebar",
+			"pageDesc": "_506LLG_pageDesc"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Dropdown.module.css.mjs
@@ -5360,18 +5388,18 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$4
 		});
 		var Dropdown_module_css_default = {
-			"dropdownPanel": "B_Gxsq_dropdownPanel",
-			"dropdownItem": "B_Gxsq_dropdownItem",
-			"dropdown": "B_Gxsq_dropdown",
 			"dropdownFill": "B_Gxsq_dropdownFill",
-			"dropdownLabel": "B_Gxsq_dropdownLabel",
-			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
-			"dropdownArrow": "B_Gxsq_dropdownArrow",
-			"dropdownCount": "B_Gxsq_dropdownCount",
-			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
+			"dropdown": "B_Gxsq_dropdown",
 			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen",
+			"dropdownPanel": "B_Gxsq_dropdownPanel",
+			"dropdownLabel": "B_Gxsq_dropdownLabel",
+			"dropdownBtn": "B_Gxsq_dropdownBtn",
+			"dropdownItem": "B_Gxsq_dropdownItem",
+			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
+			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
+			"dropdownCount": "B_Gxsq_dropdownCount",
 			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
-			"dropdownBtn": "B_Gxsq_dropdownBtn"
+			"dropdownArrow": "B_Gxsq_dropdownArrow"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Toggle.module.css.mjs
@@ -5391,8 +5419,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		});
 		var Toggle_module_css_default = {
 			"toggle": "k-cD4G_toggle",
-			"knob": "k-cD4G_knob",
-			"toggleOn": "k-cD4G_toggleOn"
+			"toggleOn": "k-cD4G_toggleOn",
+			"knob": "k-cD4G_knob"
 		};
 		//#endregion
 		//#region src/client/components/ui/Toggle.tsx
@@ -5492,29 +5520,29 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$2
 		});
 		var DiagnosticsView_module_css_default = {
-			"summaryFail": "k9eRya_summaryFail",
-			"runBtn": "k9eRya_runBtn",
-			"panel": "k9eRya_panel",
-			"badgeOk": "k9eRya_badgeOk",
-			"badge": "k9eRya_badge",
-			"badgeIdle": "k9eRya_badgeIdle",
-			"summaryOk": "k9eRya_summaryOk",
-			"meta": "k9eRya_meta",
-			"envDesc": "k9eRya_envDesc",
-			"badgeFail": "k9eRya_badgeFail",
-			"row": "k9eRya_row",
-			"summaryRunning": "k9eRya_summaryRunning",
-			"envLabel": "k9eRya_envLabel",
-			"display": "k9eRya_display",
-			"envTitle": "k9eRya_envTitle",
-			"envCopyBtn": "k9eRya_envCopyBtn",
 			"headHint": "k9eRya_headHint",
+			"display": "k9eRya_display",
+			"meta": "k9eRya_meta",
+			"badgeFail": "k9eRya_badgeFail",
 			"head": "k9eRya_head",
 			"badgeRunning": "k9eRya_badgeRunning",
 			"diagPulse": "k9eRya_diagPulse",
-			"summary": "k9eRya_summary",
+			"summaryOk": "k9eRya_summaryOk",
+			"name": "k9eRya_name",
+			"summaryFail": "k9eRya_summaryFail",
+			"envDesc": "k9eRya_envDesc",
+			"panel": "k9eRya_panel",
+			"envCopyBtn": "k9eRya_envCopyBtn",
+			"row": "k9eRya_row",
+			"badgeOk": "k9eRya_badgeOk",
 			"envRow": "k9eRya_envRow",
-			"name": "k9eRya_name"
+			"envLabel": "k9eRya_envLabel",
+			"runBtn": "k9eRya_runBtn",
+			"badge": "k9eRya_badge",
+			"badgeIdle": "k9eRya_badgeIdle",
+			"summary": "k9eRya_summary",
+			"summaryRunning": "k9eRya_summaryRunning",
+			"envTitle": "k9eRya_envTitle"
 		};
 		//#endregion
 		//#region src/client/components/views/DiagnosticsView.tsx
@@ -5692,57 +5720,57 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$1
 		});
 		var LogsView_module_css_default = {
-			"entry": "_3j77BW_entry",
-			"actions": "_3j77BW_actions",
-			"pathDialog": "_3j77BW_pathDialog",
-			"pathDialogRow": "_3j77BW_pathDialogRow",
-			"event": "_3j77BW_event",
-			"pathRow": "_3j77BW_pathRow",
-			"headHint": "_3j77BW_headHint",
-			"pathText": "_3j77BW_pathText",
-			"filterChipActive": "_3j77BW_filterChipActive",
-			"searchInput": "_3j77BW_searchInput",
-			"footActions": "_3j77BW_footActions",
-			"filterChip": "_3j77BW_filterChip",
-			"footFail": "_3j77BW_footFail",
-			"pathDialogDesc": "_3j77BW_pathDialogDesc",
-			"badgeSuccess": "_3j77BW_badgeSuccess",
-			"badgeInfo": "_3j77BW_badgeInfo",
-			"catBadge": "_3j77BW_catBadge",
-			"footCount": "_3j77BW_footCount",
-			"list": "_3j77BW_list",
-			"badgeDebug": "_3j77BW_badgeDebug",
-			"catUninstall": "_3j77BW_catUninstall",
-			"pathDialogHint": "_3j77BW_pathDialogHint",
-			"headActions": "_3j77BW_headActions",
-			"catSystem": "_3j77BW_catSystem",
-			"empty": "_3j77BW_empty",
-			"panel": "_3j77BW_panel",
-			"more": "_3j77BW_more",
-			"foot": "_3j77BW_foot",
-			"head": "_3j77BW_head",
-			"catInstall": "_3j77BW_catInstall",
-			"pathDialogReset": "_3j77BW_pathDialogReset",
-			"catDiagnostics": "_3j77BW_catDiagnostics",
-			"pathLabel": "_3j77BW_pathLabel",
 			"logList": "_3j77BW_logList",
+			"badgeDebug": "_3j77BW_badgeDebug",
 			"clearBtn": "_3j77BW_clearBtn",
-			"pathDialogFoot": "_3j77BW_pathDialogFoot",
-			"catSettings": "_3j77BW_catSettings",
-			"linkBtn": "_3j77BW_linkBtn",
-			"previewRow": "_3j77BW_previewRow",
-			"footPath": "_3j77BW_footPath",
-			"search": "_3j77BW_search",
-			"badgeError": "_3j77BW_badgeError",
-			"badgeWarn": "_3j77BW_badgeWarn",
 			"btn": "_3j77BW_btn",
-			"catUpdate": "_3j77BW_catUpdate",
-			"filterBar": "_3j77BW_filterBar",
-			"message": "_3j77BW_message",
+			"pathDialog": "_3j77BW_pathDialog",
+			"head": "_3j77BW_head",
+			"searchInput": "_3j77BW_searchInput",
 			"moreEnd": "_3j77BW_moreEnd",
+			"badgeWarn": "_3j77BW_badgeWarn",
+			"catSettings": "_3j77BW_catSettings",
+			"more": "_3j77BW_more",
+			"badgeInfo": "_3j77BW_badgeInfo",
+			"catDiagnostics": "_3j77BW_catDiagnostics",
+			"linkBtn": "_3j77BW_linkBtn",
+			"badgeError": "_3j77BW_badgeError",
+			"previewRow": "_3j77BW_previewRow",
+			"foot": "_3j77BW_foot",
+			"badge": "_3j77BW_badge",
+			"event": "_3j77BW_event",
+			"catBadge": "_3j77BW_catBadge",
+			"pathDialogRow": "_3j77BW_pathDialogRow",
+			"catUpdate": "_3j77BW_catUpdate",
+			"entry": "_3j77BW_entry",
+			"catUninstall": "_3j77BW_catUninstall",
+			"footCount": "_3j77BW_footCount",
+			"headHint": "_3j77BW_headHint",
+			"badgeSuccess": "_3j77BW_badgeSuccess",
+			"pathDialogDesc": "_3j77BW_pathDialogDesc",
+			"catInstall": "_3j77BW_catInstall",
+			"actions": "_3j77BW_actions",
+			"footActions": "_3j77BW_footActions",
+			"empty": "_3j77BW_empty",
 			"time": "_3j77BW_time",
+			"pathDialogHint": "_3j77BW_pathDialogHint",
+			"pathDialogReset": "_3j77BW_pathDialogReset",
+			"pathText": "_3j77BW_pathText",
+			"footFail": "_3j77BW_footFail",
+			"panel": "_3j77BW_panel",
+			"message": "_3j77BW_message",
+			"pathDialogFoot": "_3j77BW_pathDialogFoot",
+			"list": "_3j77BW_list",
+			"headActions": "_3j77BW_headActions",
+			"filterBar": "_3j77BW_filterBar",
+			"pathLabel": "_3j77BW_pathLabel",
+			"filterChip": "_3j77BW_filterChip",
+			"search": "_3j77BW_search",
+			"footPath": "_3j77BW_footPath",
+			"catSystem": "_3j77BW_catSystem",
+			"filterChipActive": "_3j77BW_filterChipActive",
 			"pathDraft": "_3j77BW_pathDraft",
-			"badge": "_3j77BW_badge"
+			"pathRow": "_3j77BW_pathRow"
 		};
 		//#endregion
 		//#region src/client/components/modals/LogsModal.tsx
@@ -6635,7 +6663,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			const [uninstallNeedsReload, setUninstallNeedsReload] = (0, react.useState)(false);
 			/** 结果视图「立即重启」：请求宿主重启后进入等待，服务回来后整页刷新 */
 			const [restarting, setRestarting] = (0, react.useState)(false);
-			/** 操作失败完整信息 + 所属插件仓库 + 失败类型（决定弹窗标题「安装失败/卸载失败」）+ 实际执行的安装命令 + 尝试过的安装方式（issue 预填用） */
+			/** 操作失败信息 + 归属仓库 + 动作（决定弹窗标题与上报措辞）+ 命令与尝试记录（issue 预填用） */
 			const [errorMsg, setErrorMsg] = (0, react.useState)(null);
 			/** 通知中心记录：localStorage 持久化，每次安装/卸载任务成败都留痕（启动时读回） */
 			const [notifications, setNotifications] = (0, react.useState)(() => loadNotifications());
@@ -6702,7 +6730,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					setErrorMsg({
 						message,
 						repo: issueRepo,
-						kind,
+						action: update ? "update" : kind,
 						command,
 						attempts
 					});
@@ -7243,7 +7271,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			}), errorMsg && (0, react.createElement)(ErrorModal, {
 				message: errorMsg.message,
 				repo: errorMsg.repo,
-				kind: errorMsg.kind,
+				action: errorMsg.action,
 				command: errorMsg.command,
 				attempts: errorMsg.attempts,
 				t,

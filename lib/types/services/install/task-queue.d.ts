@@ -1,4 +1,4 @@
-import type { InstallResult, InstallTask } from './install-types.ts';
+import type { InstallResult, InstallTask, Invocation } from './install-types.ts';
 import type { LoaderHandle } from '../loader.ts';
 /** Snapshot of a task (keeps the live object untouched by consumers). */
 export declare function getTask(id: number): InstallTask | undefined;
@@ -78,6 +78,12 @@ export declare function verifyInstalledEntry(profile: string, target: string): {
     name: string | null;
     missing: string | null;
 };
+/**
+ * 宿主自身 CLI 调不起来时的 ASCII 标记行：spawn 我们解析出的宿主入口报 ENOENT 时返回
+ * `[host-spawn]`，供前端单独归因、不引导提 Issue。PATH 上的 dsh/npm 各有自己的标记，返回 null。
+ * 导出供单测覆盖判据。
+ */
+export declare function hostSpawnMarker(invocation: Invocation, error: unknown): string | null;
 /**
  * Run a plugin mutation with one recovery path: when `add` fails because
  * pnpm's allowBuilds gate blocks a build script — either the git-hosted
