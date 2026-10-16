@@ -336,7 +336,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                     }
                     if (kind === 'registryVersionStale') {
                       // 要装的版本在「实际执行安装的那个源」里查不到（ERR_PNPM_NO_MATCHING_VERSION / ETARGET）：
-                      // 常见于镜像滞后 —— 反查包名走设置里的 npmRegistry，实际安装沿用本机 ~/.npmrc 的源；
+                      // 常见于镜像滞后 —— 实际安装沿用本机 ~/.npmrc 的源；
                       // 也可能只是版本号写错。与插件作者无关 —— 给对齐源 / 显式走官方源 / 离线包指引，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failRegistryVersionStaleHint'))
                     }

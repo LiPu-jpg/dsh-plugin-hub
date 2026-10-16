@@ -20,8 +20,8 @@ import modal from '../../styles/Modal.module.css'
 import type { InstallChannel, Translate } from '../../types.ts'
 import { CloseIcon, HelpIcon } from '../ui/icons.tsx'
 
-/* —— 自定义安装输入预检 ——
- * 提交前校验「输入是否符合该通道格式」，识别不了的输入不发请求，就地提示推荐格式。
+/* —— 自定义安装输入校验 ——
+ * 提交前校验「输入是否符合格式」，识别不了的输入不发请求，就地提示推荐格式。
  * npm 框认裸包名或完整 npm/pnpm 安装命令（含全局 `npm install -g`）。
  * 这里只做格式校验，真正归一化/安装由服务端完成。 */
 

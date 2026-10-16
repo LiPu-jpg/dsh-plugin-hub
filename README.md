@@ -80,7 +80,7 @@ DSH Plugin Hub 是 **DeepSeek Harness 社区插件市场**：一个遵循官方�
   <img src="https://api.dsh-plugin.org/images/releases/1-6-5/dsh-plugin-hub-custom-install-zh.png?v=1.6.5" alt="自定义安装" width="400">
 </p>
 
-集中管理当前环境已装的全部插件，支持搜索、来源筛选与排序，行尾提供更新、卸载与「在 Finder 中显示」 · 手动安装目录外的任意插件，支持 NPM 包、GitHub 源码与 DSH 命令行三种通道
+集中管理当前环境已装的全部插件，支持搜索、来源筛选与排序，行尾提供更新、卸载与「在 Finder 中显示」 · 手动安装目录外的任意插件，支持 NPM 包
 
 **设置 · 系统日志**
 

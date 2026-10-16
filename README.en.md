@@ -80,7 +80,7 @@ Questions, feature ideas or just want to talk plugins? Scan the QR code to join 
   <img src="https://api.dsh-plugin.org/images/releases/1-6-5/dsh-plugin-hub-custom-install-en.png?v=1.6.5" alt="Custom install" width="400">
 </p>
 
-Manages every installed plugin with search, source filters and sorting, plus update / uninstall and reveal-in-Finder per row · Installs any plugin outside the catalog via three channels: npm package, GitHub source and DSH command
+Manages every installed plugin with search, source filters and sorting, plus update / uninstall and reveal-in-Finder per row · Installs any plugin outside the catalog via an npm package
 
 **Settings · System logs**
 

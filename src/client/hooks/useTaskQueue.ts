@@ -44,7 +44,7 @@ export interface QueueTask {
   /** 乐观入队条目：点击安装后立即显示「正在安装中」，等 POST 响应回来再换成真实任务 id。
    *  服务端还没登记，轮询合并/消失检测都必须跳过，避免被当作已结束任务收尾。 */
   optimistic?: boolean
-  /** 实际执行的安装命令（npm 通道随插件数据决定）：失败时 issue 预填如实展示 */
+  /** 实际执行的安装命令（随插件数据决定）：失败时 issue 预填如实展示 */
   command?: string
   /** 实际执行/重试过的安装命令（按先后顺序）：失败时 issue 预填一并贴给作者 */
   attempts?: string[]
@@ -70,7 +70,7 @@ export interface PendingRestart {
 
 export interface TaskQueueOptions {
   t: Translate
-  /** 界面语言（zh/en）：随安装请求带给服务端，网络预检等错误消息按用户语言提示 */
+  /** 界面语言（zh/en）：随安装请求带给服务端，安装前网络探测等错误消息按用户语言提示 */
   langKey?: LocaleId
   refreshInstalled: () => void
   /** 任务成功完成：viaModal 表示任务对应当前打开弹窗（弹窗切结果视图），否则走 Toast；repo 供成功通知记录；
@@ -97,7 +97,7 @@ export interface TaskQueueOptions {
 }
 
 /** 失败消息的入口溯源前缀：自定义安装（带渠道）在错误正文顶部精准指出从哪张卡片发起；
- *  目录插件安装（无渠道）返回 null，错误正文保持原样。自定义安装现仅 NPM 包通道。 */
+ *  目录插件安装（无渠道）返回 null，错误正文保持原样。 */
 const entryLineOf = (t: Translate, channel: InstallChannel | undefined): string | null =>
   channel ? t('installEntryLine', { c: t('installChannelNpm') }) : null
 
@@ -416,9 +416,9 @@ export function useTaskQueue(opts: TaskQueueOptions) {
   /** 弹窗动作：直接安装。请求宿主本地路由，任务进入服务端队列（FIFO），弹窗内实时显示进度。 */
   /** 安装入队核心：目录插件（catalog，后端走目录白名单）与命令行安装（custom，
    *  受安全开关控制）共用。队列条目一律用仓库名（repo）展示/防重，只有发给后端的
-   *  实际安装目标（target）随通道变化（npm 包名 / github: 源）。 */
+   *  实际安装目标（target）为 npm 包名。 */
   const submitInstall = async (input: {
-    /** 发给后端的实际安装目标：npm 包名或 github: 源（服务端再决定最终通道） */
+    /** 发给后端的实际安装目标：npm 包名 */
     target: string
     /** 队列展示与防重用的仓库名 */
     repo: string
@@ -469,7 +469,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
           display: input.repo,
           source: input.source,
           mode: input.update ? 'update' : undefined,
-          // 界面语言带给服务端：网络预检等错误消息按用户当前语言返回（中文界面给中文，英文界面给英文）
+          // 界面语言带给服务端：安装前网络探测等错误消息按用户当前语言返回（中文界面给中文，英文界面给英文）
           ...(langKey ? { lang: langKey } : {}),
           // 安装入口渠道（只可能是 npm）：服务端日志/报错提示据此溯源
           ...(input.channel ? { installChannel: input.channel } : {}),
@@ -481,7 +481,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
       if (!data.ok || typeof data.task !== 'number') {
         // 请求层失败（重复安装 409 / 参数错误 / 安全开关 403 等）：移除乐观条目 + 完整错误弹窗
         applyQueue((prev) => prev.filter((x) => x.id !== tempId))
-        // 同步 400（如预检拦截）服务端会附上已尝试的安装方式，issue 预填一并展示；
+        // 同步 400（如安装前网络探测拦截）服务端会附上已尝试的安装方式，issue 预填一并展示；
         // 用 || 而非 ?? ：error 为空字符串时回退 HTTP 状态，避免复制出来是空白。
         // 自定义安装（带入口渠道）：错误正文顶部精准提示「从哪张卡片发起」
         const entry = entryLineOf(t, input.channel)

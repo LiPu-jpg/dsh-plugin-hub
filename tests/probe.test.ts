@@ -71,7 +71,7 @@ test('parseWinProxyServer: 注册表值带 scheme 时不再把 // 吞进主机�
   // reg query 的真实输出形态：首行是键名，值行以若干空格 + 值名 + REG_SZ + 值分隔
   const regOut = (value: string) =>
     `HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\r\n    ProxyServer    REG_SZ    ${value}\r\n\r\n`
-  // 此前解析成 http:////127.0.0.1:10793（非法地址，curl 立刻失败）→ 诊断/目录/npm 预检全判不可达
+  // 此前解析成 http:////127.0.0.1:10793（非法地址，curl 立刻失败）→ 诊断/目录/安装前网络探测全判不可达
   assert.equal(parseWinProxyServer(regOut('http://127.0.0.1:10793')), 'http://127.0.0.1:10793')
   // 无 scheme 写法与按协议分别配置（http=host:port;https=host:port）都要认
   assert.equal(parseWinProxyServer(regOut('127.0.0.1:10793')), 'http://127.0.0.1:10793')

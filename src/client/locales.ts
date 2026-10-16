@@ -327,7 +327,7 @@ export const zh = {
   // npm arborist 内部崩溃（edgesOut）＋ 本机 npm 版本过低：npm 自身已知缺陷，不是插件问题，升级 npm 即可
   failNpmTooLow: '怀疑本机 npm 版本过低：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
   failNpmTooLowV: '本机 npm 版本过低（当前 v{v}）：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
-  // 安装前连通性预检 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：本机网络或代理问题，不是插件问题，不引导提 Issue
+  // 安装前连通性探测 / 安装日志里的连接失败（[network] / 连接超时 / DNS / TLS）：本机网络或代理问题，不是插件问题，不引导提 Issue
   failNetworkHint: '{action}前检测到网络不通：无法连接到安装源（可能是断网、DNS 解析失败、被防火墙拦截，或代理配置有问题）。这不是插件本身的问题 —— 请检查网络连接，或到「设置」里确认 HTTP 代理配置，再到「系统诊断」运行一次连通性检测，然后重试。',
   // 网络失败弹窗里的「无法访问 …」醒目行：直接告诉用户具体哪个地址连不上（{url} 为提取的不可达地址）
   failNetworkRegistryHint: '你的 npm/pnpm 源（registry）被配置为 {host}，插件包需从该源下载但失败了。这通常是内网/自定义源没有同步该包（或需要内网认证）—— 请把 npm/pnpm 的 registry 指回官方源 https://registry.npmjs.org（或确认此源可访问该包）后重试。',

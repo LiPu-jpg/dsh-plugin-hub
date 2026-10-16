@@ -69,7 +69,7 @@ test('globalNpmPackagesOf: extracts package lists from official `npm install -g`
   assert.deepEqual(globalNpmPackagesOf('npm i -g lodash'), ['lodash'])
   assert.deepEqual(globalNpmPackagesOf('NPM INSTALL --global @scope/pkg lodash'), ['@scope/pkg', 'lodash'])
   assert.deepEqual(globalNpmPackagesOf('  npm install -g  a  b  '), ['a', 'b'])
-  // 非全局安装 / 非命令输入 → null（交回其它通道处理）
+  // 非全局安装 / 非命令输入 → null
   assert.equal(globalNpmPackagesOf('npm install lodash'), null)
   assert.equal(globalNpmPackagesOf('dsh plugin --profile web add github:owner/repo'), null)
   assert.equal(globalNpmPackagesOf('lodash'), null)

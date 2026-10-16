@@ -142,7 +142,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
 
   const queue = useTaskQueue({
     t,
-    // 界面语言带给服务端：网络预检等错误消息按用户语言提示（中文界面给中文，英文界面给英文）
+    // 界面语言带给服务端：安装前网络探测等错误消息按用户语言提示（中文界面给中文，英文界面给英文）
     langKey,
     refreshInstalled: catalog.refreshInstalled,
     onInstallDone: (viaModal, repo, needsRestart, update, needsReload) => {
@@ -308,7 +308,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
       Object.keys(catalog.installed).some((k) => k.toLowerCase() === pkg)
   }
 
-  /** 弹窗动作一：复制安装命令到剪贴板，引导去终端粘贴执行（npm 通道显示包名命令）。 */
+  /** 弹窗动作一：复制安装命令到剪贴板，引导去终端粘贴执行（npm 安装显示包名命令）。 */
   const copyCommand = async (p: HubPlugin) => {
     const repo = p.source?.repo ?? ''
     const ok = await doCopy(installCommandOf(p))

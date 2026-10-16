@@ -407,12 +407,12 @@ test('classifyFailure: a dependency missing from the registry is an environment 
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 404 是「包不存在」，不是网络不通
   assert.notEqual(classifyFailure(msg), 'network')
-  // npm 通道的同类报错（`npm error 404 Not Found - GET …`）同样归到这里
+  // npm 的同类报错（`npm error 404 Not Found - GET …`）同样归到这里
   assert.equal(classifyFailure('npm error 404 Not Found - GET https://registry.npmjs.org/foo - Not found'), 'pnpmMissingDep')
 })
 
 test('classifyFailure: a version missing from the install registry is an environment issue, not a plugin issue', () => {
-  // 反查包名走设置里的 npmRegistry，实际安装沿用本机 ~/.npmrc 的源；镜像滞后于官方时
+  // 实际安装沿用本机 ~/.npmrc 的源；镜像滞后于官方时
   // 就会出现「解析挑到新版本 → 安装源里没有」—— 与插件作者无关，不能落 repo 兜底推给作者仓库
   const msg = [
     '[ERR_PNPM_NO_MATCHING_VERSION] No matching version found for @caob23/dsh-browser-control@1.0.10',
@@ -421,7 +421,7 @@ test('classifyFailure: a version missing from the install registry is an environ
   ].join('\n')
   assert.equal(classifyFailure(msg), 'registryVersionStale')
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
-  // npm 通道的 ETARGET / 描述句（无 ERR_ 前缀）同样归到这里
+  // npm 的 ETARGET / 描述句（无 ERR_ 前缀）同样归到这里
   assert.equal(classifyFailure('npm error code ETARGET\nnpm error notarget No matching version found for foo@9.9.9'), 'registryVersionStale')
   assert.equal(classifyFailure('No matching version found for dsh-plugin@1.9.9'), 'registryVersionStale')
 })
@@ -486,7 +486,7 @@ test('classifyFailure: generic install failure falls back to hub', () => {
 })
 
 test('unreachableTargetOf extracts the exact unreachable address for the dialog', () => {
-  // 服务端 [network] 预检消息（中/英文括号）优先取括号里的探测地址
+  // 服务端 [network] 网络探测消息（中/英文括号）优先取括号里的探测地址
   assert.equal(
     unreachableTargetOf('[network] 安装已中止：安装前无法连接到 GitHub（https://github.com/）—— 您的网络似乎不通或被拦截。'),
     'https://github.com/')

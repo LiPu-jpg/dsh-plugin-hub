@@ -56,7 +56,7 @@ function signalOf(repo: string | null, versions: Record<string, InstalledVersion
   return versions[repo.toLowerCase()] ?? null
 }
 
-/** 插件是否已安装：匹配 Git spec 中的 owner/repo，或 npm 通道安装的依赖包名；命中返回 npm 包名。 */
+/** 插件是否已安装：匹配 Git spec 中的 owner/repo，或 npm 安装的依赖包名；命中返回 npm 包名。 */
 export function installedNameOf(
   plugin: HubPlugin,
   installed: Record<string, string>,
@@ -68,8 +68,8 @@ export function installedNameOf(
   for (const [name, spec] of Object.entries(installed)) {
     if (repoFromInstallTarget(spec).toLowerCase() === needle) return name
   }
-  // npm 通道安装：profile 依赖 key 直接是 npm 包名。包名来源两处——目录数据（npmPackage），
-  // 或服务端 npm 优先反查持久化的映射（versions[repo].npmPackage，覆盖组织 scope 与 GitHub
+  // npm 安装：profile 依赖 key 直接是 npm 包名。包名来源两处——目录数据（npmPackage），
+  // 或服务端安装时持久化的映射（versions[repo].npmPackage，覆盖组织 scope 与 GitHub
   // 用户名不一致、目录未下发包名的场景）；命中任一并依赖 key 真实存在即视为已安装。
   // 只认 npm 安装的依赖（spec 无法解析出仓库身份）：git/本地安装的依赖身份由仓库匹配决定，
   // 包名同名不代表同仓库——否则「git 装 A 仓库」会被「npm 包名同名但仓库不同」的目录条目
@@ -91,7 +91,7 @@ export function installedVersionOf(plugin: HubPlugin, versions: Record<string, I
   return versions[repo.toLowerCase()]?.version ?? null
 }
 
-/** 该插件对应的 npm 包名（目录下发，或安装时反查持久化的映射）；无则 null。决定更新是否走 npm registry。 */
+/** 该插件对应的 npm 包名（目录下发，或安装时持久化的映射）；无则 null。决定更新是否走 npm registry。 */
 export function npmPackageOf(plugin: HubPlugin, versions: Record<string, InstalledVersionSignal>): string | null {
   const repo = plugin.source?.repo
   const pkg = (plugin.source?.npmPackage || (repo ? versions[repo.toLowerCase()]?.npmPackage : undefined) || '').trim()
@@ -181,7 +181,7 @@ function isHubSelf(name: string, spec: string): boolean {
   if (spec.startsWith('file:') || spec.startsWith('link:')) return true
   const repo = repoFromInstallTarget(spec)
   if (isRepoLike(repo) && repo.toLowerCase() === HUB_REPO.toLowerCase()) return true
-  // npm 通道覆盖重装 hub 自身后，file:/link: 本地链接会被替换成 registry 版本号/范围
+  // npm 覆盖重装 hub 自身后，file:/link: 本地链接会被替换成 registry 版本号/范围
   // （如 1.3.0、^1.3.0）——依赖 key `dsh-plugin` 在 npm 上唯一属于本插件（不存在第三方
   // 同名包），版本号形态与仓库身份同样视为 hub 自身：命令窗口「自己装自己」成功后，
   // 条目仍不进已安装列表（卸载接口对它的 400 拒绝是服务端最后一道防线）。

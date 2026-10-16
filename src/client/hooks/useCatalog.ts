@@ -79,7 +79,7 @@ export function useCatalog(lang: LocaleId) {
   /** 当前 profile 已安装插件：npm 包名 -> manifest spec（来自宿主本地路由） */
   const [installed, setInstalled] = useState<Record<string, string>>({})
   /** 安装时记录的目录信号：repo(小写) -> { version, updatedAt }（来自宿主本地路由）；
-   *  npmPackage 为 npm 优先通道反查命中的包名映射（目录数据未下发时客户端靠它把依赖 key 匹配回仓库） */
+   *  npmPackage 为安装时记录的包名映射（目录数据未下发时客户端靠它把依赖 key 匹配回仓库） */
   const [versions, setVersions] = useState<Record<string, InstalledVersionSignal>>({})
   /** 每个依赖在系统上的安装目录（profile/node_modules/<包名>），详情视图展示用 */
   const [installPaths, setInstallPaths] = useState<Record<string, string> | null>(null)
@@ -180,7 +180,7 @@ export function useCatalog(lang: LocaleId) {
     return () => { cancelled = true }
   }, [reloadKey])
 
-  /** 插件是否已安装：匹配 Git spec 中的 owner/repo，或 npm 通道安装的依赖包名；命中返回 npm 包名。 */
+  /** 插件是否已安装：匹配 Git spec 中的 owner/repo，或 npm 安装的依赖包名；命中返回 npm 包名。 */
   const installedName = (p: HubPlugin): string | null => installedNameOf(p, installed, versions)
 
   /** 该插件安装时记录的目录版本（无记录/未安装 → null）。 */

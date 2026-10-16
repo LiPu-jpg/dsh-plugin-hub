@@ -352,7 +352,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
   /** 网络不通时的「去系统诊断」直达按钮：跳到设置 → 系统诊断跑连通性检测（由宿主提供） */
   onRunDiagnostics?: () => void
 }) {
-  // 失败归类：当前安装通道（npm/git）装不上 = 插件分发/依赖的问题，一律引导提 Issue
+  // 失败归类：装不上 = 插件分发/依赖的问题，一律引导提 Issue
   const failureKind = classifyFailure(message)
   // 动作词：标题、徽标与提示里的 {action} 统一取这一个词
   const actionWord = t(action === 'uninstall' ? 'actionUninstall' : action === 'update' ? 'actionUpdate' : 'actionInstall')
@@ -469,7 +469,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
               ])
               : failureKind === 'registryVersionStale'
               // 要装的版本在「实际执行安装的那个源」里查不到（ERR_PNPM_NO_MATCHING_VERSION / ETARGET）：
-              // 常见于镜像滞后 —— 反查包名走设置里的 npmRegistry，实际安装沿用本机 ~/.npmrc 的源，
+              // 常见于镜像滞后 —— 实际安装沿用本机 ~/.npmrc 的源，
               // 官方源刚发布而镜像还没同步；也可能只是版本号写错。与插件作者无关 ——
               // 给「对齐源 / 那一次显式走官方源 / 用离线包」的指引，不引导提 Issue
               ? h('div', { className: styles.failPrepareHint }, t('failRegistryVersionStaleHint'))
