@@ -367,7 +367,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       return h('div', { className: styles.failPrepareHint }, t('failOriginRejectedHint', { profile: env?.profile ?? '<profile>' }))
                     }
                     if (kind === 'network') {
-                      // 安装前预检 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：
+                      // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：
                       // 是本机网络不通或代理有问题，不是插件问题 —— 提示检查网络 + 直达「系统诊断」，
                       // 不引导提 Issue
                       return h('div', null, [
@@ -384,7 +384,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       ])
                     }
                     if (kind === 'pluginPrepare') {
-                      // [packaging]（预检/装后校验拦截：git 分发缺产物）与
+                      // [packaging]（装后校验拦截：分发缺产物）与
                       // prepare 构建脚本实际执行失败：唯一确有证据的插件打包分发问题 —— 引导到插件仓库提 Issue
                       return h('div', null, [
                         h('div', { className: styles.failPrepareHint }, /\[packaging\]/i.test(r.message) ? t('failPackagingHint') : t('failPrepareHint')),
@@ -395,7 +395,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                           rel: 'noopener noreferrer',
                           title: t('failIssueHint'),
                         }, t('failIssueBig')) : null,
-                        // 次要入口：这条分支的判据（[packaging] 预检/装后校验、prepare 摘要）是插件中心
+                        // 次要入口：这条分支的判据（[packaging] 装后校验、prepare 摘要）是插件中心
                         // 自己产出的，不是 pnpm 原文 —— 判错时用户会被送去作者仓库、我们永远收不到反馈
                         r.repo && shownRepo ? h('div', null, [
                           h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),

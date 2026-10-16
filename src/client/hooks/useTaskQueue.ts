@@ -14,8 +14,8 @@ import type { HubPlugin, InstallChannel, LocaleId, Translate } from '../types.ts
 import { executedCommandOf, installCommandOf, installTargetOf, repoFromInstallTarget } from '../logic/install-command.ts'
 import type { InstalledItem } from '../logic/installed.ts'
 
-/** 安装/卸载请求超时（ms）：服务端 preflight + npm 反查可能耗时（各自都有超时，合计约 20~30s），
- *  给足余量；超时主动中止，避免服务端 preflight 网络挂起时前端永久卡「安装中 0%」。 */
+/** 安装/卸载请求超时（ms）：服务端入队前要做目录包校验与网络探测（各自有超时，合计可达十几秒），
+ *  给足余量；超时主动中止，避免服务端网络挂起时前端永久卡「安装中 0%」。 */
 const REQUEST_TIMEOUT_MS = 60_000
 
 /** 客户端任务队列项：镜像服务端 active 任务（running 在前、pending 在后）。 */
@@ -28,8 +28,8 @@ export interface QueueTask {
   desc?: string
   /** 所属插件仓库（owner/repo）：失败时错误弹窗据此提供「去仓库反馈」入口；卸载为 null */
   repo: string | null
-  /** 自定义安装入口渠道（NPM 包 / GitHub 源码 / DSH 命令三张卡片）：失败时错误/通知精准
-   *  溯源「从哪个入口发起」；目录插件安装无此字段（非自定义入口）。 */
+  /** 自定义安装入口渠道（NPM 包卡片）：失败时错误/通知精准溯源「从哪个入口发起」；
+   *  目录插件安装无此字段（非自定义入口）。 */
   channel?: InstallChannel
   /** 实际动作（add/update/remove）：成功通知据此区分「安装成功」与「更新成功」。
    *  服务端 /active 带回真实动作；本地乐观入队按 update 标记推断。 */
@@ -42,11 +42,11 @@ export interface QueueTask {
   progress: number
   lines: string[]
   /** 乐观入队条目：点击安装后立即显示「正在安装中」，等 POST 响应回来再换成真实任务 id。
-   *  服务端还没登记（preflight 中），轮询合并/消失检测都必须跳过，避免被当作已结束任务收尾。 */
+   *  服务端还没登记，轮询合并/消失检测都必须跳过，避免被当作已结束任务收尾。 */
   optimistic?: boolean
-  /** 实际执行的安装命令（npm/git 通道随插件数据决定）：失败时 issue 预填如实展示 */
+  /** 实际执行的安装命令（npm 通道随插件数据决定）：失败时 issue 预填如实展示 */
   command?: string
-  /** 尝试过的安装方式（npm registry 反查 + 实际执行命令，按先后顺序）：失败时 issue 预填一并贴给作者 */
+  /** 实际执行/重试过的安装命令（按先后顺序）：失败时 issue 预填一并贴给作者 */
   attempts?: string[]
   /** 完成结果是否需要重启才生效（服务端任务终态带出）。默认 true 保底：数据缺失时不静默视为已生效。
    *  仅刷新解决不了的兜底场景（热挂载失败 / 非 dsh 插件 / 更新）为 true，结果视图给「立即重启」；
@@ -79,7 +79,7 @@ export interface TaskQueueOptions {
    *  update 表示实际执行的是更新（覆盖重装）而非首次安装：通知中心据此显示「更新成功」而非「安装成功」。 */
   onInstallDone: (viaModal: boolean, repo: string | null, needsRestart: boolean, update?: boolean, needsReload?: boolean) => void
   onUninstallDone: (viaModal: boolean, repo: string | null, needsRestart: boolean, needsReload?: boolean) => void
-  /** 任务失败：完整输出或兜底文案 + 所属插件仓库 + 操作类型（安装/卸载）+ 实际执行的安装命令（issue 预填用，可缺省）+ 尝试过的安装方式（npm 反查/执行命令，可缺省）+ 是否更新。 */
+  /** 任务失败：完整输出或兜底文案 + 所属插件仓库 + 操作类型（安装/卸载）+ 实际执行的安装命令（issue 预填用，可缺省）+ 实际执行/重试过的安装命令（可缺省）+ 是否更新。 */
   onError: (message: string, repo: string | null, kind: 'install' | 'uninstall', command?: string, attempts?: string[], update?: boolean) => void
   /** 当前打开的安装/卸载弹窗插件：用于在弹窗内匹配进行中的任务。 */
   installPlugin: HubPlugin | null
@@ -96,14 +96,10 @@ export interface TaskQueueOptions {
   resolvePending: (repo: string) => { desc?: string; version?: string } | null
 }
 
-/** 入口渠道的 i18n key：NPM 包 / GitHub 源码 / DSH 命令。 */
-const channelKeyOf = (channel: InstallChannel): string =>
-  channel === 'git' ? 'installChannelGit' : channel === 'dsh' ? 'installChannelDsh' : 'installChannelNpm'
-
 /** 失败消息的入口溯源前缀：自定义安装（带渠道）在错误正文顶部精准指出从哪张卡片发起；
- *  目录插件安装（无渠道）返回 null，错误正文保持原样。 */
+ *  目录插件安装（无渠道）返回 null，错误正文保持原样。自定义安装现仅 NPM 包通道。 */
 const entryLineOf = (t: Translate, channel: InstallChannel | undefined): string | null =>
-  channel ? t('installEntryLine', { c: t(channelKeyOf(channel)) }) : null
+  channel ? t('installEntryLine', { c: t('installChannelNpm') }) : null
 
 export function useTaskQueue(opts: TaskQueueOptions) {
   const {
@@ -332,13 +328,12 @@ export function useTaskQueue(opts: TaskQueueOptions) {
                 lines: Array.isArray(a.lines) ? (a.lines as string[]) : (prevTask?.lines ?? []),
                 attempts: Array.isArray(a.attempts) ? (a.attempts as string[]) : (prevTask?.attempts ?? []),
                 needsRestart: typeof a.needsRestart === 'boolean' ? a.needsRestart : (prevTask?.needsRestart ?? true),
-                // 入口渠道：本地乐观入队已带；服务端 /active 也带回（刷新恢复用），服务端优先
-                channel: (a.installChannel === 'npm' || a.installChannel === 'git' || a.installChannel === 'dsh')
-                  ? a.installChannel
-                  : prevTask?.channel,
+                // 入口渠道：本地乐观入队已带；服务端 /active 也带回（刷新恢复用），服务端优先。
+                // 旧服务端可能回传已废弃的 'git'/'dsh' 渠道，忽略即可、回退本地值。
+                channel: a.installChannel === 'npm' ? 'npm' : prevTask?.channel,
               })
             }
-            // 保留乐观条目：服务端尚未登记（preflight 中），无真实 id，不能因 active 缺它就被合并吞掉
+            // 保留乐观条目：服务端尚未登记，无真实 id，不能因 active 缺它就被合并吞掉
             const keepOpt = prev.filter((q) => q.optimistic && !next.some((x) => x.id === q.id))
             if (keepOpt.length > 0) next.push(...keepOpt)
             // 保留「已从服务端消失、但尚未收尾」的任务：收尾（settleTask）负责移除。
@@ -402,8 +397,9 @@ export function useTaskQueue(opts: TaskQueueOptions) {
               lines: Array.isArray(a.lines) ? (a.lines as string[]) : [],
               attempts: Array.isArray((a as { attempts?: unknown }).attempts) ? ((a as { attempts: string[] }).attempts) : [],
               needsRestart: typeof (a as { needsRestart?: unknown }).needsRestart === 'boolean' ? (a as { needsRestart: boolean }).needsRestart : true,
-              // 服务端登记的入口渠道：自定义安装刷新后也能精准溯源（目录安装无此字段）
-              channel: (a.installChannel === 'npm' || a.installChannel === 'git' || a.installChannel === 'dsh') ? a.installChannel : undefined,
+              // 服务端登记的入口渠道：自定义安装刷新后也能精准溯源（目录安装无此字段）。
+              // 旧服务端可能回传已废弃的 'git'/'dsh' 渠道，忽略即可。
+              channel: a.installChannel === 'npm' ? 'npm' : undefined,
             }
           })
         if (items.length > 0 || pendingRef.current.length > 0) {
@@ -435,7 +431,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     update?: boolean
     /** 全局 npm 安装包列表（`npm install -g <pkgs>`）：非空时服务端执行全局安装，不进任何 profile */
     globalNpm?: string[]
-    /** 自定义安装入口渠道（NPM 包 / GitHub 源码 / DSH 命令卡片）：随请求上报服务端落日志，
+    /** 自定义安装入口渠道（NPM 包卡片）：随请求上报服务端落日志，
      *  失败弹窗/通知据此精准溯源「从哪个入口发起」；目录安装不传。 */
     channel?: InstallChannel
   }) => {
@@ -445,7 +441,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     if (submittingRef.current.has(input.repo)) return
     submittingRef.current.add(input.repo)
     // 乐观入队：点击安装立即显示「正在安装中」，不等 POST 响应。
-    // 服务端 /install 会先跑预检（preflight，可能耗时数秒）再入队，若等响应才入队列，
+    // 服务端 /install 会先做校验与网络探测再入队，若等响应才入队列，
     // 用户点完安装立刻去看任务会看不到 —— 只有刷新后 restore 才拉回来。
     // 用负临时 id 占位，响应回来换成真实 task id；失败/出错则移除该占位。
     tempIdRef.current -= 1
@@ -458,7 +454,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
       command: input.command,
       channel: input.channel,
       action: input.update ? 'update' : 'add',
-      // 服务端登记后 /active 会带回真实尝试记录（npm 反查 + 执行命令），先占位空列表
+      // 服务端登记后 /active 会带回真实执行过的命令，先占位空列表
       attempts: [], needsRestart: true,
     }])
     setSubmitting(true)
@@ -475,7 +471,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
           mode: input.update ? 'update' : undefined,
           // 界面语言带给服务端：网络预检等错误消息按用户当前语言返回（中文界面给中文，英文界面给英文）
           ...(langKey ? { lang: langKey } : {}),
-          // 自定义安装入口渠道（三张卡片之一）：服务端日志/报错提示据此溯源
+          // 安装入口渠道（只可能是 npm）：服务端日志/报错提示据此溯源
           ...(input.channel ? { installChannel: input.channel } : {}),
           ...(input.globalNpm && input.globalNpm.length > 0 ? { globalNpm: input.globalNpm } : {}),
         }),
@@ -521,12 +517,12 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     }
   }
 
-  /** 目录插件安装：通道由目录数据（npmPackage）决定，走 catalog 白名单。 */
+  /** 目录插件安装：安装目标取目录数据的 npm 包名，走 catalog 白名单。 */
   const installNow = async (p: HubPlugin, opts?: { update?: boolean }) => {
     const repo = p.source?.repo ?? ''
     if (!repo) return
-    // 安装通道决策（用户无感知）：有 npm 包名 → 走 npm；否则 git 直装。
-    const { target } = installTargetOf(p)
+    // 目录条目必带 npm 包名：直接用包名安装（用户无感知）。
+    const target = installTargetOf(p)
     if (!target) return
     await submitInstall({
       target,
@@ -540,12 +536,11 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     })
   }
 
-  /** 命令行安装：用户手输 npm 包名或 GitHub 地址，走 custom 源（受安全开关控制）。
+  /** 命令行安装：用户手输 npm 包名，走 custom 源（受安全开关控制）。
    *  update=true 时对已安装目标放行覆盖重装（与目录插件「更新」同一语义）。
-   *  channel=入口渠道（NPM 包 / GitHub 源码 / DSH 命令卡片）：上报服务端落日志，
-   *  失败弹窗/通知据此精准溯源。
-   *  队列展示/防重一律用归一化身份（owner/repo 或 npm 包名）：与服务端 /active 合并、
-   *  弹窗目标匹配同口径，npm 包名透传不受影响。 */
+   *  channel=入口渠道（NPM 包卡片）：上报服务端落日志，失败弹窗/通知据此精准溯源。
+   *  队列展示/防重一律用归一化身份：与服务端 /active 合并、弹窗目标匹配同口径，
+   *  npm 包名透传不受影响。 */
   const installCustom = async (raw: string, opts?: { update?: boolean; channel?: InstallChannel }) => {
     const target = raw.trim()
     if (!target) return

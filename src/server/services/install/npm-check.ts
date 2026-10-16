@@ -5,8 +5,9 @@
  *
  * 本机 npm 环境检测：判断一次安装失败是否源于「本机 npm 版本过低」。
  *
- * 背景：pnpm 在 git 源插件的 prepare 阶段会调 npm 装依赖，npm arborist 在解 peer 依赖时有
- * 已知内部崩溃 —— `Cannot read properties of null (reading 'edgesOut')`。这是 npm 自身缺陷，
+ * 背景：pnpm 在带 `prepare` 构建脚本的依赖上会调 npm 装依赖（npm 包同样可能带原生
+ * 依赖或 git 依赖），npm arborist 在解 peer 依赖时有已知内部崩溃 ——
+ * `Cannot read properties of null (reading 'edgesOut')`。这是 npm 自身缺陷，
  * 该报错会被 pnpm 包进 ERR_PNPM_PREPARE_PACKAGE 输出，不能按插件打包问题引导用户提 Issue。
  *
  * 这里的 `npmTooLowMarker` 是纯函数（输出文本 + 环境 → 标记行或 null），不触碰任务/队列，

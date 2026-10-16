@@ -9,9 +9,9 @@
 
 export type LocaleId = 'zh' | 'en'
 
-/** 自定义安装入口渠道：三张卡片（NPM 包 / GitHub 源码 / DSH 命令）。
- * 客户端提交时显式上报，服务端落日志/报错提示据此溯源「从哪个入口发起」。 */
-export type InstallChannel = 'npm' | 'git' | 'dsh'
+/** 自定义安装入口渠道：仅 NPM 包。
+ *  客户端提交时显式上报，服务端落日志/报错提示据此溯源「从哪个入口发起」。 */
+export type InstallChannel = 'npm'
 
 /** Translation function signature shared by the host binder and the in-component dictionary. */
 export type Translate = (key: string, params?: Record<string, string | number>) => string
@@ -60,7 +60,7 @@ export interface HubPlugin {
   source?: { repo?: string; npmPackage?: string }
   /** 安装信息：能否网页一键安装（false = 仅支持命令行/专属 profile，缺省视为 true）；
    *  manualInstall = 人工干预标记（网页端一键安装替代不了终端的构建/装配，必须用户自己去终端装）；
-   *  command/githubCommand = 目录下发的权威安装命令（npm/git 通道各一条），
+   *  command/githubCommand = 目录下发的权威安装命令，
    *  仅供展示/复制 —— CLI-only 插件（如 dsh-tui）需专属 profile（--profile dsh-tui），
    *  无法从 repo/npm 包名推断，必须用目录命令。 */
   install?: { webInstallable?: boolean; manualInstall?: boolean; command?: string; githubCommand?: string }

@@ -4,8 +4,7 @@
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
  * 分发文件解析：从 package.json 推出装完后必须真实存在的文件 —— 作者声明的入口
- * （exports["."] / main）与 bundle 声明的补丁（dsh.bundle.patch）。git 通道（tar 预检）
- * 与 npm 通道（装后 statSync 校验）共用，保证两条通道对同一个包判定一致。
+ * （exports["."] / main）与 bundle 声明的补丁（dsh.bundle.patch），供 npm 通道的装后校验使用。
  *
  * 只在包自己声明了入口时才要求它存在：宿主加载 bundle 读的是它的 package.json 与声明的补丁，
  * 从不 import 包本身。硬要一个作者没声明过的 index.js，会把完整的包判成分发残缺、把一条假缺陷
@@ -49,7 +48,7 @@ export function resolvePackageEntry(meta: PackageManifest): string | null {
 /**
  * 解析 `dsh.bundle.patch` 声明的补丁文件（相对包根，不带 `./` 前缀）。
  * 形状不合规范（既不是字符串也不是字符串数组）在这里不判定：那是 dsh 启动时
- * bundlePatchFiles 的报错职责，预检只负责「声明了就要在包里存在」。
+ * bundlePatchFiles 的报错职责，装后校验只负责「声明了就要在包里存在」。
  */
 export function resolveBundlePatchFiles(meta: PackageManifest): string[] {
   const patch = (meta.dsh as { bundle?: { patch?: unknown } } | undefined)?.bundle?.patch

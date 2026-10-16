@@ -17,20 +17,19 @@ export interface InstallResult {
 
 export interface InstallTask {
   id: number
-  /** 操作目标：显式 HTTPS Git URL（安装）或 npm 包名（卸载），冲突/恢复时需要展示给用户 */
+  /** 操作目标：npm 包名（安装、更新、卸载一致），冲突/恢复时需要展示给用户 */
   target: string
   /** 展示用目标（owner/repo）：npm 安装时 target 是包名，前端恢复用此字段显示仓库名，保持用户无感知 */
   displayTarget?: string
-  /** 尝试过的安装方式（npm registry 反查 + 实际执行的 CLI 命令，按先后顺序）：
-   *  失败提 Issue 时如实贴给作者，作者据此反推正确的 npm 包名（组织 scope 与 GitHub 用户名不一致时
-   *  仅凭仓库名猜不到，作者看到我们查过/试过的命令就能直接指认）。 */
+  /** 尝试过的安装方式（实际执行过的 CLI 命令，按先后顺序）：
+   *  失败提 Issue 时如实贴给作者，作者据此判断我们真正执行了什么。 */
   attempts: string[]
   /** 全局 npm 安装（官方 `npm install -g <pkgs>`）：非空时任务执行全局 npm 安装，不进任何 profile */
   globalNpm?: string[]
   action: 'add' | 'remove' | 'update'
-  /** 自定义安装入口渠道（客户端三张卡片：NPM 包 / GitHub 源码 / DSH 命令）：
+  /** 自定义安装入口渠道（NPM 包卡片）：
    *  任务输出行与系统日志据此溯源「从哪个入口发起」；目录插件安装无此字段。 */
-  installChannel?: 'npm' | 'git' | 'dsh'
+  installChannel?: 'npm'
   /** 队列语义：pending 排队中 / running 执行中 / done / failed / cancelled（用户取消） */
   status: 'pending' | 'running' | 'done' | 'failed' | 'cancelled'
   timedOut: boolean
@@ -70,7 +69,7 @@ export interface QueueItem {
     timeoutMs?: number
     env?: NodeJS.ProcessEnv
     globalNpm?: string[]
-    installChannel?: 'npm' | 'git' | 'dsh'
+    installChannel?: 'npm'
   }
 }
 
@@ -79,7 +78,7 @@ export interface QueueItem {
  * 它自然清空，正好等于「重启后提醒消失」的语义，无需任何重启探测。
  */
 export interface PendingRestart {
-  /** Git 安装目标（与任务一致；卸载时为展示用的 owner/repo） */
+  /** 安装目标（与任务一致；卸载时为展示用的 owner/repo） */
   target: string
   /** 待重启语义：install 装完等挂载生效 / uninstall 卸完等清理 loader 残留 */
   kind: 'install' | 'uninstall'

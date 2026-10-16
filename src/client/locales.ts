@@ -47,39 +47,26 @@ export const zh = {
   viewSettings: '设置',
   viewMarketHint: '浏览与发现插件',
   viewInstalledHint: '管理已安装插件',
-  viewCustomHint: '手动安装 NPM 包或 GitHub 源码',
+  viewCustomHint: '手动安装 NPM 包',
   viewSettingsHint: '网络通道与偏好设置',
   // 已安装视图
   installedEmpty: '还没有安装插件',
-  installedEmptyDesc: '可以去「自定义安装」，手动安装 NPM 包或 GitHub 源码',
+  installedEmptyDesc: '可以去「自定义安装」，手动安装 NPM 包',
   npmInstallLabel: 'NPM 包 / 命令',
   npmInstallPlaceholder: 'npm install <包名> 或直接输包名',
   npmInstallExample: '支持原生命令：npm install lodash、npm i lodash、pnpm add @scope/pkg',
   npmInstallExample2: '全局安装 CLI：npm install -g @scope/cli；或直接输入包名 lodash',
   npmInstallInvalid: '请输入 npm 包名（如 lodash、@scope/pkg），或原生安装命令（如 npm install lodash、npm i lodash、pnpm add @scope/pkg、npm install -g @scope/cli）',
-  gitInstallLabel: 'GitHub 源码',
-  gitInstallPlaceholder: '输入仓库地址',
-  gitInstallExample: '例如：owner/repo 或 https://github.com/owner/repo',
-  gitInstallInvalid: '请输入 GitHub 仓库地址，例如：owner/repo 或 https://github.com/owner/repo',
-  dshCmdLabel: 'DeepSeek Harness 命令',
-  dshCmdPlaceholder: '粘贴官方 dsh plugin 命令',
-  dshCmdInsertHubUpdate: '插入更新命令',
-  // 示例/校验文案里的 profile 用运行时当前宿主 profile 渲染（{profile} 占位符），
-  // 不写死 web —— 桌面端当前 profile 是 desktop，照抄写死的 web 会装进宿主永不加载的档
-  dshCmdExample: '例如：dsh plugin --profile {profile} add github:owner/repo，或 dsh plugin --profile {profile} update dsh-plugin',
-  dshCmdInvalid: '请输入官方 dsh plugin 命令（--profile 必填，支持 add / update）。例如：dsh plugin --profile {profile} update dsh-plugin',
   installHelp: '帮助',
   helpModalTitle: '支持的命令格式',
   npmInstallHelp: 'lodash、@scope/pkg\t直接输入包名\nnpm install lodash\nnpm i lodash\npnpm add @scope/pkg\npnpm i @scope/pkg\nnpm install -g @scope/cli\t全局安装 CLI 工具，不进「已安装」列表',
-  gitInstallHelp: 'owner/repo\nhttps://github.com/owner/repo\ngithub:owner/repo\ngit+https://github.com/owner/repo.git\ngit@github.com:owner/repo.git',
-  dshCmdHelp: 'dsh plugin --profile {profile} add <目标>\t安装\ndsh plugin --profile {profile} update <目标>\t更新已安装目标到最新版本\ndsh plugin --profile={profile} add <目标>\ndsh plugin --profile={profile} update <目标>\n\t--profile 必填（此处已填当前 profile），官方 CLI 无 -p 简写；<目标> 可为 npm 包名或 github:owner/repo；卸载请用「已安装」列表',
   globalNpmHint: '将全局安装 CLI 工具（npm install -g），不会出现在「已安装」列表，无需重启宿主',
   installCliBtn: '安装',
   // 安装通道关闭（安全信任开关关掉后，对应卡片禁用并引导去设置打开）
   channelDisabledHint: '该安装通道已关闭，请在「设置 → 安全信任」中打开开关',
   goToSettings: '前往设置',
   // 自定义安装视图：独立一级导航，说明文字
-  customViewDesc: '手动安装目录外的 NPM 包、GitHub 源码，或粘贴官方 dsh plugin 命令。装完的条目会出现在「已安装」列表，并标记为自定义安装。',
+  customViewDesc: '手动安装目录外的 NPM 包。装完的条目会出现在「已安装」列表，并标记为自定义安装。',
   customLabel: '自定义安装',
   installedSearch: '搜索已安装的插件…',
   installedFilterCatalog: '目录插件',
@@ -134,13 +121,9 @@ export const zh = {
   mirrorTencent: '腾讯云镜像',
   mirrorTsinghua: '清华大学 TUNA 镜像',
   settingsSecurity: '安全信任',
-  settingsSecurityDesc: '命令行安装的三个通道开关：NPM 包、GitHub 源码与 DSH 命令',
+  settingsSecurityDesc: '命令行安装的开关：NPM 包',
   settingsEnableNpm: '启用 NPM 安装',
   settingsEnableNpmDesc: '允许通过命令行安装 npm 包；关闭后输入包名安装会被拦截',
-  settingsEnableGit: '启用 GitHub 源码安装',
-  settingsEnableGitDesc: '允许通过命令行安装 GitHub 源码；关闭后输入仓库地址安装会被拦截',
-  settingsEnableDsh: '启用 DSH 命令安装',
-  settingsEnableDshDesc: '允许通过命令行粘贴 dsh plugin 命令安装；关闭后命令输入会被禁用',
   settingsDiagnostics: '系统诊断',
   settingsDiagnosticsDesc: '检测 npm 源 / GitHub / 目录站点等安装通道的连通状态',
   settingsLogs: '系统日志',
@@ -331,14 +314,14 @@ export const zh = {
   failProfileLockHint: 'DSH 在写入插件清单时等不到文件锁、超时中止 —— 通常是同时有另一个 DSH 进程或安装任务在写同一个 profile（也可能是上一次的进程没退干净留下的锁）。请先关掉其他 dsh 窗口或正在跑的命令，再重试一次；若反复出现，重启一次 DSH。这不是插件本身的问题，也不需要重复{action}。',
   // 宿主自身入口起不来：环境问题，给提示、不引导提 Issue
   failHostCliSpawnHint: 'DSH 没能启动自身来完成这次操作（系统报「找不到可执行文件」）：通常是因为 DSH 的安装目录被移动或正在更新，或该 profile 目录还不存在。请重启一次 DSH 后重试；若反复出现，重新安装 DSH。这不是插件本身的问题，换别的插件也一样。',
-  // prepare 构建脚本实际执行失败（git 分发缺子模块/构建产物）：插件打包分发问题，应提 Issue
-  failPrepareHint: '该插件安装时的构建脚本执行失败（git 分发常缺失子模块或构建产物），属插件打包分发问题。请向作者仓库提交 Issue 反馈。',
-  // 「插件打包问题」分支的次要入口：该判据由插件中心自己的预检/装后校验产出（不是 pnpm 原文），
+  // prepare 构建脚本实际执行失败：插件打包分发问题，应提 Issue
+  failPrepareHint: '该插件安装时的构建脚本执行失败（npm 分发物不完整），属插件打包分发问题。请向作者仓库提交 Issue 反馈。',
+  // 「插件打包问题」分支的次要入口：该判据由插件中心自己的装后校验产出（不是 pnpm 原文），
   // 一旦误报，用户会被引导去作者仓库、插件中心永远收不到反馈 —— 故留一条反馈路径
   failMisjudgeHint: '如果这个插件其实能正常安装（上面这个判定是插件中心误报的），请反馈给插件中心：文字提示里的判据由市场自身产出，误报只有靠你的反馈才能被发现。',
   failMisjudgeLink: '插件能装却被拦下？反馈给插件中心',
-  // 安装前预检 / 装后校验拦截（[packaging]）：git 分发缺插件需要的文件（入口 / 补丁 mount 的入口 / bundle 补丁）= 插件未适配官方默认安装方式
-  failPackagingHint: '该插件不支持官方默认安装方式：其 git 分发缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁），说明作者未适配官方安装流程。请到作者仓库提交 Issue 反馈，请其提交构建产物、改用预构建 release `.tgz` 直链（`releases/download/<tag>/<asset>.tgz`），或发布完整的 npm 版。',
+  // 装后校验拦截（[packaging]）：npm 分发物缺插件需要的文件（入口 / 补丁 mount 的入口 / bundle 补丁）= 插件分发不完整
+  failPackagingHint: '该插件的 npm 分发物不完整：缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁）。请到作者仓库提交 Issue 反馈，请其发布包含完整构建产物的 npm 包。',
   // 原生依赖构建脚本被 pnpm 默认拦截（如 node-pty 的 ERR_PNPM_IGNORED_BUILDS）：不单独算插件问题，引导到插件中心仓库排查
   failIgnoredBuild: '该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，本次操作因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败通常说明构建本身没通过。可先在终端手动执行一次安装命令查看完整构建错误；若确属插件的构建/分发问题，建议作者预置构建产物、发布 npm 包或预构建 .tgz。需要协助排查时也可反馈给插件中心。',
   // npm arborist 内部崩溃（edgesOut）＋ 本机 npm 版本过低：npm 自身已知缺陷，不是插件问题，升级 npm 即可
@@ -377,10 +360,8 @@ export const zh = {
   // minimumReleaseAge 专属：从报错里算出确切的可重试时刻（{time}），让用户知道「何时能再装」，
   // 而不是笼统地让等 24 小时
   failPnpmReleaseAgeHint: '安装器调用 pnpm 时被其供应链安全策略拦住了，任何插件装进这个 profile 都会先撞上它——与插件本身无关。原因是这个包发布还不满 24 小时，pnpm 11 出于安全会拒收刚发布的新包，这段时间内该 profile 的安装与卸载都会被拦下。可重试时间：{time}（即该包发布满 24 小时后）。如确需立刻安装，可在 profile 目录（~/.dsh/profiles/<profile>）的 pnpm-workspace.yaml 里加 minimumReleaseAge: 0 豁免，但这会放宽整个 profile 的供应链保护。',
-  // 自定义安装三卡片入口的渠道名（报错/日志溯源：本次安装从哪个入口发起）
+  // 自定义安装入口的渠道名（报错/日志溯源：本次安装从哪个入口发起）
   installChannelNpm: 'NPM 包',
-  installChannelGit: 'GitHub 源码',
-  installChannelDsh: 'DSH 命令',
   // 报错/通知中心的入口溯源行：前缀在错误正文顶部，精准指出自定义安装是从哪张卡片发起的
   installEntryLine: '安装入口：{c}。',
   reportIssue: '去插件仓库提交 Issue',
@@ -466,37 +447,26 @@ export const en = {
   viewSettings: 'Settings',
   viewMarketHint: 'Browse and discover plugins',
   viewInstalledHint: 'Manage installed plugins',
-  viewCustomHint: 'Install npm packages or GitHub sources manually',
+  viewCustomHint: 'Install npm packages manually',
   viewSettingsHint: 'Network sources and preferences',
   // Installed view
   installedEmpty: 'No plugins installed yet',
-  installedEmptyDesc: 'Go to Custom to add an npm package or GitHub source manually',
+  installedEmptyDesc: 'Go to Custom to add an npm package manually',
   npmInstallLabel: 'npm package / command',
   npmInstallPlaceholder: 'npm install <pkg> or a bare package name',
   npmInstallExample: 'Native commands: npm install lodash, npm i lodash, pnpm add @scope/pkg',
   npmInstallExample2: 'Global CLI: npm install -g @scope/cli; or just type a package name like lodash',
   npmInstallInvalid: 'Enter an npm package name (e.g. lodash, @scope/pkg), or a native install command (e.g. npm install lodash, npm i lodash, pnpm add @scope/pkg, npm install -g @scope/cli)',
-  gitInstallLabel: 'GitHub source',
-  gitInstallPlaceholder: 'Repository address',
-  gitInstallExample: 'e.g. owner/repo or https://github.com/owner/repo',
-  gitInstallInvalid: 'Enter a GitHub repository address, e.g. owner/repo or https://github.com/owner/repo',
-  dshCmdLabel: 'DeepSeek Harness command',
-  dshCmdPlaceholder: 'Paste an official dsh plugin command',
-  dshCmdInsertHubUpdate: 'Insert update command',
-  dshCmdExample: 'e.g. dsh plugin --profile {profile} add github:owner/repo, or dsh plugin --profile {profile} update dsh-plugin',
-  dshCmdInvalid: 'Paste an official dsh plugin command (--profile required, add / update), e.g. dsh plugin --profile {profile} update dsh-plugin',
   installHelp: 'Help',
   helpModalTitle: 'Supported command formats',
   npmInstallHelp: 'lodash or @scope/pkg\tjust type the package name\nnpm install lodash\nnpm i lodash\npnpm add @scope/pkg\npnpm i @scope/pkg\nnpm install -g @scope/cli\tinstalls the CLI globally, not shown in Installed',
-  gitInstallHelp: 'owner/repo\nhttps://github.com/owner/repo\ngithub:owner/repo\ngit+https://github.com/owner/repo.git\ngit@github.com:owner/repo.git',
-  dshCmdHelp: 'dsh plugin --profile {profile} add <target>\tinstall\ndsh plugin --profile {profile} update <target>\tupdate an installed target to the latest version\ndsh plugin --profile={profile} add <target>\ndsh plugin --profile={profile} update <target>\n\t--profile is required (prefilled with the current profile here) and there is no -p shorthand; <target> can be an npm package or github:owner/repo; uninstall from the Installed list',
   globalNpmHint: 'This installs CLI tools globally (npm install -g). They won\'t appear in Installed and no host restart is needed.',
   installCliBtn: 'Install',
   // Install channel disabled (security-trust toggle off → card disabled, guides to settings)
   channelDisabledHint: 'This install channel is disabled — enable it in Settings → Security & Trust',
   goToSettings: 'Go to Settings',
   // Custom install view: standalone top-level section, description text
-  customViewDesc: 'Manually install an npm package, a GitHub source, or paste an official dsh plugin command. Finished installs appear in Installed, marked as custom.',
+  customViewDesc: 'Manually install an npm package outside the catalog. Finished installs appear in Installed, marked as custom.',
   customLabel: 'Custom install',
   installedSearch: 'Search installed plugins…',
   installedFilterCatalog: 'Catalog',
@@ -554,13 +524,9 @@ export const en = {
   mirrorTencent: 'Tencent Cloud mirror',
   mirrorTsinghua: 'Tsinghua TUNA mirror',
   settingsSecurity: 'Security & Trust',
-  settingsSecurityDesc: 'Toggles for the three command-line install channels: npm packages, GitHub sources and DSH commands',
+  settingsSecurityDesc: 'Toggles for command-line installs: npm packages',
   settingsEnableNpm: 'Enable npm installs',
   settingsEnableNpmDesc: 'Allow installing npm packages from the command line; turning this off rejects package-name installs',
-  settingsEnableGit: 'Enable GitHub source installs',
-  settingsEnableGitDesc: 'Allow installing from GitHub sources on the command line; turning this off rejects repository-address installs',
-  settingsEnableDsh: 'Enable DSH command installs',
-  settingsEnableDshDesc: 'Allow pasting a dsh plugin command to install; turning this off disables the command input',
   settingsDiagnostics: 'System Diagnostics',
   settingsDiagnosticsDesc: 'Check the connectivity of install channels: npm registry, GitHub and the catalog site',
   settingsLogs: 'System Logs',
@@ -751,8 +717,8 @@ export const en = {
   failProfileLockHint: 'DSH timed out waiting for the file lock while writing the plugin list — usually because another DSH process or install task is writing the same profile (sometimes a previous run left the lock behind). Close other dsh windows or running commands, then retry; if it keeps happening, restart DSH once. This is not a plugin problem, and there is no need to repeat the {action}.',
   // The host could not launch itself to run the operation: not a plugin issue — hint only, no issue prompt
   failHostCliSpawnHint: 'DSH could not start itself to perform this operation (the system reported that the executable was not found). This usually means the DSH installation folder has been moved or is being updated, or that the profile directory does not exist yet. Restart DSH and retry; if it keeps happening, reinstall DSH. This is not a plugin problem — other plugins would fail the same way.',
-  // prepare script actually failed (git tarball misses submodules/build output): a packaging issue of the plugin itself — file an issue
-  failPrepareHint: 'This plugin failed while running its build scripts during install (git tarballs often miss submodules or build output). This is a packaging issue of the plugin itself — please report it to the author repository.',
+  // prepare script actually failed: a packaging issue of the plugin itself — file an issue
+  failPrepareHint: 'This plugin failed while running its build scripts during install (the published npm package is incomplete). This is a packaging issue of the plugin itself — please report it to the author repository.',
   // Secondary entry on the "plugin packaging" branch: that verdict comes from the hub's own
   // pre/post-install check, not from pnpm output — a false positive sends users to the author
   // repo and the hub never hears about it, so keep a feedback path here.
@@ -799,10 +765,8 @@ export const en = {
   // minimumReleaseAge only: compute the exact retry time ({time}) from the error so the user knows
   // when installs will work again, instead of the vague "wait 24 hours"
   failPnpmReleaseAgeHint: 'The installer was blocked by pnpm supply-chain security policy, and every plugin installed into this profile would hit the same wall — this is not a problem with the plugin itself. The package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety, so both installs and removals are blocked for this profile in the meantime. Retry after: {time} (i.e. 24 hours after the package was published). If you must install right now, add minimumReleaseAge: 0 to pnpm-workspace.yaml inside the profile directory (~/.dsh/profiles/<profile>) to opt out, but that loosens supply-chain protection for the whole profile.',
-  // Custom install entry channel names (the three cards) — used in error/log traceability
+  // Custom install entry channel names — used in error/log traceability
   installChannelNpm: 'NPM package',
-  installChannelGit: 'GitHub source',
-  installChannelDsh: 'DSH command',
   // Entry traceability line prefixed at the top of the error text: which card initiated this install
   installEntryLine: 'Install entry: {c}.',
   reportIssue: 'Report an Issue to the plugin repo',

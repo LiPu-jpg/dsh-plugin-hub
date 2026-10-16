@@ -20,7 +20,6 @@ export { addPendingRestart, clearPendingRestart, listPendingRestarts } from '../
 export { dumpLoaderEntries, removeLoadedEntry } from '../loader.ts'
 export {
   addAllowBuildsKey,
-  githubRefOf,
   githubRepoOf,
   githubTarget,
   globalNpmPackagesOf,

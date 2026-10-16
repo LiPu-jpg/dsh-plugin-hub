@@ -63,14 +63,18 @@ npm run test:watch    # 监听模式
 | 文件 | 覆盖 |
 | --- | --- |
 | `progress.test.ts` | 进度估算与输出清洗 |
-| `preflight.test.ts` · `package-entry.test.ts` | 装前预检与分发文件推导 |
-| `npm-resolve.test.ts` | npm 反查与元数据校验 |
+| `package-entry.test.ts` | 分发文件推导 |
+| `install-entry-check.test.ts` | 超时后复核已装入口（入口缺失不算装上） |
+| `npm-resolve.test.ts` | npm 包元数据校验 |
 | `release-target.test.ts` | release 直链解析与安全校验 |
 | `install-target.test.ts` | 安装目标语法解析 |
 | `installed-versions.test.ts` | 版本信号读写 |
 | `desktop-cli.test.ts` | 桌面端 CLI 引导路径推导 |
 | `routes.test.ts` | 路由注册与同源校验 |
+| `operation-log.test.ts` | 失败日志回捞：路径解析 / 只读白名单 / 读不到时静默降级 |
+| `registry-check.test.ts` | 官方 registry 复核，区分作者侧缺依赖 / 本机镜像滞后 |
 | `catalog.test.ts` · `render-markdown.test.ts` · `failures.test.ts` | 客户端归一化 / Markdown 渲染 / 失败归类 |
+| `failure-report.test.ts` | 上报文案按动作取词（卸载 / 更新不写成安装） |
 | `probe.test.ts` | 代理解析等探测辅助 |
 
 新增有明确输入/输出的行为（解析、校验、估算）时，在旁边加测试。

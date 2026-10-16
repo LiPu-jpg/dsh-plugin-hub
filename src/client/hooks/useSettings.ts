@@ -20,10 +20,6 @@ export interface HubSettings {
   npmRegistry: string
   /** 启用命令行安装 NPM 包（默认开） */
   enableNpmInstall: boolean
-  /** 启用命令行安装 GitHub 源码（默认开） */
-  enableGitInstall: boolean
-  /** 启用命令行粘贴 dsh plugin 命令安装（默认开） */
-  enableDshInstall: boolean
   /** 日志存放位置覆盖（空串 = 默认 ~/.dsh/profiles/<profile>/hub.log） */
   logPath: string
 }
@@ -33,8 +29,6 @@ export const DEFAULT_SETTINGS: HubSettings = {
   proxy: '',
   npmRegistry: '',
   enableNpmInstall: true,
-  enableGitInstall: true,
-  enableDshInstall: true,
   logPath: '',
 }
 

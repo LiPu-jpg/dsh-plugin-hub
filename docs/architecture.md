@@ -22,11 +22,12 @@ services/install/
   install.ts                对外统一出口（纯 re-export，聚合下面的模块）
   install-types.ts          公共类型与常量（InstallTask / InstallResult / 上限值）
   task-queue.ts             后台任务：内存注册表 + FIFO 串行 worker + 子进程生命周期
-  preflight.ts              装前预检：拉 GitHub tarball 核对插件需要的文件（声明的入口 / bundle 补丁，以及补丁 mount 的入口）是否真的在分发里
-  npm-resolve.ts            按 repository 反查官方 npm 包（git 分发残缺时切 npm 通道）
+  npm-resolve.ts            校验某个 npm 包是否属于该仓库且声明为 DSH 插件（目录安装纠错）
   npm-check.ts              识别「本机 npm 版本过低」导致的失败并打标记
-  package-entry.ts          从 package.json 推分发必须包含的文件（入口 + dsh.bundle.patch；预检与装后校验共用口径）
-  release-target.ts         目录下发的 release 直链解析与安全校验
+  package-entry.ts          从 package.json 推分发必须包含的文件（入口 + dsh.bundle.patch；装后校验口径）
+  release-target.ts         历史安装目标里的 release .tgz 直链解析：还原所属仓库身份（已装态读回）
+  operation-log.ts          失败日志回捞：宿主只回显一行摘要时，按 diagnostics 路径读 operation 日志尾部
+  registry-check.ts         包在 registry 不存在时用官方源复核，区分作者侧缺依赖与本机镜像滞后
 services/profile/
   profile.ts                profile 解析、目标语法校验、pnpm allowBuilds 白名单写入
   progress.ts               纯函数：cleanLine() + estimateProgress()（有单测）
@@ -34,7 +35,7 @@ services/profile/
   pending-restart.ts        「待重启」内存清单（宿主重启即自然清空）
 services/loader.ts          运行中 loader：读取 / live-disable / 热挂载
 services/log.ts             系统日志：JSONL 追加 + 分页读取 + 清空
-services/probe.ts           连通性探测：curl / git ls-remote / 系统代理探测
+services/probe.ts           连通性探测：curl / 系统代理探测
 services/settings.ts        设置持久化：profiles/<p>/hub-settings.json
 ```
 
@@ -65,23 +66,17 @@ services/settings.ts        设置持久化：profiles/<p>/hub-settings.json
 
 ### 安装流水线（`services/install/`）
 
-一次安装要过五道关，`task-queue.ts` 是执行主体：
+一次安装要过三道关，`task-queue.ts` 是执行主体：
 
 1. **校验与解析**（`routes.ts` → `profile.ts`）：仓库/包名格式、profile 名、
    同目标去重（`hasQueuedTarget`）、包名冲突检测。
-2. **装前预检**（`preflight.ts`）：GitHub 源先 `git ls-remote` 定位 commit、
-   下载 `codeload` tarball，核对 `package.json` 声明的文件（入口，以及 bundle
-   声明的补丁）是否真在分发里 ——
-   git 分发经常不提交构建产物，这类残缺包在动手安装前就拦下。
-3. **npm 反查**（`npm-resolve.ts`）：预检不通过时按 `repository` 字段反查该仓库的
-   官方 npm 包，命中就切到 npm 通道安装。
-4. **串行执行**（`task-queue.ts`）：同一时刻只跑一个变更任务（FIFO 队列）。
+2. **串行执行**（`task-queue.ts`）：同一时刻只跑一个变更任务（FIFO 队列）。
    子进程为 `dsh plugin --profile <p> <add|remove> <target>`；更新实际走
    `add <target>@latest`。失败有两条自动恢复路径：pnpm 构建脚本被拦
    （`ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` / `ERR_PNPM_IGNORED_BUILDS`）时写入
    profile 的 `pnpm-workspace.yaml` 后重试一次；全局 npm 安装撞上 npm arborist
    peer-set 崩溃时带 `--legacy-peer-deps` 重试一次。
-5. **装后校验与收尾**（`task-queue.ts` + `loader.ts`）：校验声明的分发文件真实存在
+3. **装后校验与收尾**（`task-queue.ts` + `loader.ts`）：校验声明的分发文件真实存在
    （缺失即判失败并撤销待重启，避免重启时加载残缺包直接崩溃），再尝试热挂载 /
    停用 loader 条目，最后判定「是否需要刷新 / 是否需要重启」（见下）。
 
@@ -164,7 +159,7 @@ components/
   views/                     六个一级视图
     MarketView               插件市场：分类 + 搜索/排序/安装态筛选 + 列表
     InstalledView            已安装管理：目录插件 + 目录外自定义安装混合列表
-    CustomInstallView        目录外安装：NPM 包 / GitHub 源码 / DSH 命令三张卡片
+    CustomInstallView        目录外安装：只有 NPM 包一种入口
     SettingsView             设置：左侧分组导航 + 右侧设置行
     LogsView                 系统日志入口：路径定位 + 最近预览
     DiagnosticsView          连通性诊断：逐通道状态徽标，可单行重探

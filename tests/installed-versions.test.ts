@@ -32,7 +32,7 @@ function withTempHome(run: () => void): void {
   }
 }
 
-test('npm 反查映射 + 客户端版本同步合并：npmPackage 不被覆盖', () => {
+test('npm 包名映射 + 客户端版本同步合并：npmPackage 不被覆盖', () => {
   withTempHome(() => {
     recordResolvedNpmPackage('web', 'ccch1mneyyy/dsh-tui', '@deepseek-harness-tui/dsh-tui')
     // 客户端安装成功后同步版本信号：合并写入，不能丢 npm 包名映射

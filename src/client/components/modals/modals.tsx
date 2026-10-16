@@ -343,7 +343,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
   repo: string | null
   action: FailureAction
   command?: string
-  /** 尝试过的安装方式（npm 反查 + 实际执行命令）：issue 预填一并贴给作者，便于反推正确的 npm 包名 */
+  /** 实际执行/重试过的安装命令：issue 预填一并贴给作者 */
   attempts?: string[]
   t: Translate
   env: EnvInfo | null
@@ -492,7 +492,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
               // 安装流程，与插件无关 —— 引导从本机地址重新打开市场，不引导提 Issue
               ? h('div', { className: styles.failPrepareHint }, t('failOriginRejectedHint', { profile: env?.profile ?? '<profile>' }))
               : failureKind === 'network'
-              // 安装前预检 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：
+              // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：
               // 是本机网络不通或代理有问题，不是插件问题 —— 提示检查网络 + 直达「系统诊断」，
               // 不引导提 Issue
               ? h('div', null, [
@@ -509,7 +509,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
               ])
               : failureKind === 'pluginPrepare'
               ? h('div', null, [
-                // [packaging]（预检/装后校验拦截：git 分发缺产物）与
+                // [packaging]（装后校验拦截：分发缺产物）与
                 // prepare 构建脚本实际执行失败：唯一确有证据的插件打包分发问题 —— 引导到插件仓库提 Issue
                 h('div', { className: styles.failPrepareHint }, /\[packaging\]/i.test(message) ? t('failPackagingHint') : t('failPrepareHint')),
                 repo ? h('a', {
@@ -519,7 +519,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
                   rel: 'noopener noreferrer',
                   title: t('failIssueHint'),
                 }, t('failIssueBig')) : null,
-                // 次要入口：这条分支的判据（[packaging] 预检/装后校验、prepare 摘要）是插件中心
+                // 次要入口：这条分支的判据（[packaging] 装后校验、prepare 摘要）是插件中心
                 // 自己产出的，不是 pnpm 原文 —— 判错时用户会被送去作者仓库、我们永远收不到反馈，
                 // 故另给一条「可能是市场误判」的反馈通道（正文自我说明它来自哪条分支）
                 repo ? h('div', null, [

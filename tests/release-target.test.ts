@@ -4,7 +4,7 @@
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
  * 预构建 release 安装目标（src/server/services/install/release-target.ts）的单元测试：
- * 目录下发的权威 release 命令 → 安装目标选路，以及安全边界（跨仓 / 外部主机 / shell 注入拒绝）。
+ * release 直链的解析与安全边界（跨仓 / 外部主机 / shell 注入拒绝），以及装完后认回目录身份的归一化。
  *
  * Run with the Node built-in test runner: `npm test` (Node >= 22.6 with
  * type stripping). No extra test dependencies required.
@@ -51,31 +51,16 @@ test('githubRepoOf: release 直链归一到所属仓库身份', () => {
   assert.equal(githubRepoOf('git+https://github.com/a/b.git'), 'a/b')
 })
 
-test('installTargetOf: 无 npm 包但有同仓 release 命令 → 走 release 直链', () => {
+test('installTargetOf: 目录条目直接用 npm 包名作为安装目标', () => {
   const p = {
-    slug: 'loopx',
-    source: { repo: 'loopx-project/loopx', npmPackage: '' },
-    install: { githubCommand: `dsh plugin --profile web add ${TGZ}` },
-  } as HubPlugin
-  assert.deepEqual(installTargetOf(p), { target: TGZ, via: 'release' })
-  // 展示命令用目录下发的权威命令，与实际安装目标一致
-  assert.equal(installCommandOf(p), `dsh plugin --profile web add ${TGZ}`)
-})
-
-test('installTargetOf: npm 包优先，跨仓 release 命令不采信', () => {
-  const npm = {
     slug: 'x',
     source: { repo: 'a/x', npmPackage: 'x-pkg' },
-    install: { githubCommand: `dsh plugin --profile web add ${TGZ}` },
+    install: { command: 'dsh plugin --profile web add x-pkg', githubCommand: `dsh plugin --profile web add ${TGZ}` },
   } as HubPlugin
-  assert.deepEqual(installTargetOf(npm), { target: 'x-pkg', via: 'npm' })
-
-  const crossRepo = {
-    slug: 'y',
-    source: { repo: 'a/y', npmPackage: '' },
-    install: { githubCommand: `dsh plugin --profile web add ${TGZ}` },
-  } as HubPlugin
-  assert.deepEqual(installTargetOf(crossRepo), { target: 'a/y', via: 'github' })
+  // 目录条目必带 npm 包名：安装目标即包名，目录下发的 githubCommand 不再用于选路
+  assert.equal(installTargetOf(p), 'x-pkg')
+  // 展示命令优先用目录下发的权威命令
+  assert.equal(installCommandOf(p), 'dsh plugin --profile web add x-pkg')
 })
 
 test('repoFromInstallTarget: release 装完仍能认回目录身份（读回 / 更新 / 卸载）', () => {

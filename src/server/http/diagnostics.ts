@@ -95,8 +95,8 @@ export function registerDiagnosticsRoutes(webServer: WebServerService, profile: 
       path: '/dsh-plugin-hub/diagnostics',
       handler: async (request, response) => {
         if (!requireTrustedPost(request, response)) return
-        // 连通性自检：npm registry（镜像/官方）/ GitHub API / 目录站点，逐路探测并测速。
-        // 与安装通道一一对应 —— npm 反查与 npm 安装走 registry、git 源走 github、目录数据走 dsh-plugin.org。
+        // 连通性自检：npm registry（镜像/官方）/ GitHub / 目录站点，逐路探测并测速。
+        // npm 安装走 registry、目录数据走 dsh-plugin.org、GitHub 那一行用于反映插件运行时对 github.com 的可达性。
         // 流式（NDJSON）逐条上报：每个探测先发命令行，完成后发结果行，客户端以黑窗口终端实时展示。
         // 可选 body { key }：只重测指定通道（页面列表「重测」单项时用），缺省全量串行探测。
         let onlyKey = ''
@@ -112,8 +112,8 @@ export function registerDiagnosticsRoutes(webServer: WebServerService, profile: 
         // npm 通道：设置里配置了镜像源就探测该镜像（安装通道吃同一个 registry）；
         // 未配置（空串）时探测官方源作为「跟随本机 npm 配置」的基础连通性参考。
         const registry = settings.npmRegistry.replace(/\/+$/, '') || 'https://registry.npmjs.org'
-        // 连通性自检直接打安装通道真实访问的轻量资源：npm 源拉包元数据、git 通道探
-        // 仓库主页、目录站探 badge 小文件，避免拉取目录全量 JSON。
+        // 连通性自检打各通道的轻量资源：npm 源拉包元数据、GitHub 行探小仓库、目录站探
+        // 小文件，避免拉取目录全量 JSON。
         // npm 行 display：配置了镜像就显示镜像地址；未配置置空 —— 客户端显示「未配置（跟随本机 npm 配置）」。
         const allChecks: Array<{ key: string; url: string; display: string; cmd: string; proxy?: string; git?: boolean }> = [
           { key: 'npm', url: `${registry}/dsh-plugin`, display: settings.npmRegistry !== '' ? registry : '', cmd: `npm view dsh-plugin version --registry ${registry}` },

@@ -28,7 +28,7 @@ export function registerSettingsRoutes(webServer: WebServerService, profile: str
           // 白名单字段：只接受已知设置项，防客户端把任意键写进文件
           const patch: Record<string, unknown> = {}
           const source = typeof body === 'object' && body !== null ? body as Record<string, unknown> : {}
-          for (const key of ['checkUpdatesOnStart', 'enableNpmInstall', 'enableGitInstall', 'enableDshInstall', 'npmRegistry', 'proxy', 'logPath'] as const) {
+          for (const key of ['checkUpdatesOnStart', 'enableNpmInstall', 'npmRegistry', 'proxy', 'logPath'] as const) {
             if (source[key] !== undefined) patch[key] = source[key]
           }
           // 日志位置：非空时预建目录验证可写，失败直接 400 拦截（默认位置永远合法，空串 = 回默认）

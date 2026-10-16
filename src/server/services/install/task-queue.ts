@@ -45,17 +45,17 @@ export interface ActiveTaskInfo {
   status: 'pending' | 'running'
   progress: number
   lines: string[]
-  /** 尝试过的安装方式（npm 反查 + 实际执行命令）：失败时前端 issue 预填需要 */
+  /** 尝试过的安装方式（实际执行过的命令）：失败时前端 issue 预填需要 */
   attempts: string[]
-  /** 自定义安装入口渠道（NPM 包 / GitHub 源码 / DSH 命令卡片）：前端刷新恢复后仍能精准溯源 */
-  installChannel?: 'npm' | 'git' | 'dsh'
+  /** 自定义安装入口渠道（NPM 包卡片）：前端刷新恢复后仍能精准溯源 */
+  installChannel?: 'npm'
 }
 
 /** All non-terminal tasks in queue order (running first, then pending). Lets the client resume a queue after a page reload. */
 export function activeTask(): ActiveTaskInfo[] {
   const found: ActiveTaskInfo[] = []
-  // 展示目标用 displayTarget（owner/repo）：安装 target 可能被服务端切成 npm 包名
-  // （npm 反查命中），队列恢复/待重启展示对用户保持仓库名无感知
+  // 展示目标用 displayTarget（owner/repo）：安装 target 是 npm 包名，
+  // 队列恢复/待重启展示对用户保持仓库名无感知
   const show = (task: InstallTask): string => task.displayTarget ?? task.target
   for (const item of queue) {
     const task = item.task
@@ -260,9 +260,7 @@ function mutationVerb(action: 'add' | 'remove' | 'update'): string {
 
 /** 系统日志入口渠道后缀：自定义安装（带渠道）在日志里体现「从哪张卡片发起」，
  *  目录插件安装（无渠道）返回空串。日志中文语境，渠道名用中文口语。 */
-function channelLabel(channel: 'npm' | 'git' | 'dsh' | undefined): string {
-  if (channel === 'git') return '（GitHub 源码入口）'
-  if (channel === 'dsh') return '（DSH 命令入口）'
+function channelLabel(channel: 'npm' | undefined): string {
   if (channel === 'npm') return '（NPM 包入口）'
   return ''
 }
@@ -285,13 +283,13 @@ export function startPluginMutation(options: {
   /** 运行中 loader：安装成功后热挂新条目、卸载成功后停用旧条目，两类操作都尽量立即生效
    *  （缺失时安装/卸载仍需重启） */
   loader?: LoaderHandle
-  /** 入队前已尝试的安装方式（npm registry 反查等）：失败提 Issue 时如实展示；实际执行的命令由 spawn 时追加 */
+  /** 入队前已尝试的安装方式：失败提 Issue 时如实展示；实际执行的命令由 spawn 时追加 */
   attempts?: string[]
   /** 更新已安装的 npm 包（mode=update）：命令显式带 @latest，让 pnpm 真正解析最新版本 */
   updateNpm?: boolean
-  /** 自定义安装入口渠道（客户端三张卡片：NPM 包 / GitHub 源码 / DSH 命令）：
-   *  任务输出行与系统日志据此溯源「从哪个入口发起」；目录插件安装不传 */
-  installChannel?: 'npm' | 'git' | 'dsh'
+  /** 自定义安装入口渠道（NPM 包卡片）：任务输出行与系统日志据此溯源「从哪个入口发起」；
+   *  目录插件安装不传 */
+  installChannel?: 'npm'
 }): InstallTask {
   // 卸载入队时先快照「该包是否带客户端 UI」：卸载完成后包已从磁盘删除，读不到 package.json，
   // 只能在此刻取；卸载成功且曾存活时据此决定是否要刷新页面摘除插件面板
@@ -438,8 +436,7 @@ function spawnMutation(options: {
   const args = isGlobalNpm
     ? ['install', '-g', ...(globalNpm ?? [])]
     : [...invocation.prefixArgs, 'plugin', '--profile', profile, cliAction, npmUpdateTarget]
-  // 记录实际执行的命令（npm 通道显示包名，git 通道显示 HTTPS 源），
-  // 失败提 Issue 时作为「已尝试的安装方式」随附
+  // 记录实际执行的命令（npm 通道显示包名），失败提 Issue 时作为「已尝试的安装方式」随附
   const executed = isGlobalNpm
     ? `npm install -g ${(globalNpm ?? []).join(' ')}`
     : `dsh plugin --profile ${profile} ${cliAction} ${npmUpdateTarget}`
@@ -655,7 +652,7 @@ function spawnMutation(options: {
 
 /**
  * 安装后校验已装包里 package.json 声明的文件（main / exports["."].default 与
- * dsh.bundle.patch）是否真实存在。git: 分发常不提交构建产物（lib/ 等），pnpm 装完没有
+ * dsh.bundle.patch）是否真实存在。npm 包也可能漏发构建产物（lib/ 等），pnpm 装完没有
  * 报错，但宿主重启加载插件树时会 ERR_MODULE_NOT_FOUND 直接崩溃、网页打不开 —— 这里在
  * 登记「待重启」前就把这类残缺包拦下。没有声明过的文件不在这里追究：没声明入口的
  * bundle 包（只挂技能）本来就不需要入口，宿主读的是它的 package.json 与声明的补丁。
@@ -815,14 +812,14 @@ export async function runPluginMutation(options: {
       }
     }
   }
-  // pnpm 安装本身成功，但目标包声明分发的文件缺失（git 分发缺构建产物 / 缺声明的补丁）→ 判为失败：
+  // pnpm 安装本身成功，但目标包声明分发的文件缺失（分发物缺构建产物 / 缺声明的补丁）→ 判为失败：
   // 撤销刚登记的待重启，避免用户重启时宿主加载残缺包直接崩溃。
   // 全局 npm 安装不进 profile（profile deps 里没有这些包），跳过入口校验
   if (options.action !== 'remove' && result.exitCode === 0 && !result.timedOut && (options.globalNpm ?? []).length === 0) {
     const verified = verifyInstalledEntry(options.profile, options.target)
     if (verified.name !== null && verified.missing !== null) {
       clearPendingRestart(options.displayTarget ?? options.target)
-      const detail = `[packaging] ${verified.name}: declared file missing: ${verified.missing} (git distribution lacks build output — install the npm version or report to the author)`
+      const detail = `[packaging] ${verified.name}: declared file missing: ${verified.missing} (the published package is missing this file — report it to the author)`
       if (options.task && options.task.status !== 'cancelled') {
         options.task.status = 'failed'
         options.task.exitCode = null

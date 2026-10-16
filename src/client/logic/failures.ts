@@ -27,7 +27,7 @@ export interface NotificationRecord {
   version?: string
   /** 实际执行的安装/卸载命令（issue 预填时如实展示）；历史记录可能缺失 */
   command?: string
-  /** 尝试过的安装方式（npm registry 反查 + 实际执行命令，按先后顺序）：失败提 Issue 时贴给作者，便于反推正确的 npm 包名 */
+  /** 尝试过的安装方式（实际执行过的命令，按先后顺序）：失败提 Issue 时贴给作者，便于反推正确的 npm 包名 */
   attempts?: string[]
   /** 结束时间（epoch ms） */
   at: number
@@ -247,7 +247,7 @@ export function classifyFailure(message: string): FailureKind {
   // 网络/代理/源配置问题。必须在 prepare 之前判：git fetch 失败常被外层包成 "Command failed"
   // tarball 下载失败的括号里可能是数字码（pnpm 自己的）或符号码（undici 的 UND_ERR_*），两种都要认
   if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return 'network'
-  // 装后校验发现入口文件缺失（[packaging]）= git 分发缺构建产物
+  // 装后校验发现入口文件缺失（[packaging]）= 分发物缺构建产物
   if (/\[packaging\]|entry file missing/i.test(message)) return 'pluginPrepare'
   // registry 上不存在的依赖（404），profile 任何安装都会卡在这条。必须在 pluginPrepare 之前判
   // [registry-missing]（服务端官方源复核后注入）= 作者侧缺依赖，须先于 pnpmMissingDep（同样含 404 文本）

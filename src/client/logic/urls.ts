@@ -79,13 +79,13 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
  * 错误核心摘要（完整日志太长，塞进 URL 会被 GitHub 以「request URL too long」拒绝，
  * 故只收集重点）。错误弹窗、失败记录共用此逻辑。
  * env 取不到时为 null，链接照常生成、只是少环境段。
- * attempts（尝试过的安装方式，npm 反查 + 实际执行命令）：作者看到我们查过/试过的命令，
+ * attempts（尝试过的安装方式，实际执行过的命令）：作者看到我们试过的命令，
  * 组织 scope 与 GitHub 用户名不一致时也能直接指认正确的 npm 包名。
  */
 export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | null, command?: string, attempts?: string[], action: FailureAction = 'install'): string {
   // 原因判定：按失败类型归类，便于作者判断问题是否出在插件侧。
-  // [packaging]（预检/装后校验拦截）单独列：无论走 npm 还是 git 通道，都是分发物不完整
-  // （package.json 声明的文件在发布物里缺失），作者照此补齐即可。
+  // [packaging]（装后校验拦截）单独列：分发物不完整（package.json 声明的文件
+  // 在发布物里缺失），作者照此补齐即可。
   const kind = classifyFailure(message)
   const executed = executedCommandOf(command, attempts)
   // 动作词：标题与正文的「安装/更新/卸载」统一取自这里
@@ -93,7 +93,7 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
   // 标题 = 错误原因（非动作词），让 issue 列表一眼可分流
   const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind, action)}: ${repo}`
   const reason = /\[packaging\]/i.test(message)
-    ? 'plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published package (github tarball or npm package); please commit build output or publish a complete package'
+    ? 'plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published npm package; please publish a complete package'
       : /\[registry-missing\]/i.test(message)
         // 服务端用官方 registry 复核过：缺的包在官方源上也不存在，且不是用户 profile 的残留依赖
         ? 'a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin'
@@ -131,17 +131,17 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
       `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次${zhWord}失败一并提交。`,
       `- 实际执行的${zhWord}命令：${executed ? `\`${executed}\`` : 'unknown (no executed command recorded)'}`,
       `- 执行结果：${zhWord}失败，未能${zhWord}该插件。`,
-      // 尝试过的通道（npm 反查 + 实际执行命令，按先后顺序）：作者据此指认正确的 npm 包名。
+      // 尝试过的安装方式（实际执行过的命令，按先后顺序）：作者据此指认正确的 npm 包名。
       // 不写「安装」：卸载失败也走这条正文。
       ...(attempts && attempts.length > 0
         ? ['', '## Attempted channels（已尝试的方式）', ...attempts.map((a) => `- ${a}`)]
         : []),
-      // [packaging] 场景：说明三种官方安装通道（npm 包 / git 直装 / 预构建 release .tgz），当前插件在对应通道下分发不完整
+      // [packaging] 场景：说明当前插件的 npm 分发物不完整
       ...(/\[packaging\]/i.test(message)
         ? [
           '',
           '## 安装方式说明',
-          'DSH 插件支持三种官方安装通道：`dsh plugin add <npm-package>`（npm 分发，需发布完整构建产物）、`dsh plugin add git+https://github.com/owner/repo.git`（Git 直装，仓库需提交构建产物），以及预构建 release 包 `dsh plugin add https://github.com/owner/repo/releases/download/<tag>/<asset>.tgz`（仓库不便提交构建产物时的推荐方式）。注意：pnpm ≥10 默认拦截依赖构建脚本，Git 直装不会执行包内 `prepare`，请勿依赖它生成产物。当前插件的分发物缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁），请提交构建产物、改用 release `.tgz` 直链，或发布完整的 npm 包。',
+          '当前插件的 npm 分发物缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁）。请发布包含完整构建产物的 npm 包后重试。',
         ]
         : []),
       '',
@@ -232,12 +232,12 @@ export function hubIssueUrl(
       ...(code ? [`- Key error: \`${code}\``] : []),
       // 为什么投递到这里而非插件仓库：只有确有证据是插件自身构建失败（pluginPrepare）才投插件仓库
       ...(variant === 'misjudge'
-        // 这条入口的判据（[packaging] 预检/装后校验、prepare 摘要）是插件中心自己产出的，
+        // 这条入口的判据（[packaging] 装后校验、prepare 摘要）是插件中心自己产出的，
         // 不是 pnpm 原文 —— 一旦我们自己误报，用户就被送去作者仓库、我们永远收不到反馈。
         // 正文写清它来自哪条分支、判据是谁给的，维护者才不会把它当成未分类兜底。
         ? [
           '- Filed from: the plugin-prepare path (which normally routes to the plugin repo) — filed here because that verdict may be our own misjudgment.',
-          '- Source of that verdict: produced by dsh-plugin-hub\'s own pre/post-install check, not by pnpm output.',
+          '- Source of that verdict: produced by dsh-plugin-hub\'s own post-install check, not by pnpm output.',
         ]
         : ['- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage.']),
       '',

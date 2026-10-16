@@ -78,10 +78,10 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
   const [confirmPlugin, setConfirmPlugin] = useState<HubPlugin | null>(null)
   /** 弹窗动作是否为「更新」：已安装插件点「更新」→ 走同一条 add 命令原位覆盖重装，文案区分安装/更新 */
   const [confirmIsUpdate, setConfirmIsUpdate] = useState(false)
-  /** 命令行安装确认弹窗：记录待安装的裸目标（npm 包名 / GitHub 地址，DSH 命令已剥成裸目标）——
+  /** 命令行安装确认弹窗：记录待安装的裸目标（npm 包名）——
    *  与应用商店同一套确认/进度/结果弹窗，提供时 plugin 传 null 走 customTarget 模式 */
   const [confirmCustomTarget, setConfirmCustomTarget] = useState<string | null>(null)
-  /** 自定义安装入口渠道（三张卡片之一）：随确认弹窗记录，提交时上报服务端，
+  /** 自定义安装入口渠道（NPM 包卡片）：随确认弹窗记录，提交时上报服务端，
    *  报错/日志据此精准溯源「从哪个入口发起」（npm 全局安装固定为 'npm'） */
   const [confirmCustomChannel, setConfirmCustomChannel] = useState<InstallChannel | null>(null)
   /** 全局 npm 安装确认弹窗（官方 `npm install -g <pkgs>`）：记录原始命令 + 解析出的包列表，
@@ -489,17 +489,13 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
         : view === 'custom'
           ? h(CustomInstallView, {
               t,
-              // 命令行安装：与应用商店同一套确认/进度/结果弹窗 —— 输入 npm 包名 / GitHub 地址 /
-              // dsh plugin 命令即装（custom 源，受安全设置三开关控制）。点安装先弹确认窗，
+              // 命令行安装：与应用商店同一套确认/进度/结果弹窗 —— 输入 npm 包名 / npm、pnpm
+              // 安装命令即装（custom 源，受安全设置开关控制）。点安装先弹确认窗，
               // 确认后走队列安装（实时进度 + 成功结果视图）；目标已安装 → 弹窗转「更新」覆盖重装，
               // 不会撞「already installed」报错。
-              // 安全信任开关关掉对应通道 → 卡片禁用并提示去设置打开（onOpenSettings 跳到设置页）。
+              // 安全信任开关关掉 → 卡片禁用并提示去设置打开（onOpenSettings 跳到设置页）。
               enableNpm: hubSettings.enableNpmInstall,
-              enableGit: hubSettings.enableGitInstall,
-              enableDsh: hubSettings.enableDshInstall,
               onOpenSettings: () => setView('settings'),
-              // 当前 profile：一键插入的 Hub 更新命令用它拼 --profile
-              profile: env?.profile ?? 'web',
               onInstallCustom: (raw, opts) => {
                 const target = raw.trim()
                 if (!target) return
@@ -516,7 +512,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
                   return
                 }
                 setConfirmGlobalNpm(null)
-                // 记录入口渠道：报错/日志据此精准提示「从哪张卡片发起的安装」（NPM 包 / GitHub 源码 / DSH 命令）
+                // 记录入口渠道：报错/日志据此精准提示「从哪张卡片发起的安装」
                 setConfirmCustomChannel(opts.installChannel)
                 setConfirmIsUpdate(customTargetInstalled(target))
                 setConfirmCustomTarget(target)
@@ -696,7 +692,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
       },
       onInstall: () => void queue.installCustom(confirmCustomTarget, {
         update: confirmIsUpdate,
-        // 入口渠道（NPM 包 / GitHub 源码 / DSH 命令卡片）：上报服务端，报错/日志据此溯源
+        // 入口渠道（NPM 包卡片）：上报服务端，报错/日志据此溯源
         channel: confirmCustomChannel ?? 'npm',
       }),
       onRestart: () => setShowRestartConfirm(true),

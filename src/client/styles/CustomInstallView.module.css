@@ -3,10 +3,10 @@
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
  * Custom install view: a standalone top-level section for manually
- * installing npm packages or GitHub sources outside the catalog. The two
- * installer cards (npm / GitHub) stack one per line; each card = channel
- * label + example hint above the input + input row (input + install button)
- * + optional format-error note. Colors resolve through the --hub-* tokens.
+ * installing npm packages outside the catalog. The installer card stacks
+ * one per line: channel label + example hint above the input + input row
+ * (input + install button) + optional format-error note. Colors resolve
+ * through the --hub-* tokens.
  */
 
 .root {
@@ -82,31 +82,6 @@
   color: var(--hub-brand);
   background: var(--hub-brand-tint);
   border-color: var(--hub-brand-border-soft);
-}
-
-/* 命令卡片标题旁的「一键插入更新命令」：右对齐小号描边按钮，弱化但可点，hover 提亮品牌色 */
-.installInsertBtn {
-  flex-shrink: 0;
-  margin-left: auto;
-  font-family: inherit;
-  font-size: 11px;
-  line-height: 16px;
-  font-weight: 500;
-  color: var(--hub-text-secondary);
-  background: transparent;
-  border: 1px solid var(--hub-border-2);
-  border-radius: 6px;
-  padding: 2px 9px;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
-}
-
-.installInsertBtn:hover {
-  color: var(--hub-brand);
-  border-color: var(--hub-brand-border-soft);
-  background: var(--hub-brand-tint);
 }
 
 /* 文本框上方的示例：灰字小字，告诉用户该通道的推荐写法 */

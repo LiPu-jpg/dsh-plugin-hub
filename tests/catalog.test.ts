@@ -39,7 +39,7 @@ test('normalize: missing vr leaves version undefined', () => {
   assert.equal(p.slug, 'x')
 })
 
-test('pluginIssueUrl: 把尝试过的安装方式（npm 反查 + 实际执行命令）贴进 issue 正文', () => {
+test('pluginIssueUrl: 把尝试过的安装方式（实际执行过的命令）贴进 issue 正文', () => {
   const attempts = [
     'npm registry search: `npm search repository:ccch1mneyyy/dsh-tui` → found `@deepseek-harness-tui/dsh-tui`',
     'dsh plugin --profile web add @deepseek-harness-tui/dsh-tui',
@@ -69,10 +69,10 @@ test('pluginIssueUrl: 标题点明错误原因，不再用 Install/Remove 动作
   assert.match(buildTitle, /build scripts blocked by pnpm allowlist: adoresever\/graph-memory/)
 })
 
-test('installCommandOf: GitHub source uses an explicit HTTPS URL', () => {
-  const p = normalize({ s: 'aegis', n: 'Aegis', r: 'ganyuanran/aegis' })
-  assert.equal(installCommandOf(p), 'dsh plugin add git+https://github.com/ganyuanran/aegis.git')
-  assert.equal(installCommandOf(p, true), 'dsh plugin --profile web add git+https://github.com/ganyuanran/aegis.git')
+test('installCommandOf: uses the npm package name', () => {
+  const p = normalize({ s: 'aegis', n: 'Aegis', r: { repo: 'ganyuanran/aegis', npmPackage: 'aegis-pkg' } })
+  assert.equal(installCommandOf(p), 'dsh plugin add aegis-pkg')
+  assert.equal(installCommandOf(p, true), 'dsh plugin --profile web add aegis-pkg')
 })
 
 test('repoFromInstallTarget: keeps catalog identity across Git target formats', () => {

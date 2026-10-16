@@ -207,10 +207,8 @@ export function SettingsView({ t, settings, update, reset, env, onCopy, openSect
   )
 
   const securityCard = h('div', { className: styles.card },
-    // 安全与信任：命令行安装的三个通道开关（NPM 包 / GitHub 源码 / DSH 命令）——
-    // 服务端按通道门禁 403 拦截（npm 目标吃 enableNpmInstall、git 目标吃 enableGitInstall），
-    // DSH 命令框为纯客户端通道：关掉后命令输入卡片禁用并引导去设置打开；
-    // 目录内收录的插件安装不受影响（默认全部开启）
+    // 安全与信任：命令行安装的开关（仅 NPM 包）—— 服务端按通道门禁 403 拦截
+    //（npm 目标吃 enableNpmInstall）；目录内收录的插件安装不受影响（默认开启）
     h(SettingRow, {
       title: t('settingsEnableNpm'),
       desc: t('settingsEnableNpmDesc'),
@@ -218,24 +216,6 @@ export function SettingsView({ t, settings, update, reset, env, onCopy, openSect
         checked: settings.enableNpmInstall,
         onChange: (v) => update({ enableNpmInstall: v }),
         title: t('settingsEnableNpm'),
-      }),
-    }),
-    h(SettingRow, {
-      title: t('settingsEnableGit'),
-      desc: t('settingsEnableGitDesc'),
-      children: h(Toggle, {
-        checked: settings.enableGitInstall,
-        onChange: (v) => update({ enableGitInstall: v }),
-        title: t('settingsEnableGit'),
-      }),
-    }),
-    h(SettingRow, {
-      title: t('settingsEnableDsh'),
-      desc: t('settingsEnableDshDesc'),
-      children: h(Toggle, {
-        checked: settings.enableDshInstall,
-        onChange: (v) => update({ enableDshInstall: v }),
-        title: t('settingsEnableDsh'),
       }),
     }),
   )
