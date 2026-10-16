@@ -16,7 +16,6 @@ export declare function profileDirectory(profile: string): string;
  *  When `ref` is given it is appended as a Git ref (`#tag` / `#commit`) so an
  *  explicitly pinned revision reaches the installer instead of being dropped. */
 export declare function githubTarget(repo: string, ref?: string | null): string | null;
-export declare function githubRefOf(value: string): string | null;
 export declare function installTargetOf(value: string): string;
 export declare function globalNpmPackagesOf(value: string): string[] | null;
 /** Extract an owner/repo identity from a catalog value or an installed Git spec. */

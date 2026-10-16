@@ -1,15 +1,3 @@
-/**
- * 反查 repo（`owner/repo`）对应的官方 npm 包名；未命中、网络异常或超时返回 null。
- * 返回 null 不代表仓库一定没有 npm 包，只代表本次未能确认 —— 调用方应保留
- * 原有错误路径，反查只是额外的一次尝试。只有「已确认」的结果（包名，或 200
- * 响应下确认无匹配）会进缓存；网络异常/超时/解析失败不缓存，同一会话内下次
- * 安装仍会重试反查，避免一次瞬时故障把整个会话锁死在 git 通道。
- * registry 参数：npm 镜像源地址，空串 = 官方源；与安装通道吃同一 registry，
- * 保证「配置了镜像」时反查和安装走同一个源（镜像节点同步完整时结果一致）。
- * proxy 参数：GitHub 改名跳转探测走的代理（与安装/诊断同一口径）。
- * 慢网络下失败不阻塞安装。
- */
-export declare function resolveNpmPackage(repo: string, registry?: string, proxy?: string): Promise<string | null>;
 type NpmSearchPackage = {
     name?: unknown;
     keywords?: unknown;
@@ -19,10 +7,10 @@ type NpmSearchPackage = {
     repository?: unknown;
     dsh?: unknown;
 };
-type NpmSearchObject = {
-    package?: NpmSearchPackage;
-};
 export declare function isDshPackageMetadataForRepo(pkg: NpmSearchPackage, repo: string): boolean;
+/**
+ * 校验包名对应的 npm 包确实属于该仓库且声明为 DSH 插件：取 registry 上的 `latest`
+ * 元数据比对 repository 与插件标记。网络异常、超时、非 200 一律返回 false，不阻塞调用方。
+ */
 export declare function isDshNpmPackageForRepo(packageName: string, repo: string, registry?: string, proxy?: string): Promise<boolean>;
-export declare function selectNpmPackageForRepo(objects: NpmSearchObject[], repo: string): string | null;
 export {};

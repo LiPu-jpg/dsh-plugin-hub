@@ -9,10 +9,10 @@ export interface ActiveTaskInfo {
     status: 'pending' | 'running';
     progress: number;
     lines: string[];
-    /** 尝试过的安装方式（npm 反查 + 实际执行命令）：失败时前端 issue 预填需要 */
+    /** 尝试过的安装方式（实际执行过的命令）：失败时前端 issue 预填需要 */
     attempts: string[];
-    /** 自定义安装入口渠道（NPM 包 / GitHub 源码 / DSH 命令卡片）：前端刷新恢复后仍能精准溯源 */
-    installChannel?: 'npm' | 'git' | 'dsh';
+    /** 自定义安装入口渠道（NPM 包卡片）：前端刷新恢复后仍能精准溯源 */
+    installChannel?: 'npm';
 }
 /** All non-terminal tasks in queue order (running first, then pending). Lets the client resume a queue after a page reload. */
 export declare function activeTask(): ActiveTaskInfo[];
@@ -58,17 +58,17 @@ export declare function startPluginMutation(options: {
     /** 运行中 loader：安装成功后热挂新条目、卸载成功后停用旧条目，两类操作都尽量立即生效
      *  （缺失时安装/卸载仍需重启） */
     loader?: LoaderHandle;
-    /** 入队前已尝试的安装方式（npm registry 反查等）：失败提 Issue 时如实展示；实际执行的命令由 spawn 时追加 */
+    /** 入队前已尝试的安装方式：失败提 Issue 时如实展示；实际执行的命令由 spawn 时追加 */
     attempts?: string[];
     /** 更新已安装的 npm 包（mode=update）：命令显式带 @latest，让 pnpm 真正解析最新版本 */
     updateNpm?: boolean;
-    /** 自定义安装入口渠道（客户端三张卡片：NPM 包 / GitHub 源码 / DSH 命令）：
-     *  任务输出行与系统日志据此溯源「从哪个入口发起」；目录插件安装不传 */
-    installChannel?: 'npm' | 'git' | 'dsh';
+    /** 自定义安装入口渠道（NPM 包卡片）：任务输出行与系统日志据此溯源「从哪个入口发起」；
+     *  目录插件安装不传 */
+    installChannel?: 'npm';
 }): InstallTask;
 /**
  * 安装后校验已装包里 package.json 声明的文件（main / exports["."].default 与
- * dsh.bundle.patch）是否真实存在。git: 分发常不提交构建产物（lib/ 等），pnpm 装完没有
+ * dsh.bundle.patch）是否真实存在。npm 包也可能漏发构建产物（lib/ 等），pnpm 装完没有
  * 报错，但宿主重启加载插件树时会 ERR_MODULE_NOT_FOUND 直接崩溃、网页打不开 —— 这里在
  * 登记「待重启」前就把这类残缺包拦下。没有声明过的文件不在这里追究：没声明入口的
  * bundle 包（只挂技能）本来就不需要入口，宿主读的是它的 package.json 与声明的补丁。
