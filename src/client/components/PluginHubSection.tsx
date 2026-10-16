@@ -224,10 +224,12 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
   useEffect(() => {
     if (startupCheckedRef.current) return
     if (!settingsReady || catalog.plugins === null || catalog.failed) return
+    // 供应链门禁结果未就绪时先等：否则刚发布的插件会先写进通知中心，冒出装不上的更新提醒
+    if (!catalog.releaseAgeReady) return
     startupCheckedRef.current = true
     if (!hubSettings.checkUpdatesOnStart) return
     syncUpdateNotices()
-  }, [settingsReady, hubSettings, catalog.plugins, catalog.failed, catalog.installedItems, queue])
+  }, [settingsReady, hubSettings, catalog.plugins, catalog.failed, catalog.installedItems, catalog.releaseAgeReady, queue])
 
   // 信任/卸载/更新说明弹窗打开时按 Esc 关闭；任务进入后台队列后可随时关闭（任务继续）
   useEffect(() => {
@@ -417,8 +419,8 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
         noticeCount: notifications.length + queue.queue.length + queue.pendingRestarts.length,
         onOpenNotifications: () => {
           // 打开弹窗时补齐更新提醒（受「启动时检查更新」开关约束）：同一版本只一条，
-          // 清空/删除后重开仍恢复，直到插件更新完成才消失
-          if (hubSettings.checkUpdatesOnStart) syncUpdateNotices()
+          // 清空/删除后重开仍恢复，直到插件更新完成才消失；门禁结果未就绪时先不写，避免提示装不上的更新
+          if (hubSettings.checkUpdatesOnStart && catalog.releaseAgeReady) syncUpdateNotices()
           setShowNotifications(true)
         },
       }),

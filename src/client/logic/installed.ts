@@ -91,6 +91,13 @@ export function installedVersionOf(plugin: HubPlugin, versions: Record<string, I
   return versions[repo.toLowerCase()]?.version ?? null
 }
 
+/** 该插件对应的 npm 包名（目录下发，或安装时反查持久化的映射）；无则 null。决定更新是否走 npm registry。 */
+export function npmPackageOf(plugin: HubPlugin, versions: Record<string, InstalledVersionSignal>): string | null {
+  const repo = plugin.source?.repo
+  const pkg = (plugin.source?.npmPackage || (repo ? versions[repo.toLowerCase()]?.npmPackage : undefined) || '').trim()
+  return pkg === '' ? null : pkg
+}
+
 /**
  * 是否有更新：仅对已安装插件有意义。
  * 双信号判定——有 release 版本的比版本；无版本（repo 不打 tag）的比仓库最近更新时间

@@ -17,6 +17,7 @@ import { registerSettingsRoutes } from './settings.ts'
 import { registerLogsRoutes } from './logs.ts'
 import { registerDiagnosticsRoutes } from './diagnostics.ts'
 import { registerTaskRoutes } from './task.ts'
+import { registerNpmReleaseAgeRoutes } from './npm-release-age.ts'
 
 /**
  * Register the Plugin Hub API on the host web server and return a disposer.
@@ -43,6 +44,7 @@ export function mountPluginHubRoutes(webServer: WebServerService, profile: strin
     ...registerLogsRoutes(webServer, profile),
     ...registerDiagnosticsRoutes(webServer, profile),
     ...registerTaskRoutes(webServer, profile, loader),
+    ...registerNpmReleaseAgeRoutes(webServer, profile),
   ]
   const disposers = routes.map((route) => webServer.register(route))
   return () => {

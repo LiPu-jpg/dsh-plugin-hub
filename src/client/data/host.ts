@@ -45,6 +45,30 @@ export async function fetchInstalled(): Promise<HostInstalled | null> {
   }
 }
 
+/** npm 包最新版本的版本号与真实发布时间（服务端经 registry 查询）。 */
+export interface NpmReleaseInfo {
+  version: string
+  publishedAt: string
+}
+
+/** 批量查询已安装插件 npm 包的最新版本发布时间（供应链门禁用）；失败返回 null（调用方按原逻辑照常提示）。 */
+export async function fetchNpmReleaseAge(packages: string[]): Promise<Record<string, NpmReleaseInfo | null> | null> {
+  if (packages.length === 0) return {}
+  try {
+    const res = await fetch('/dsh-plugin-hub/npm-release-age', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ packages }),
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    const data = await res.json() as { packages?: Record<string, NpmReleaseInfo | null> }
+    return data.packages ?? null
+  } catch {
+    return null
+  }
+}
+
 let envPromise: Promise<EnvInfo | null> | null = null
 
 /** 在系统文件管理器里定位并打开已安装插件的目录（服务端 spawn open，跨平台）；失败返回 false。 */

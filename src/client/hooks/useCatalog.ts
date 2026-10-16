@@ -16,14 +16,18 @@ import type { HubAboutInfo, HubUpdateInfo, HubUpdateState } from '../types.ts'
 import type { SortKey } from '../logic/constants.ts'
 import { fetchCatalog, fetchStats } from '../data/catalog.ts'
 import { fetchHubAbout, fetchHubUpdate } from '../data/hub.ts'
-import { fetchInstalled } from '../data/host.ts'
+import { fetchInstalled, fetchNpmReleaseAge } from '../data/host.ts'
+import { isReleaseTooFresh } from '../logic/release-age.ts'
 import {
-  hasUpdateOf, installedItemsOf, installedNameOf, installedVersionOf,
+  hasUpdateOf, installedItemsOf, installedNameOf, installedVersionOf, npmPackageOf,
 } from '../logic/installed.ts'
 import type { InstalledItem, InstalledVersionSignal } from '../logic/installed.ts'
 
 /** 插件市场自身仓库：DSH Plugin Hub 不显示在目录里（自己不进自己的插件列表） */
 const SELF_REPO = 'dshplugin/dsh-plugin-hub'
+
+/** 共享的空门禁集合：无暂缓包时复用，避免每次渲染新建 Set。 */
+const EMPTY_PACKAGES: ReadonlySet<string> = new Set<string>()
 
 /** 市场各排序的默认方向：全部按倒序（Star/Fork 多、更新/收录近的在前） */
 const SORT_DEFAULT_DIR: Record<SortKey, 'asc' | 'desc'> = {
@@ -183,17 +187,75 @@ export function useCatalog(lang: LocaleId) {
   const installedVersion = (p: HubPlugin): string | null => installedVersionOf(p, versions)
 
   /**
-   * 是否有更新：仅对已安装插件有意义。
-   * 双信号判定——有 release 版本的比版本；无版本（repo 不打 tag）的比仓库最近更新时间
-   * （repoUpdatedAt，ISO 字符串字典序 = 时间序），更新时间变新说明有新提交。
+   * 供应链门禁状态：包名集合为当前「暂缓提示」的 npm 包（最新版本发布未满门槛）。
+   * key 是这批候选包名的指纹，与已查出的 key 一致才算就绪，避免查询未回来时先显示更新。
    */
-  const hasUpdate = (p: HubPlugin): boolean => hasUpdateOf(p, installed, versions)
+  const [releaseAge, setReleaseAge] = useState<{ key: string; held: ReadonlySet<string> }>({ key: '', held: EMPTY_PACKAGES })
 
-  /** 已安装项统一列表（目录元数据 + 运行时信息合并）：驱动「已安装」tab。 */
-  const installedItems = useMemo<InstalledItem[]>(
+  /** 已安装项原始列表（未套门禁）：先算出来才能收集需要查发布时间的候选包名。 */
+  const rawInstalledItems = useMemo<InstalledItem[]>(
     () => installedItemsOf(plugins, installed, versions, installPaths, loadedNames, dshCapableNames),
     [plugins, installed, versions, installPaths, loadedNames, dshCapableNames],
   )
+
+  /** 门禁候选：有更新、且有 npm 包名（更新走 npm registry）的已安装插件包名。 */
+  const releaseAgeCandidates = useMemo(() => {
+    const names = new Set<string>()
+    for (const item of rawInstalledItems) {
+      if (!item.hasUpdate || !item.plugin) continue
+      const pkg = npmPackageOf(item.plugin, versions)
+      if (pkg !== null) names.add(pkg)
+    }
+    return [...names].sort()
+  }, [rawInstalledItems, versions])
+  const releaseAgeKey = releaseAgeCandidates.join('\n')
+
+  useEffect(() => {
+    if (releaseAgeKey === releaseAge.key) return
+    if (releaseAgeCandidates.length === 0) {
+      setReleaseAge({ key: '', held: EMPTY_PACKAGES })
+      return
+    }
+    let cancelled = false
+    // 批量一次查询；失败/返回 null 时 held 为空 → 按原逻辑照常提示，网络问题不吃掉真实更新
+    void fetchNpmReleaseAge(releaseAgeCandidates).then((result) => {
+      if (cancelled) return
+      const now = Date.now()
+      const held = new Set<string>()
+      for (const name of releaseAgeCandidates) {
+        const info = result?.[name]
+        if (info && isReleaseTooFresh(info.publishedAt, now)) held.add(name)
+      }
+      setReleaseAge({ key: releaseAgeKey, held })
+    })
+    return () => { cancelled = true }
+  }, [releaseAgeKey, releaseAge.key])
+
+  /** 门禁结果是否已就绪（候选为空也算就绪）：未就绪时不写更新提醒，等查询回来再定。 */
+  const releaseAgeReady = releaseAgeKey === releaseAge.key
+  const heldPackages = releaseAgeReady ? releaseAge.held : EMPTY_PACKAGES
+
+  /**
+   * 是否有更新：仅对已安装插件有意义。
+   * 双信号判定——有 release 版本的比版本；无版本（repo 不打 tag）的比仓库最近更新时间
+   * （repoUpdatedAt，ISO 字符串字典序 = 时间序），更新时间变新说明有新提交。
+   * 另加供应链门禁：npm 包最新版本发布未满门槛时视为暂缓，不打更新标记。
+   */
+  const hasUpdate = (p: HubPlugin): boolean => {
+    if (!hasUpdateOf(p, installed, versions)) return false
+    const pkg = npmPackageOf(p, versions)
+    return pkg === null || !heldPackages.has(pkg)
+  }
+
+  /** 已安装项统一列表（目录元数据 + 运行时信息合并）：门禁命中的去掉更新标记，驱动「已安装」tab。 */
+  const installedItems = useMemo<InstalledItem[]>(() => {
+    if (heldPackages.size === 0) return rawInstalledItems
+    return rawInstalledItems.map((item) => {
+      if (!item.hasUpdate || !item.plugin) return item
+      const pkg = npmPackageOf(item.plugin, versions)
+      return pkg !== null && heldPackages.has(pkg) ? { ...item, hasUpdate: false } : item
+    })
+  }, [rawInstalledItems, heldPackages, versions])
 
   /**
    * Hub 自身更新状态：Hub 就是当前运行的应用（始终已安装，无需 installedName 命中）。
@@ -210,15 +272,8 @@ export function useCatalog(lang: LocaleId) {
   const hubUpdateState: HubUpdateState = (() => {
     if (!hubUpdateInfo) return 'none'
     if (hubCurrentVersion === '' || hubUpdateInfo.version === hubCurrentVersion) return 'latest'
-    const publishedAt = hubUpdateInfo.publishedAt
-    if (publishedAt) {
-      const publishedMs = Date.parse(publishedAt)
-      if (!Number.isNaN(publishedMs)) {
-        // 24 小时 + 30 分钟缓冲（防网络/CDN 边缘时间偏差）
-        const MIN_RELEASE_AGE_MS = 24 * 60 * 60 * 1000 + 30 * 60 * 1000
-        if (Date.now() - publishedMs < MIN_RELEASE_AGE_MS) return 'pending'
-      }
-    }
+    // 供应链门禁（24h + 30 分钟缓冲）与插件更新同一口径：发布未满门槛的版本暂缓提示
+    if (isReleaseTooFresh(hubUpdateInfo.publishedAt, Date.now())) return 'pending'
     return 'available'
   })()
   const hubHasUpdate = hubUpdateState === 'available'
@@ -274,6 +329,7 @@ export function useCatalog(lang: LocaleId) {
     hasUpdate,
     hubHasUpdate,
     hubUpdateState,
+    releaseAgeReady,
     hubCurrentVersion,
     hubUpdateInfo,
     hubAboutInfo,
