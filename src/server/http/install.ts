@@ -15,10 +15,8 @@ import { loadSettings, type HubSettings } from '../services/settings.ts'
 import { readInstalled } from './catalog.ts'
 import { COMMAND_TIMEOUT_MS, readJsonBody, requireTrustedPost, sendJson, type WebRoute, type WebServerService } from './shared.ts'
 
-/** 安装/卸载 CLI 的子进程环境：透传宿主环境，并按设置注入 HTTP(S) 代理。
- *  不注入 npm registry —— 安装完全沿用用户本机 npm 配置（~/.npmrc / 全局配置）。
- *  代理优先级：设置里的代理 → 系统代理（macOS scutil / Windows 注册表）→ 宿主 env 原有值。
- *  使安装通道与诊断使用相同的代理来源。 */
+/** 安装/卸载 CLI 的子进程环境：透传宿主环境并注入 HTTP(S) 代理，
+ *  代理来源与诊断一致（设置代理 → 系统代理 → 宿主 env）；不注入 npm registry，沿用用户本机 npm 配置。 */
 function mutationEnv(settings: HubSettings): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, CI: 'true' }
   const proxy = settings.proxy !== '' ? settings.proxy : (systemProxy() ?? '')
@@ -45,13 +43,11 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
           let mode = body !== null && typeof body === 'object' && (body as { mode?: unknown }).mode === 'update'
             ? 'update'
             : 'install'
-          // installTargetOf 先把完整 DSH 命令（`dsh plugin [--profile <p>] add <target>`）剥成裸目标，
-          // 兼容用户直接粘贴命令行；自定义目标只接受 npm 包名，真正语法判定交给 validPackageName。
+          // installTargetOf 把完整 DSH 命令剥成裸目标；自定义目标只接受 npm 包名，语法判定交给 validPackageName。
           const rawRepo = typeof body === 'object' && body !== null && typeof (body as { repo?: unknown }).repo === 'string'
             ? installTargetOf((body as { repo: string }).repo)
             : ''
-          // 前端决策的展示用仓库名（owner/repo）：npm 安装时 body.repo 是包名，display 用于
-          // 待重启行 / 任务恢复时展示仓库名，保证用户无感知（安装通道变化不改变所见目标）
+          // 展示用仓库名（owner/repo）：npm 安装时 body.repo 是包名，display 供待重启行 / 任务恢复展示仓库名。
           const displayRepo = typeof body === 'object' && body !== null && typeof (body as { display?: unknown }).display === 'string'
             ? (body as { display: string }).display.trim()
             : rawRepo
@@ -59,7 +55,7 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
           const source = typeof body === 'object' && body !== null && typeof (body as { source?: unknown }).source === 'string'
             ? (body as { source: string }).source
             : ''
-          // 自定义安装入口渠道（客户端上报，仅 NPM 包）：服务端日志/报错据此溯源「从哪个入口发起」；目录插件安装不传。
+          // 自定义安装入口渠道（仅 NPM 包）：日志/报错据此溯源发起入口。
           const installChannel = (() => {
             const raw = body !== null && typeof body === 'object' ? (body as { installChannel?: unknown }).installChannel : undefined
             return raw === 'npm' ? 'npm' : undefined
@@ -69,10 +65,8 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
           const lang = typeof body === 'object' && body !== null && (body as { lang?: unknown }).lang === 'en'
             ? 'en'
             : 'zh'
-          // 全局 npm 安装（官方 README 的 `npm install -g <pkgs>`，如 dsh-tui 的安装命令）：
-          // 直接从命令框输入格式执行全局安装，不进任何 profile、无需宿主重启。
-          // 包列表优先取 body.globalNpm（客户端命令框解析后显式携带）；兜底再从 rawRepo 解析，
-          // 保证直接调 API 传完整命令也能识别。
+          // 全局 npm 安装（`npm install -g <pkgs>`）：不进任何 profile、无需宿主重启。
+          // 包列表优先取 body.globalNpm，兜底从 rawRepo 解析，保证直接调 API 传完整命令也能识别。
           const bodyGlobalNpm = Array.isArray((body as { globalNpm?: unknown }).globalNpm)
             ? (body as { globalNpm: unknown[] }).globalNpm.filter((x): x is string => typeof x === 'string' && x !== '')
             : []
@@ -108,7 +102,7 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
             sendJson(response, 200, { ok: true, task: task.id })
             return
           }
-          // 自定义安装目标只接受 npm 包名（@scope/name 或 name）：不再识别 GitHub 地址 / release 包。
+          // 自定义安装目标只接受 npm 包名（@scope/name 或 name）。
           if (!validPackageName(rawRepo)) {
             sendJson(response, 400, { error: 'unsupported install target: expected an npm package name' })
             return
@@ -132,10 +126,8 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
             sendJson(response, 403, { error: 'npm installs are disabled by the security settings' })
             return
           }
-          // 命中已安装目标时按「更新」语义执行（pnpm add 对已存在依赖本就是原位覆盖重装），
-          // 不再抛 409：客户端的已装列表与服务端实读可能不同步（如页面列表滞后），此时用户点
-          // 「安装」会撞上重复安装守卫，直接覆盖重装比让用户看到一句看不懂的 already installed
-          // 报错友好，最终状态也一致（都是已安装）。
+          // 命中已安装目标时按「更新」执行（pnpm add 对已存在依赖即原位覆盖重装）：
+          // 客户端已装列表可能与服务端不同步，覆盖重装比报错更友好且终态一致。
           const installed = readInstalled(profile)
           const already = installed[target] !== undefined ? target : null
           if (already !== null) mode = 'update'
@@ -144,16 +136,13 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
             sendJson(response, 409, { error: `already queued: ${target}` })
             return
           }
-          // 安装前网络连通性预检：探 registry 根（通道的稳定入口，不探具体包 —— 404 表示
-          // 「包不存在」而非网络不通，不该被当成网络故障拦截）。仅新安装预检（更新是已信任
-          // 目标的覆盖重装，跳过）；不通直接 400 拦下并打 [network] 标记，客户端据此提示
-          // 「你的网络不通」，而不是把网络失败当成插件侧问题引导去作者仓库提 Issue。
+          // 安装前网络预检：探 registry 根而非具体包（404 是「包不存在」而非网络不通）；仅新安装执行，更新跳过。
+          // 不通则 400 拦下并打 [network] 标记，客户端据此提示网络问题，而非插件问题。
           if (already === null) {
             const probeTarget = `${(settings.npmRegistry.replace(/\/+$/, '') || 'https://registry.npmjs.org')}/`
             const net = await probeUrl(probeTarget, effectiveProxy, 6000)
             if (!net.ok) {
-              // 错误消息按客户端界面语言提示：中文界面给中文、英文界面给英文，
-              // 让用户一眼看懂是网络问题而非插件问题
+              // 错误消息按界面语言输出，让用户看清是网络问题而非插件问题
               const error = lang === 'zh'
                 ? `[network] 安装已中止：安装前无法连接到 npm 源（${probeTarget}）—— 您的网络似乎不通或被拦截（断网 / DNS 解析失败 / 防火墙 / 代理配置问题）。这不是插件本身的问题，请检查网络连接或代理设置，运行「系统诊断」检测各通道连通性后重试。`
                 : `[network] install aborted: cannot reach the npm registry (${probeTarget}) before install — your network connection appears to be down or blocked (DNS / proxy / firewall). This is not a problem with the plugin itself. Check your connection or proxy settings, run the connectivity diagnostic, then retry.`
@@ -161,9 +150,8 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
               return
             }
           }
-          // 入队前复检（与上方检查同语义，但必须在同步块内）：预检的 await 期间并发请求
-          // 可能已通过上方检查、任务却尚未入队——此处检查与 startPluginMutation 之间无 await，
-          // JS 单线程保证同一目标至多一个任务，杜绝双击/并发产生双任务
+          // 入队前复检：预检的 await 期间并发请求可能已通过上方检查，而此处到 startPluginMutation
+          // 之间无 await，JS 单线程保证同一目标至多一个任务，杜绝双击/并发双任务。
           if (hasQueuedTarget(target)) {
             sendJson(response, 409, { error: `already queued: ${target}` })
             return
