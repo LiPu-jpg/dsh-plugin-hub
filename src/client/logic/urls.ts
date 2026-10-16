@@ -193,14 +193,14 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
 }
 
 /**
- * 插件中心自身仓库的预填 Issue 链接：用于「非插件侧」失败（无法识别的未知原因、
- * 以及 pnpm allowBuilds 拦截这类不再归到插件作者的情形）。正文带上目标插件与完整
+ * 插件中心自身仓库的预填 Issue 链接：用于「非插件侧」失败（无法识别的未知原因，
+ * 以及判定由插件中心自己产出、可能误报时的次要反馈入口）。正文带上目标插件与完整
  * 错误摘要，供插件中心维护者分诊 —— 不再把环境问题/插件中心自身问题误投给插件作者。
  */
 export type HubIssueVariant =
-  /** 缺省：安装器主动把失败送到插件中心分诊（未分类兜底 / allowBuilds 门禁） */
+  /** 缺省：安装器主动把失败送到插件中心分诊（未分类兜底） */
   | 'triage'
-  /** 从「插件打包问题」分支的次要入口提交：该判定由插件中心自己产出，用户怀疑是误报 */
+  /** 从判定由插件中心自己产出的分支（插件打包问题 / allowBuilds 拦截）的次要入口提交：用户怀疑是误报 */
   | 'misjudge'
 
 export function hubIssueUrl(
@@ -229,16 +229,17 @@ export function hubIssueUrl(
       `- Auto-classified cause: ${reasonTitleOf(kind, action)}`,
       `- Target plugin: \`${repo}\``,
       ...(code ? [`- Key error: \`${code}\``] : []),
-      // 为什么投递到这里而非插件仓库：只有确有证据是插件自身构建失败（pluginPrepare）才投插件仓库
+      // 为什么投递到这里而非插件仓库：只有确有证据是插件自身构建/分发失败（pluginPrepare、
+      // 或自动放行 allowBuilds 重试后仍失败的构建拦截）才投插件仓库
       ...(variant === 'misjudge'
-        // 这条入口的判据（[packaging] 装后校验、prepare 摘要）是插件中心自己产出的，
-        // 不是 pnpm 原文 —— 一旦我们自己误报，用户就被送去作者仓库、我们永远收不到反馈。
+        // 这些分支的判据由插件中心自己产出、或掺了我们的动作（自动放行 allowBuilds）——
+        // 一旦我们自己误报，用户就被送去作者仓库、我们永远收不到反馈。
         // 正文写清它来自哪条分支、判据是谁给的，维护者才不会把它当成未分类兜底。
         ? [
-          '- Filed from: the plugin-prepare path (which normally routes to the plugin repo) — filed here because that verdict may be our own misjudgment.',
-          '- Source of that verdict: produced by dsh-plugin-hub\'s own post-install check, not by pnpm output.',
+          '- Filed from: a branch that normally routes to the plugin repo — filed here because that verdict may be our own misjudgment.',
+          '- Source of that verdict: produced by dsh-plugin-hub\'s own check or its auto-allow retry, not by plain pnpm output.',
         ]
-        : ['- Why filed here: the installer only routes a failure to the plugin repo when there is positive evidence the plugin build itself failed (pluginPrepare). This failure does not match that, so it is routed here for triage.']),
+        : ['- Why filed here: the installer only routes a failure to the plugin repo when the cause is demonstrably the plugin\'s own build/distribution (pluginPrepare, or build scripts pnpm blocks that even an auto-allow retry cannot get past). This failure does not match that, so it is routed here for triage.']),
       '',
       `## [DSH Plugin 插件市场](${SITE_URL}) · ${zhWord} Plugin 失败错误信息`,
       `本错误信息由 [dsh-plugin-hub](${GITHUB_URL}) 插件市场的安装程序自动生成，随本次${zhWord}失败一并提交。`,

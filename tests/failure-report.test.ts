@@ -52,6 +52,14 @@ test('pluginIssueUrl: the default action keeps the historical install wording', 
   assert.ok(body.includes('安装 Plugin 失败错误信息'), body)
 })
 
+test('pluginIssueUrl: an allowlist-blocked build is reported to the author as a plugin-side issue', () => {
+  // pnpmIgnoredBuild 现在走作者仓库：正文原因面向作者（建议改用预构建产物），不再当作插件中心分诊
+  const allowBlocked = '[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: node-pty@1.1.0'
+  const { title, body } = decodeTargets(pluginIssueUrl('owner/repo', allowBlocked, null, 'dsh plugin add owner/repo'))
+  assert.ok(title.includes('build scripts blocked by pnpm allowlist'), title)
+  assert.ok(body.includes('use a prebuilt variant'), body)
+})
+
 test('hubIssueUrl: title and body follow the action (unclassified removal)', () => {
   const url = hubIssueUrl('elysia395/dsh-wallpaper-engine', spawnEnoent, null, executed, [executed], 'triage', 'uninstall')
   const { title, body } = decodeTargets(url)

@@ -302,7 +302,7 @@ export const zh = {
   failCopy: '复制完整错误信息',
   failIssueHint: '带着错误日志去作者仓库一键提交 Issue（正文含官网收录链接）',
   failIssueBig: '一键提交 BUG 到 GitHub Issue 为开源作贡献',
-  // 非插件侧失败（未知原因 / pnpm allowBuilds 拦截）改为引导到插件中心仓库排查
+  // 非插件侧失败（未知原因）改为引导到插件中心仓库排查
   failHubIssueHint: '此失败已被判定为环境或插件中心自身问题（非插件作者问题），带着错误日志到插件中心仓库一键提交 Issue',
   failHubIssueBig: '反馈给插件中心排查',
   // 未知失败兜底：不归到插件作者，引导到插件中心仓库排查
@@ -322,8 +322,9 @@ export const zh = {
   failMisjudgeLink: '插件能装却被拦下？反馈给插件中心',
   // 装后校验拦截（[packaging]）：npm 分发物缺插件需要的文件（入口 / 补丁 mount 的入口 / bundle 补丁）= 插件分发不完整
   failPackagingHint: '该插件的 npm 分发物不完整：缺少它需要的文件（`main` / `exports` 声明的入口、补丁按本包名 mount 的入口，或 `dsh.bundle.patch` 声明的补丁）。请到作者仓库提交 Issue 反馈，请其发布包含完整构建产物的 npm 包。',
-  // 原生依赖构建脚本被 pnpm 默认拦截（如 node-pty 的 ERR_PNPM_IGNORED_BUILDS）：不单独算插件问题，引导到插件中心仓库排查
-  failIgnoredBuild: '该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，本次操作因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败通常说明构建本身没通过。可先在终端手动执行一次安装命令查看完整构建错误；若确属插件的构建/分发问题，建议作者预置构建产物、发布 npm 包或预构建 .tgz。需要协助排查时也可反馈给插件中心。',
+  // 原生依赖构建脚本被 pnpm 默认拦截（如 node-pty 的 ERR_PNPM_IGNORED_BUILDS）：插件的依赖需在用户机器上编译原生模块，
+  // 自动放行 allowBuilds 重试一次仍失败即任何用户都装不上 —— 属作者侧，引导到作者仓库提 Issue
+  failIgnoredBuild: '该插件（或其依赖）需要在安装时执行构建脚本，被 pnpm 的安全白名单（allowBuilds）默认拦截，本次操作因此失败（如原生模块 node-pty，或 git 安装时插件自己的 prepare 脚本）。安装器已自动放行该 key 并重试过一次；仍失败说明构建本身没通过、任何用户都装不上。可先在终端手动执行一次安装命令查看完整构建错误；这属插件的构建/分发问题，请到作者仓库反馈：建议作者预置构建产物、发布含构建产物的 npm 包或提供预构建 .tgz。',
   // npm arborist 内部崩溃（edgesOut）＋ 本机 npm 版本过低：npm 自身已知缺陷，不是插件问题，升级 npm 即可
   failNpmTooLow: '怀疑本机 npm 版本过低：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
   failNpmTooLowV: '本机 npm 版本过低（当前 v{v}）：npm 解析插件依赖时内部崩溃（这是 npm 自身的已知缺陷，不是插件问题）。请升级 npm 后重试：npm install -g npm@latest',
@@ -703,7 +704,7 @@ export const en = {
   failCopy: 'Copy full log',
   failIssueHint: 'Open a pre-filled issue on the author repo with this error log (includes catalog links)',
   failIssueBig: 'Report this bug to GitHub — contribute to open source',
-  // 非插件侧失败（未分类 / pnpm allowBuilds 拦截）改为投递到插件中心仓库分诊
+  // 非插件侧失败（未分类）改为投递到插件中心仓库分诊
   failHubIssueHint: 'This failure was classified as an environment or Plugin Hub issue (not a plugin-author issue). Open a pre-filled issue on the Plugin Hub repo with this error log.',
   failHubIssueBig: 'Report to the Plugin Hub for triage',
   // 未知失败兜底：不投插件作者，改投插件中心仓库分诊
@@ -723,8 +724,9 @@ export const en = {
   failMisjudgeLink: 'Plugin installs fine but got blocked? Report to the Plugin Hub',
   // 装前/装后校验命中（[packaging]）：git 分发缺包所需的文件（入口 / 补丁按包名 mount 的入口 / bundle 补丁）= 未适配官方默认安装方式
   failPackagingHint: 'This plugin does not support the official default install method: its git distribution lacks a file the package needs (the entry from `main` / `exports`, an entry its own patch mounts by name, or the patch declared by `dsh.bundle.patch`), so it has not been adapted to the official install flow. Please file an Issue on the author\'s repo asking for committed build output, a prebuilt release `.tgz` (`releases/download/<tag>/<asset>.tgz`), or a complete npm release.',
-  // pnpm 默认忽略的原生模块构建脚本（如 node-pty，ERR_PNPM_IGNORED_BUILDS）：本身不归插件侧，改投插件中心仓库分诊
-  failIgnoredBuild: 'This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so this operation fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is usually the problem. Run the install command in a terminal to see the full build error; if it is indeed the plugin\'s build or distribution, the author can ship prebuilt output, an npm release, or a prebuilt .tgz. You can also report it to the Plugin Hub for triage.',
+  // pnpm 默认忽略的原生模块构建脚本（如 node-pty，ERR_PNPM_IGNORED_BUILDS）：插件的依赖需在用户机器上编译原生模块，
+  // 自动放行 allowBuilds 重试一次仍失败即任何用户都装不上 —— 属作者侧，引导到作者仓库提 Issue
+  failIgnoredBuild: 'This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so this operation fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is the problem, so no user can install it. Run the install command in a terminal to see the full build error; this is a build/distribution issue of the plugin itself — please report it to the author repository, asking them to ship prebuilt output, a complete npm release, or a prebuilt .tgz.',
   failNpmTooLow: 'Your local npm may be too old: npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   failNpmTooLowV: 'Your local npm is too old (v{v}): npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：本机网络或代理问题，不是插件问题 —— 不引导提 Issue

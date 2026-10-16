@@ -551,11 +551,33 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
                 // 宿主自身入口起不来：环境问题，给提示、不引导提 Issue
                 h('div', { className: styles.failPrepareHint }, t('failHostCliSpawnHint')),
               ])
+              : failureKind === 'pnpmIgnoredBuild'
+              // 该类型的插件依赖需要在用户机器上编译原生模块，pnpm 默认拦住；我们已自动放行
+              // allowBuilds 并重试过一次，仍失败说明任何用户都装不上 —— 属作者侧（发预构建产物 / 走 release 包）。
+              ? h('div', null, [
+                h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild')),
+                repo ? h('a', {
+                  className: styles.failBigIssue,
+                  href: pluginIssueUrl(repo, message, env, command, attempts, action),
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  title: t('failIssueHint'),
+                }, t('failIssueBig')) : null,
+                // 这条判定里也有我们的动作（我们自动放行过 allowBuilds），判错时得留一条回到插件中心的路
+                repo ? h('div', null, [
+                  h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),
+                  h('a', {
+                    className: styles.failMisjudgeLink,
+                    href: hubIssueUrl(repo, message, env, command, attempts, 'misjudge', action),
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    title: t('failHubIssueHint'),
+                  }, t('failMisjudgeLink')),
+                ]) : null,
+              ])
               : h('div', null, [
-                // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
-                failureKind === 'pnpmIgnoredBuild'
-                  ? h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild'))
-                  : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint', { action: actionWord })),
+                // 未分类（hub）：不归到插件作者，改为引导到插件中心仓库分诊
+                h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint', { action: actionWord })),
                 h('a', {
                   className: styles.failBigIssue,
                   href: hubIssueUrl(repo, message, env, command, attempts, 'triage', action),

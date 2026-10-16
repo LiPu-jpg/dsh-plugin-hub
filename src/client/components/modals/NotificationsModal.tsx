@@ -429,11 +429,34 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         h('div', { className: styles.failPrepareHint }, t('failHostCliSpawnHint')),
                       ])
                     }
-                    // pnpm allowBuilds 拦截与未知失败：不归到插件作者，改为引导到插件中心仓库排查
+                    if (kind === 'pnpmIgnoredBuild') {
+                      // 插件的依赖需要在用户机器上编译原生模块，pnpm 默认拦住；我们已自动放行
+                      // allowBuilds 并重试过一次，仍失败说明任何用户都装不上 —— 属作者侧（发预构建产物 / 走 release 包）
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild')),
+                        r.repo && shownRepo ? h('a', {
+                          className: styles.failBigIssue,
+                          href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts, action),
+                          target: '_blank',
+                          rel: 'noopener noreferrer',
+                          title: t('failIssueHint'),
+                        }, t('failIssueBig')) : null,
+                        // 这条判定里也有我们的动作（自动放行过 allowBuilds），判错时得留一条回到插件中心的路
+                        r.repo && shownRepo ? h('div', null, [
+                          h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),
+                          h('a', {
+                            className: styles.failMisjudgeLink,
+                            href: hubIssueUrl(shownRepo, r.message, env, r.command, r.attempts, 'misjudge', action),
+                            target: '_blank',
+                            rel: 'noopener noreferrer',
+                            title: t('failHubIssueHint'),
+                          }, t('failMisjudgeLink')),
+                        ]) : null,
+                      ])
+                    }
+                    // 未知失败：不归到插件作者，改为引导到插件中心仓库排查
                     return h('div', null, [
-                      kind === 'pnpmIgnoredBuild'
-                        ? h('div', { className: styles.failPrepareHint }, t('failIgnoredBuild'))
-                        : h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint', { action: actionWord })),
+                      h('div', { className: styles.failPrepareHint }, t('failUnclassifiedHint', { action: actionWord })),
                       h('a', {
                         className: styles.failBigIssue,
                         href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts, 'triage', action),
