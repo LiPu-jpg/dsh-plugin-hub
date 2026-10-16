@@ -6,7 +6,7 @@
 
 # DSH Plugin Hub - Download & Install DeepSeek Harness Plugins
 
-**10000+ DeepSeek Harness (DSH) plugins indexed, 10000+ hand-verified, in one community hub, updated daily. Browse, search, download and install by category — free, human-verified, traceable.**
+**4,597 DeepSeek Harness (DSH) plugins indexed, all hand-verified, in one community hub, updated daily. Browse, search, download and install by category — free, human-verified, traceable.**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-plugin.svg?style=flat-square)](https://www.npmjs.com/package/dsh-plugin)
@@ -48,7 +48,7 @@ DSH Plugin Hub is a **community plugin marketplace for DeepSeek Harness**: an op
 
 **Rich catalog · human-curated**
 
-- Indexes **9,463** community plugins, **9,356** of which are hand-verified, curated and released every day by [dsh-plugin.org](https://dsh-plugin.org)
+- Indexes **4,597** community plugins, all hand-verified, curated and released every day by [dsh-plugin.org](https://dsh-plugin.org)
 - Covers UI & experience, sessions & messages, memory & context, tooling and more — browse by category or search straight to it
 - Every plugin shows its verification status (verified), star / fork ratings, version and last-update time — fully sourced
 
@@ -124,7 +124,7 @@ Same data source as the hub — human-verified, updated daily · Browse every in
 
 ## Why DSH Plugin Hub
 
-The DSH Plugin Hub indexes **9,463** DeepSeek Harness plugins (DSH), **9,356** of which are hand-verified — updated daily, browse, search, download and install for free by category, fully sourced.
+The DSH Plugin Hub indexes **4,597** DeepSeek Harness plugins (DSH), all hand-verified — updated daily, browse, search, download and install for free by category, fully sourced.
 
 ### Always Fresh
 
