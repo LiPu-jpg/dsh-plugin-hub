@@ -3,13 +3,11 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Generic confirm dialog — the single entry point for every "are you sure?"
- * question in the app. Rule: any question must be a modal dialog, never an
- * in-button double-click.
+ * 通用确认弹窗 —— 应用里所有「确定吗？」问题的唯一入口。规则：任何询问都必须是
+ * 弹窗，绝不用按钮内双击。
  *
- * The icon in the middle tells the type at a glance: a blue question mark
- * for routine confirmations (install / update / restart / ignore), a red
- * action glyph for destructive ones (clear / delete / uninstall / reset).
+ * 中间的图标一眼说明类型：常规确认（安装/更新/重启/忽略）用蓝色问号，
+ * 危险操作（清空/删除/卸载/重置）用红色动作图形。
  */
 import { createElement as h } from 'react'
 import type { MouseEvent } from 'react'

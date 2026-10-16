@@ -3,20 +3,15 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Built-in log viewer dialog: no external software needed — the app opens
- * its own window and loads the local system log (JSONL at
- * ~/.dsh/profiles/<profile>/hub.log) straight from the server, one page at
- * a time.
+ * 内置日志查看器弹窗：无需外部软件 —— 应用自己开窗，从服务端直接分页加载本地系统日志
+ * （JSONL，位于 ~/.dsh/profiles/<profile>/hub.log）。
  *
- * Every line is categorized twice: a function area (install / uninstall /
- * update / diagnostics / settings / system) and a severity level (debug /
- * info / success / warn / error). Filtering on both axes lets you target,
- * say, only install errors — so the exact incompatible step of an install
- * (or uninstall) is easy to spot. Search narrows by event code or message.
+ * 每行双重归类：功能域（安装/卸载/更新/诊断/设置/系统）与严重级别（debug/info/success/
+ * warn/error）。两轴筛选可只盯某类，比如只看安装错误 —— 便于定位安装（或卸载）中真正
+ * 卡住的那一步；搜索按事件码或消息缩小范围。
  *
- * Server pagination: GET /dsh-plugin-hub/logs?offset=&limit=&category=
- * &level=&query= → { entries, total, hasMore, path }. The footer shows the
- * real file location and reveals it in the system file manager.
+ * 服务端分页：GET /dsh-plugin-hub/logs?offset=&limit=&category=&level=&query=
+ * → { entries, total, hasMore, path }。底部展示日志真实路径并可在系统文件管理器中定位。
  */
 import { createElement as h, useCallback, useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'

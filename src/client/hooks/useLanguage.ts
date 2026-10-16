@@ -3,11 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Language state for the section: the Hub shares the host (system) locale —
- * the header language toggle writes the host locale preference via setLocale,
- * so the host chrome (left sidebar, settings dialog) and the Hub panel switch
- * together instead of drifting apart. Exposes the localized dictionary lookup
- * `t()` plus the zh/en language flag and the /zh/ URL path prefix.
+ * 板块的语言状态：Hub 与宿主（系统）locale 共用 —— 头部语言开关通过 setLocale 写入
+ * 宿主语言偏好，让宿主界面（左侧菜单、设置弹窗）与 Hub 面板一起切换、不会各说各话。
+ * 对外暴露本地化字典查询 `t()`、zh/en 语言标记与 /zh/ URL 路径前缀。
  */
 import { useEffect, useState } from 'react'
 import type { LocaleId, SectionProps } from '../types.ts'
@@ -22,7 +20,7 @@ export function useLanguage(locale: SectionProps['locale']) {
   useEffect(() => locale.subscribe(() => setRev((r) => r + 1)), [locale])
   const lang: LocaleId = locale.getSnapshot().active
   const langKey: LocaleId = lang === 'en' ? 'en' : 'zh'
-  // dsh-plugin.org keeps zh pages under the /zh/ prefix; en is the root.
+  // dsh-plugin.org 的 zh 页面挂在 /zh/ 前缀下，en 在根路径。
   const langPath = langPathOf(lang)
 
   // 界面语言跟随宿主（系统）locale；宿主的 t() 绑定宿主 locale，

@@ -3,7 +3,7 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * zh/en dictionaries for the DSH Plugin Hub settings section.
+ * 插件中心设置板块的 zh/en 字典。
  */
 export const zh = {
   nav: '插件市场',
@@ -408,7 +408,7 @@ export const zh = {
 export const en = {
   nav: 'Plugin Hub',
   title: 'DSH Plugin Hub',
-  // Plugin counts are filled from the live /api/stats.json ({total}/{verified}), never hardcoded
+  // 收录/精选数量由组件从实时 /api/stats.json（{total}/{verified}）填充，不写死
   tagline: 'DSH Plugin Hub: a human-verified, free marketplace for DeepSeek Harness plugins',
   adBadge: 'Featured',
   ad: 'DSH Plugin Hub: {total} plugins indexed, {verified} human-verified, updated daily',
@@ -425,22 +425,22 @@ export const en = {
   fork: 'Fork',
   loading: 'Loading plugin data…',
   failed: 'Failed to load plugin data',
-  // Precise hints when the catalog cannot load: distinguished by whether a proxy is configured
+  // 目录加载失败时的精准提示：按是否配置了代理区分
   failedDescNoProxy: 'Your network seems unreachable, so the plugin catalog could not be loaded. Please check your connection and retry; or open the hub in your browser with the button above.',
   failedDescProxy: 'Your network seems unreachable, or the HTTP proxy in Settings is unreachable, so the plugin catalog could not be loaded. Please check the proxy address and your connection, then retry; or open the hub in your browser with the button above.',
   retry: 'Retry',
   install: 'Install',
-  // Plugins that must be installed by hand (webInstallable=false): one wording for both cases —
-  // the web UI cannot run the command at all (npx installers, local links), or it can run it but
-  // the install needs terminal-side work (repos with a prepare build hook, sub-directory assembly).
+  // 需在终端手动安装的插件（webInstallable=false）：两种情形共用一套措辞 ——
+  // 网页端完全跑不了该命令（npx 安装器 / 本地 link），或能跑但装机过程要在终端完成
+  //（仓库带 prepare 构建钩子、需要装配子目录）。
   cliOnlyHint: 'This plugin has to be installed in your dsh terminal (the web UI cannot run the build or assembly steps it needs) — copy the command above and run it there',
-  // Manual-intervention flag (manualInstall): the install needs a build / step-by-step assembly in the terminal.
-  // The key cannot be manualInstallHint — that one is the source filter on the Installed page.
+  // 人工干预标记（manualInstall）：安装要在终端里跑构建/分步装配，网页一键安装替不了终端。
+  // 注意 key 不能叫 manualInstallHint —— 那个是「已安装」页来源筛选的文案（目录插件 / 手动安装）。
   manualInstallOnlyHint: 'This plugin has to be installed by hand in your dsh terminal — one-click install from the web UI cannot run the build and assembly steps it needs. Copy the command above and run it there (Git Bash or PowerShell on Windows, Terminal on macOS/Linux); the author\'s repo has the full steps.',
   failedCopyHint: 'Install failed. Copy the command above and run it manually in your dsh terminal (native build scripts may need manual approval, e.g. pnpm approve-builds)',
   toastCopied: 'Install command copied — paste it in your dsh terminal',
   installed: 'Installed',
-  // Primary navigation: Market / Installed / Custom / Settings
+  // 一级导航：插件市场 / 已安装 / 自定义安装 / 设置
   viewMarket: 'Market',
   viewInstalled: 'Installed',
   viewCustom: 'Custom',
@@ -449,7 +449,7 @@ export const en = {
   viewInstalledHint: 'Manage installed plugins',
   viewCustomHint: 'Install npm packages manually',
   viewSettingsHint: 'Network sources and preferences',
-  // Installed view
+  // 已安装视图
   installedEmpty: 'No plugins installed yet',
   installedEmptyDesc: 'Go to Custom to add an npm package manually',
   npmInstallLabel: 'npm package / command',
@@ -462,10 +462,10 @@ export const en = {
   npmInstallHelp: 'lodash or @scope/pkg\tjust type the package name\nnpm install lodash\nnpm i lodash\npnpm add @scope/pkg\npnpm i @scope/pkg\nnpm install -g @scope/cli\tinstalls the CLI globally, not shown in Installed',
   globalNpmHint: 'This installs CLI tools globally (npm install -g). They won\'t appear in Installed and no host restart is needed.',
   installCliBtn: 'Install',
-  // Install channel disabled (security-trust toggle off → card disabled, guides to settings)
+  // 安装通道关闭（安全信任开关关掉后，对应卡片禁用并引导去设置打开）
   channelDisabledHint: 'This install channel is disabled — enable it in Settings → Security & Trust',
   goToSettings: 'Go to Settings',
-  // Custom install view: standalone top-level section, description text
+  // 自定义安装视图：独立一级导航，说明文字
   customViewDesc: 'Manually install an npm package outside the catalog. Finished installs appear in Installed, marked as custom.',
   customLabel: 'Custom install',
   installedSearch: 'Search installed plugins…',
@@ -500,7 +500,7 @@ export const en = {
   detailCatalog: 'View details',
   packageName: 'Package',
   versionUpHint: 'v{from} → v{to} available — Update reinstalls in place',
-  // Settings view: Updates & Sources / Security & Trust / Diagnostics / System Logs
+  // 设置视图：更新与通道 / 安全与信任 / 诊断 / 系统日志
   settingsUpdate: 'Update Settings',
   settingsUpdateDesc: 'Update checks and the network channels used for installs',
   settingsCheckOnStart: 'Check for updates on startup',
@@ -509,12 +509,11 @@ export const en = {
   settingsAutoInstallDesc: 'Install detected updates in the background without asking (a host restart applies them)',
   settingsProxy: 'HTTP proxy',
   settingsProxyDesc: 'Route npm, git and catalog requests through this proxy; leave empty to connect directly',
-  // Live proxy reachability probe: reported after the user stops typing (an unreachable
-  // address can still be saved — users may fill it in before actually starting the proxy)
+  // 代理连通性实时探测：输入停笔后提示检测结果（不通仍可保存，先填地址后开代理也合法）
   proxyCheckChecking: 'Testing this proxy address…',
   proxyCheckOk: 'Reachable — installs and catalog requests will route through it',
   proxyCheckFail: 'Unreachable, but you can still save it; make sure the proxy is running and the address and port are correct',
-  // Failure reason: Windows Schannel aborts the handshake when revocation info (CRL/OCSP) is unreachable — not a bad proxy address
+  // 失败细分原因：Windows Schannel 必须取到证书吊销信息，取不到即中断握手 —— 不是代理地址不通
   proxyCheckRevocation: 'Certificate revocation check blocked (Windows Schannel could not fetch CRL/OCSP), so the handshake was aborted — a local TLS issue, not a bad proxy address',
   settingsMirror: 'npm mirror',
   settingsMirrorDesc: 'Unset by default — follows local npm config; pick a domestic mirror if slow',
@@ -537,7 +536,7 @@ export const en = {
   logsLoading: 'Reading log…',
   logsEmpty: 'No log entries yet',
   logsLoadFail: 'Failed to read the log; try again later',
-  // Log-viewer dialog: a built-in window that loads the log in pages, filterable by type × level
+  // 日志查看器弹窗：内置窗口分页加载日志，可按类型 × 级别筛选
   logModalTitle: 'Log viewer',
   logViewerOpen: 'Open log viewer',
   logViewerDesc: 'View the local log in a built-in window; filter by type and level to pinpoint install / uninstall / update incompatibilities',
@@ -582,9 +581,9 @@ export const en = {
   logCount: '{n} entries',
   logEmptyFilter: 'No matching log entries',
   settingsDiagFail: 'Unreachable',
-  // System diagnostics channel list: one-click full check + one row per channel, click to re-probe
+  // 系统诊断通道列表：一键全检 + 每通道一行，点击重测
   diagNpm: 'npm registry',
-  // Diagnostics npm row: shown when no mirror is configured (probe still targets the official registry, the fallback)
+  // 诊断 npm 行：未配置镜像时显示的兜底文案（探测仍打官方源）
   diagNpmUnset: 'Unset (follow local npm config)',
   diagGithub: 'GitHub',
   diagCatalog: 'Catalog site',
@@ -599,20 +598,20 @@ export const en = {
   diagSummaryRunning: 'Checking channels…',
   diagSummaryOk: 'All channels reachable',
   diagSummaryFail: 'Unreachable channel(s) — click a row to re-check',
-  // Failure reason: Windows Schannel aborts the handshake when revocation info (CRL/OCSP) is unreachable (easily mistaken for a network outage)
+  // 失败细分原因：Windows Schannel 取不到证书吊销信息即中断握手（易被误判为网络不通）
   diagFailRevocation: 'Cert check blocked',
   diagFailRevocationHint: 'The system curl cannot fetch certificate revocation info (CRL/OCSP, required by Windows Schannel), so the TLS handshake is aborted — this is not a network outage, and npm/git may still work. curl 7.70+ downgrades the check to best-effort, or switch to a network that can reach the revocation service.',
   settingsEnvSnapshot: 'System version',
   settingsEnvSnapshotDesc: 'Copy host version and system info for pasting into issue reports',
   settingsEnvCopy: 'Copy',
-  // Restore defaults: first-level menu + its own settings card
+  // 恢复默认：一级菜单 + 独立设置卡片
   settingsReset: 'Restore Defaults',
   settingsResetDesc: 'Restore update policy, npm mirror, proxy and security restrictions to factory defaults in one go',
   settingsResetDetail: 'Reset update policy, npm mirror, proxy and security restrictions to factory defaults',
   settingsResetRun: 'Restore Defaults',
   settingsResetConfirm: 'Restore Defaults',
   settingsResetConfirmDetail: 'Reset all settings to factory defaults? Update policy, npm mirror, proxy and security restrictions will be cleared.',
-  // Update notice (notification center item title)
+  // 更新提醒（通知中心条目标题）
   updateNoticeTitle: 'Update available',
   updateNoticeGo: 'Update',
   ignoreUpdateRun: 'Ignore this update',
@@ -640,11 +639,11 @@ export const en = {
   installNow: 'Install',
   installing: 'Installing…',
   installDone: 'Installed',
-  // Updated (notification center distinguishes install/update): update = in-place reinstall to latest
+  // 已更新（通知中心区分安装/更新）：更新 = 原位覆盖重装到最新版
   updateDone: 'Updated',
   installResultTitle: 'Plugin installed successfully',
   installResultDesc: '',
-  // Update semantics: the "update" action re-runs add in place — copy differentiates install vs update
+  // 更新语义：更新动作原位重跑 add —— 文案区分安装与更新
   confirmUpdateTitle: 'Confirm update',
   updateNow: 'Update',
   updating: 'Updating…',
@@ -655,15 +654,14 @@ export const en = {
   requestTimeout: 'Request timed out: GitHub may be unreachable or the network is unstable — try again later',
   confirmCancel: 'Cancel',
   doneBtn: 'Done',
-  // Result-view fallback: the single "Restart now" only appears when a refresh cannot help
-  // (hot-mount failure / non-dsh plugin / update); closing the modal means "later"
+  // 结果视图兜底：仅刷新解决不了时（热挂载失败 / 非 dsh 插件 / 更新）才给单个「立即重启」；
+  // 关闭弹窗即视为「稍后」
   restartNow: 'Restart now',
   restarting: 'Restarting…',
   restartHint: 'Restarting interrupts any in-progress install / uninstall task — its progress will be lost. Some plugins (such as plugin markets / top-level bundles) only take effect after a restart.',
-  // Desktop: the app shell owns the host, so plugins cannot restart it — tell the user to quit and reopen
+  // 桌面端：宿主由应用壳托管，插件重启不了它 —— 提示用户退出后重开
   toastRestartDesktop: 'In the desktop app the host is managed by the app: quit from the app menu (or tray) and open it again — the change takes effect after that restart',
-  // Applied without a restart: the install was hot-mounted into the running loader;
-  // the page auto-refreshes on close (no manual refresh button)
+  // 免重启即生效：安装已热挂载进运行中 loader；关闭弹窗时页面自动刷新（不给手动刷新按钮）
   reloadHint: 'The plugin is loaded — closing this window will refresh the page automatically.',
   toastInstalledLive: 'Installed — active now',
   toastInstalledReload: 'Installed — refreshing the page automatically…',
@@ -692,9 +690,9 @@ export const en = {
   errorTitle: 'Operation failed',
   errorTitleInstall: 'Install failed',
   errorTitleUninstall: 'Removal failed',
-  // Update failed (notification center distinguishes install/update): update target reinstall failed
+  // 更新失败（通知中心区分安装/更新）：更新目标覆盖重装失败
   errorTitleUpdate: 'Update failed',
-  // Action words: failure hints and filed reports take their wording from here
+  // 动作词：失败提示与上报正文的措辞都取自这里
   actionInstall: 'install',
   actionUpdate: 'update',
   actionUninstall: 'removal',
@@ -705,41 +703,39 @@ export const en = {
   failCopy: 'Copy full log',
   failIssueHint: 'Open a pre-filled issue on the author repo with this error log (includes catalog links)',
   failIssueBig: 'Report this bug to GitHub — contribute to open source',
-  // Non-plugin-side failures (unclassified / pnpm allowBuilds block) now route to the hub repo for triage
+  // 非插件侧失败（未分类 / pnpm allowBuilds 拦截）改为投递到插件中心仓库分诊
   failHubIssueHint: 'This failure was classified as an environment or Plugin Hub issue (not a plugin-author issue). Open a pre-filled issue on the Plugin Hub repo with this error log.',
   failHubIssueBig: 'Report to the Plugin Hub for triage',
-  // Unknown-failure fallback: not routed to the plugin author, but to the hub repo for triage
+  // 未知失败兜底：不投插件作者，改投插件中心仓库分诊
   failUnclassifiedHint: 'The {action} failed and the cause could not be identified automatically. This is usually not the plugin itself (it may relate to your local environment or the Plugin Hub). Please report the error to the Plugin Hub so the maintainers can triage it.',
-  // The hub's own state-guard messages (plugin not installed / cannot be uninstalled here / already queued / already installed): the installed list is out of sync with the live snapshot — not a plugin issue, no issue prompt
+  // 插件中心自身的状态守卫消息（未安装 / 不在此处卸载 / 已在队列中 / 已安装）：已装列表与实读快照不同步 —— 不是插件问题，不引导提 Issue
   failHubStateHint: 'The plugin list is out of date or out of sync: the target of this {action} may already be in the list (use "Update" to upgrade), may no longer be in the installed list, or may already be queued. This is not a plugin problem — refresh the page and retry.',
-  // The command hit the local time limit and was killed: it may well have taken effect already (the installer re-checks the installed list after a timeout) — actionable hint, no issue prompt
+  // 命令跑满本机时限被强杀：可能其实已生效（安装器超时后会复核已装列表）—— 给可行动提示，不引导提 Issue
   failTimeoutHint: 'This operation exceeded the local time limit and was interrupted — but it may well have taken effect already (the installer re-checks the installed list after a timeout). Refresh the page to confirm the current state; if it did not take effect, run the corresponding command in a terminal to see the full output. This is not a plugin problem.',
   failProfileLockHint: 'DSH timed out waiting for the file lock while writing the plugin list — usually because another DSH process or install task is writing the same profile (sometimes a previous run left the lock behind). Close other dsh windows or running commands, then retry; if it keeps happening, restart DSH once. This is not a plugin problem, and there is no need to repeat the {action}.',
-  // The host could not launch itself to run the operation: not a plugin issue — hint only, no issue prompt
+  // 宿主自身入口起不来：不是插件问题 —— 只给提示，不引导提 Issue
   failHostCliSpawnHint: 'DSH could not start itself to perform this operation (the system reported that the executable was not found). This usually means the DSH installation folder has been moved or is being updated, or that the profile directory does not exist yet. Restart DSH and retry; if it keeps happening, reinstall DSH. This is not a plugin problem — other plugins would fail the same way.',
-  // prepare script actually failed: a packaging issue of the plugin itself — file an issue
+  // prepare 构建脚本实际执行失败：插件自身打包分发问题 —— 引导提 Issue
   failPrepareHint: 'This plugin failed while running its build scripts during install (the published npm package is incomplete). This is a packaging issue of the plugin itself — please report it to the author repository.',
-  // Secondary entry on the "plugin packaging" branch: that verdict comes from the hub's own
-  // pre/post-install check, not from pnpm output — a false positive sends users to the author
-  // repo and the hub never hears about it, so keep a feedback path here.
+  // 「插件打包问题」分支的次要入口：该判定来自插件中心自己的装前/装后校验，不是 pnpm 原文 ——
+  // 一旦误报，用户会被送去作者仓库、我们永远收不到反馈，故在此保留一条反馈通道。
   failMisjudgeHint: 'If this plugin actually installs fine (the verdict above is the Plugin Hub misjudging it), please report it to the Hub: that verdict is produced by the marketplace itself, so a false positive can only be found through your feedback.',
   failMisjudgeLink: 'Plugin installs fine but got blocked? Report to the Plugin Hub',
-  // Pre-install / post-install guard hit ([packaging]): git distribution lacks a file the package needs (entry / entry a patch mounts / bundle patch) = not adapted to the official default install method
+  // 装前/装后校验命中（[packaging]）：git 分发缺包所需的文件（入口 / 补丁按包名 mount 的入口 / bundle 补丁）= 未适配官方默认安装方式
   failPackagingHint: 'This plugin does not support the official default install method: its git distribution lacks a file the package needs (the entry from `main` / `exports`, an entry its own patch mounts by name, or the patch declared by `dsh.bundle.patch`), so it has not been adapted to the official install flow. Please file an Issue on the author\'s repo asking for committed build output, a prebuilt release `.tgz` (`releases/download/<tag>/<asset>.tgz`), or a complete npm release.',
-  // native-module build scripts ignored by pnpm by default (e.g. node-pty, ERR_PNPM_IGNORED_BUILDS): not a plugin-side issue on its own, route to the hub repo for triage
+  // pnpm 默认忽略的原生模块构建脚本（如 node-pty，ERR_PNPM_IGNORED_BUILDS）：本身不归插件侧，改投插件中心仓库分诊
   failIgnoredBuild: 'This plugin (or one of its dependencies) needs to run build scripts at install time, which pnpm blocks by default via its allowBuilds allowlist — so this operation fails (e.g. native modules like node-pty, or the plugin\'s own prepare script on git installs). The installer already auto-allows that key and retries once; if it still fails, the build itself is usually the problem. Run the install command in a terminal to see the full build error; if it is indeed the plugin\'s build or distribution, the author can ship prebuilt output, an npm release, or a prebuilt .tgz. You can also report it to the Plugin Hub for triage.',
   failNpmTooLow: 'Your local npm may be too old: npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
   failNpmTooLowV: 'Your local npm is too old (v{v}): npm crashed internally while resolving the plugin\'s dependencies (a known npm bug — not a plugin issue). Please upgrade npm and retry: npm install -g npm@latest',
-  // Pre-install connectivity probe / connection failure in the install log ([network] / git fetch timeout / DNS / TLS): a local network or proxy issue, not a plugin issue — no issue link
+  // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：本机网络或代理问题，不是插件问题 —— 不引导提 Issue
   failNetworkHint: 'The network could not be reached before the {action}: the install source is unreachable (offline, DNS failure, firewall block, or a misconfigured proxy). This is not a problem with the plugin itself — please check your connection, confirm the HTTP proxy in Settings, run a connectivity check under System Diagnostics, then retry.',
-  // Prominent "cannot reach …" line in the network-failure dialog: shows the exact unreachable address ({url})
+  // 网络失败弹窗里的「无法访问 …」醒目行：显示具体的不可达地址（{url}）
   failNetworkRegistryHint: 'Your npm/pnpm registry is set to {host}, and the package tarball could not be downloaded from it. This usually means a private/internal mirror that has not synced the package (or requires intranet auth) — point the registry back to https://registry.npmjs.org (or make sure this source can serve the package), then retry.',
   failNetworkTarget: 'Cannot reach {url} — your network connection is down',
-  // Diagnostics shortcut button under the network-down hint: jumps to Settings → System Diagnostics
+  // 网络不通提示下的诊断快捷按钮：跳到设置 → 系统诊断
   failNetworkRunDiag: 'Run a network diagnostic',
-  // The request origin did not pass the local hub service check (403 untrusted origin): the request
-  // never reached the install flow — nothing to do with the plugin, so point at the local address
-  // and do not offer an issue link
+  // 请求来源没通过本地 hub 服务校验（403 untrusted origin）：请求根本没进安装流程 ——
+  // 与插件无关，故引导从本机地址重开，不引导提 Issue。
   failOriginRejectedHint: 'This install request did not pass the marketplace origin check and was rejected by the local service, so the install never started — this is not about the plugin itself. It usually means the marketplace page was not opened from a local address (for example a LAN IP), or the host page origin was not recognized. Reopen the marketplace from localhost and retry; on the desktop app, restart the host once. If it still fails after restarting the host, your dsh-plugin version is incompatible with the host — upgrade the marketplace with dsh plugin --profile {profile} add dsh-plugin@latest, then restart the host again.',
   failDshMissingHint: 'The dsh command could not be found (it is not on the system PATH), so the installer could not run. Please make sure DeepSeek Harness is installed correctly and dsh is on your PATH (or reinstall it), then retry. This is not a problem with the plugin itself.',
   failGitMissingHint: 'The git command could not be found (Git is not installed or not on the system PATH), so GitHub-source plugins cannot be installed. Please install Git (e.g. from git-scm.com/downloads) or add git to your PATH, restart DSH, then retry. This is not a problem with the plugin itself.',
@@ -747,8 +743,7 @@ export const en = {
   failNpmMissingHint: 'The npm command could not be found (npm is not installed or not on the system PATH), so a global install cannot run. Please install Node.js (which bundles npm), make sure npm is on your PATH, then retry. This is not a problem with the plugin itself.',
   failPnpmStoreHint: 'pnpm reported an unexpected store location (ERR_PNPM_UNEXPECTED_STORE): the profile directory was previously set up with a different major version of pnpm, and the current pnpm refuses to reuse it — no plugin can be installed into that profile. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall. This is not a problem with the plugin itself.',
   failPnpmUnusedPatchHint: 'pnpm reported that some patches were not used (ERR_PNPM_UNUSED_PATCH): your profile still holds a patch entry for an older dsh-plugin version (for example dsh-plugin@1.4.2), while this install resolved a different version, so pnpm aborts the whole install for safety — no plugin can be installed into that profile. This is not a problem with the plugin itself. Remove that dsh-plugin patch entry from pnpm-workspace.yaml (pnpm 11+) or from pnpm.patchedDependencies in package.json (pnpm 10) inside the profile directory (~/.dsh/profiles/<profile>), then retry.',
-  // Missing dependency: name the package that 404'd (the line is skipped when it cannot be parsed),
-  // then give the removal instructions
+  // 缺失依赖：点名 404 的包（解析不出时跳过该行），再给删除指引
   failPnpmMissingDepTarget: '{pkg} was not found on the npm registry (404)',
   failPnpmMissingDepHint: 'pnpm reported that a package does not exist on the npm registry (ERR_PNPM_FETCH_404): your profile keeps a dependency on a package that was never published, and pnpm hits it every time it resolves dependencies — no plugin can be installed into that profile. This is not a problem with the plugin itself. Remove that dependency from package.json inside the profile directory (~/.dsh/profiles/<profile>) — along with its entry in pnpm-lock.yaml, or the lockfile itself — then retry.',
   failRegistryMirrorLagHint: 'pnpm reported that a package does not exist on the npm registry (ERR_PNPM_FETCH_404): that package does exist on the official npm registry, but the npm/pnpm registry (or mirror) configured on your machine has not synced it. Point the npm/pnpm registry back at the official one (https://registry.npmjs.org), or switch to a mirror that has the package, then retry. This is not a problem with the plugin itself.',
@@ -762,12 +757,12 @@ export const en = {
   failPnpmWorkspaceHint: 'pnpm refused to add the dependency to the workspace root (ERR_PNPM_ADDING_TO_ROOT): the profile directory is treated as a pnpm workspace root, and this install command did not declare that it operates at the root, so pnpm rejected it outright — no plugin can be installed into that profile. This is not a problem with the plugin itself. Add `ignore-workspace-root-check=true` to the `.npmrc` inside the profile directory (~/.dsh/profiles/<profile>) and retry, or upgrade DeepSeek Harness and try again.',
   failPnpmTarballIntegrityHint: 'pnpm reported ERR_PNPM_MISSING_TARBALL_INTEGRITY: a tarball entry in the lockfile has no checksum to verify the downloaded package. Read the full log, fully quit DeepSeek Harness, and inspect and back up package.json, pnpm-lock.yaml and pnpm-workspace.yaml in the affected profile. Once the dependency sources are verified, rename pnpm-lock.yaml to preserve it, then use the same DSH installer to install a plugin version compatible with the host and regenerate the lockfile. This resolves profile dependencies again: compare the old and new versions, and keep integrity checks enabled.',
   failPnpmPolicyHint: 'The installer was blocked by pnpm supply-chain security policy — every plugin install would hit the same wall, so this is not a problem with the plugin itself. Two cases: ① "Minimum release age" (ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION): the package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety. Add minimumReleaseAge: 0 to your pnpm config (pnpm-workspace.yaml) to opt out, or wait until the 24 hours have passed and retry. ② "untrusted origin" (ERR_PNPM_UNTRUSTED_ORIGIN): a dependency source is not trusted by this machine, usually because plugins were previously installed via github: or a non-official npm registry, so the lockfile records an untrusted source. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall.',
-  // minimumReleaseAge only: compute the exact retry time ({time}) from the error so the user knows
-  // when installs will work again, instead of the vague "wait 24 hours"
+  // 仅 minimumReleaseAge 场景：从报错算出确切的可重试时刻（{time}），让用户知道何时能装，
+  // 而不是笼统的「等 24 小时」
   failPnpmReleaseAgeHint: 'The installer was blocked by pnpm supply-chain security policy, and every plugin installed into this profile would hit the same wall — this is not a problem with the plugin itself. The package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety, so both installs and removals are blocked for this profile in the meantime. Retry after: {time} (i.e. 24 hours after the package was published). If you must install right now, add minimumReleaseAge: 0 to pnpm-workspace.yaml inside the profile directory (~/.dsh/profiles/<profile>) to opt out, but that loosens supply-chain protection for the whole profile.',
-  // Custom install entry channel names — used in error/log traceability
+  // 自定义安装入口渠道名 —— 用于报错/日志溯源
   installChannelNpm: 'NPM package',
-  // Entry traceability line prefixed at the top of the error text: which card initiated this install
+  // 错误正文顶部的入口溯源行：指出从哪张卡片发起本次安装
   installEntryLine: 'Install entry: {c}.',
   reportIssue: 'Report an Issue to the plugin repo',
   detail: 'Open details',
@@ -778,12 +773,12 @@ export const en = {
   monthsAgo: 'updated {months}mo ago',
   yearsAgo: 'updated {years}y ago',
   pluginsTotal: 'Results: {n} plugins',
-  // Category chips carry no counts; the filtered result count shows in the list header
+  // 分类 chip 不带计数；筛选结果数显示在列表头部
   filterResults: 'Results: {n} plugins',
   more: '{n} more on the website',
   browseAll: 'Browse all {n} plugins',
   verified: 'Verified',
-  // Version & updates: repos with a release are compared by tag; repos without one by last push time (new commits → update)
+  // 版本与更新：有 release 的仓库比 tag，没有的比最近推送时间（有新提交即有更新）
   version: 'Version',
   update: 'Update',
   updateAvailable: 'Update available',
@@ -797,10 +792,10 @@ export const en = {
   versionHint: 'View version info and changelog',
   hubCurrentTitle: 'Current version',
   hubCurrentDesc: 'You are on v{version} — this is the latest version.',
-  // Deferred notice: a newer release exists but is still inside pnpm's 24h supply-chain window
+  // 暂缓提示：确有新版本，但仍在 pnpm 24h 供应链门禁窗口内
   hubPendingDesc: 'v{version} has been released, but it is still within the 24-hour window where pnpm silently falls back to the older version, so the update is not offered yet. The update entry will appear here shortly.',
   hubUpToDate: 'Up to date',
-  // Header "Follow us" modal: platform intro + user feedback group QR (content pushed via Worker /about Markdown)
+  // 头部「关注我们」弹窗：平台介绍 + 用户反馈群二维码（内容由 Worker /about 以 Markdown 推送）
   followUs: 'Follow us',
   aboutTitle: 'Follow us',
   aboutDesc: 'Learn what DSH Plugin Hub does and join our user feedback group.',

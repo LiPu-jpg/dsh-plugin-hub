@@ -3,8 +3,7 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Inline SVG icons used across the client. Icons inherit currentColor so
- * they adapt to themes and disabled states automatically.
+ * 客户端各处使用的内联 SVG 图标。图标继承 currentColor，自动适配主题与禁用态。
  */
 import { createElement as h } from 'react'
 import headerStyles from '../../styles/Header.module.css'

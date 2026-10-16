@@ -3,13 +3,10 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Failure classification, issue-body summarization and persistent
- * install/remove notifications.
+ * 失败归类、Issue 正文摘要与持久化的安装/卸载通知。
  *
- * Every settled task is recorded two ways: the server-side system log
- * (hub.log) and a client-side localStorage record that feeds the
- * notification center — so a result is never lost even when the dialog
- * was dismissed or nobody was watching the progress strip.
+ * 每个结算后的任务都会双重留痕：服务端系统日志（hub.log）与馈送通知中心的客户端
+ * localStorage 记录 —— 即使弹窗被关闭、无人盯着进度条，结果也不会丢失。
  */
 export interface NotificationRecord {
   id: number
@@ -172,7 +169,7 @@ export function actionOfRecord(rec: { kind: NotificationRecord['kind']; action?:
   return rec.kind === 'uninstall' ? 'uninstall' : rec.kind === 'update' ? 'update' : 'install'
 }
 
-/** Match the pnpm error code, not a generic mention of checksum or integrity. */
+/** 只匹配 pnpm 的错误码，不匹配泛泛出现的 checksum / integrity 字样。 */
 function missingTarballIntegrity(message: string): boolean {
   return /\bERR_PNPM_MISSING_TARBALL_INTEGRITY\b/.test(message)
 }
@@ -187,9 +184,9 @@ export function releaseAgeRetryAfter(message: string): string | null {
 }
 
 /**
- * The same policy subtype selects recovery copy in live and saved failures.
- * minimumReleaseAge 只有在能算出可重试时刻时才走专属文案（给出确切的「何时可再试」），
- * 算不出时退回通用文案，避免出现「预计可重试时间：」后接空值的残缺句子。
+ * 同一策略子类型也用于选择实时/已保存失败的提示文案：minimumReleaseAge 只有在能算出
+ * 可重试时刻时才走专属文案（给出确切的「何时可再试」），算不出时退回通用文案，
+ * 避免出现「预计可重试时间：」后接空值的残缺句子。
  */
 export function pnpmPolicyHintOf(message: string): 'failPnpmTarballIntegrityHint' | 'failPnpmReleaseAgeHint' | 'failPnpmPolicyHint' {
   if (missingTarballIntegrity(message)) return 'failPnpmTarballIntegrityHint'

@@ -2,9 +2,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Plugin Hub section header: brand row, tagline, ad banner, search input,
- * filter toolbar (installed / not installed, failures entry) and category
- * tabs. Colors resolve through the --hub-* design tokens. */
+ * 插件中心板块头部：品牌行、副标题、广告条、搜索框、筛选工具栏
+ * （已安装/未安装、失败入口）与分类 tab。颜色经 --hub-* 设计变量解析。 */
 
 .root {
   height: 100%;
@@ -15,7 +14,7 @@
   color: var(--hub-text-primary);
 }
 
-/* —— header —— */
+/* —— 头部 —— */
 
 .header {
   display: flex;
@@ -241,7 +240,7 @@
   text-align: center;
 }
 
-/* —— result count —— */
+/* —— 筛选结果数 —— */
 
 /* 筛选结果数：弱化灰字信息「结果 N 条插件」，位于工具栏行最左侧 */
 .resultSeg {
@@ -324,7 +323,7 @@
   background: var(--hub-brand);
 }
 
-/* —— ad banner —— */
+/* —— 广告条 —— */
 
 /* 广告条：固定蓝紫渐变 + 白字，不随主题变量漂移，两种主题下都醒目。
    与 toast 相同思路：固定颜色保证可读性。 */
@@ -411,7 +410,7 @@
   border-color: var(--hub-brand);
 }
 
-/* —— category chips —— */
+/* —— 分类 chips —— */
 
 .tabs {
   display: flex;

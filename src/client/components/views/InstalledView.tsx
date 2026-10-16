@@ -3,18 +3,13 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Installed view: manages the plugins installed into the current profile.
- * Follows the mainstream extension-manager pattern (VSCode Installed tab) —
- * a searchable, sortable list of installed entries that mixes catalog
- * plugins (full metadata) and custom command installs (outside the catalog,
- * only runtime info, tagged with a custom badge). The toolbar carries a
- * search box plus two segmented radio-button groups: source filter
- * (all / catalog / custom) and sort (name / recently installed / stars / forks).
- * Each row carries restart (when pending), update and uninstall actions
- * and opens a detail modal with the full install metadata.
+ * 已安装视图：管理安装进当前 profile 的插件。沿用主流扩展管理器模式（VSCode 已安装 tab）——
+ * 可搜索、可排序的已安装清单，混排目录插件（完整元数据）与命令行自定义安装（目录之外，
+ * 只有运行时信息，打「自定义」徽标）。工具栏含搜索框与两组分段单选：来源筛选
+ * （全部/目录/自定义）与排序（名称/最近安装/Star/Fork）。每行带重启（待重启时）、更新与
+ * 卸载动作，并打开含完整安装元数据的详情弹窗。
  *
- * Pure presentational: owns only local search/sort state; the InstalledItem
- * model arrives from the catalog hook and actions bubble up via callbacks.
+ * 纯展示组件：只持有本地搜索/排序状态；InstalledItem 模型来自目录 hook，动作经回调上抛。
  */
 import { createElement as h, useMemo, useState } from 'react'
 import type { FormEvent, MouseEvent, ReactNode } from 'react'

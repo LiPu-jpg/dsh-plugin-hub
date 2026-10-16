@@ -2,13 +2,10 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Installed view: searchable, sortable list of installed plugins mixing
- * catalog plugins (full metadata) and custom installs (runtime info only,
- * amber custom badge). The toolbar holds a search box plus two segmented
- * radio-button groups (source filter + sort). Each row has three tidy
- * lines: title line (running-status dot + name + version/update badges +
- * fixed action buttons on the right), meta line (repo · category), and a
- * one-line description. Colors resolve through the --hub-* tokens. */
+ * 已安装视图：可搜索、可排序的已安装插件清单，混排目录插件（完整元数据）与自定义安装
+ * （仅运行时信息，琥珀色自定义徽标）。工具栏含搜索框与两组分段单选（来源筛选 + 排序）。
+ * 每行三行整洁内容：标题行（运行状态点 + 名称 + 版本/更新徽标 + 右侧固定操作按钮）、
+ * 元信息行（仓库 · 分类）与单行描述。颜色经 --hub-* 变量解析。 */
 
 .root {
   display: flex;

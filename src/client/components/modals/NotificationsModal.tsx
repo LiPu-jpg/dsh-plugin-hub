@@ -3,15 +3,11 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Notification-center dialog: a persistent log of every settled install /
- * remove task — successes and failures alike.
+ * 通知中心弹窗：每个已结算的安装/卸载任务（成功与失败）的持久化清单。
  *
- * Records are written to localStorage at settle time (see logic/failures.ts),
- * so a result is never lost even when the dialog was dismissed or the user
- * was away. Each entry carries a circular status badge (green check for
- * success, red cross for failure) with white glyph and message text;
- * failures keep their copy / fix / file-an-issue actions. Opened from the
- * header entry button (after the Settings tab).
+ * 记录在结算时写入 localStorage（见 logic/failures.ts），即使弹窗被关闭或用户离开，
+ * 结果也不会丢失。每条带圆形状态徽标（成功绿勾、失败红叉，白色图形）与消息文本；
+ * 失败项保留复制/修复/提 Issue 动作。由头部入口按钮（「设置」tab 之后）打开。
  */
 import { createElement as h, useState } from 'react'
 import type { MouseEvent } from 'react'

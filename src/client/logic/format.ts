@@ -3,7 +3,7 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Presentation formatters shared across the catalog list and the cards.
+ * 目录列表与卡片共用的展示格式化函数。
  */
 import type { Translate } from '../types.ts'
 

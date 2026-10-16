@@ -3,8 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Normalizer: maps the online API's short-key payload (s/o/n/vr/c/t/f/d/r/v/u/a/sg/fk)
- * to HubPlugin so rendering only ever sees one shape.
+ * 归一化器：把在线 API 的短 key 载荷（s/o/n/vr/c/t/f/d/r/v/u/a/sg/fk）映射为
+ * HubPlugin，让渲染层只面对一种数据形态。
  */
 import type { HubPlugin } from '../types.ts'
 

@@ -2,10 +2,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Primary navigation (section tabs): an underline tab bar under the header
- * switching between Market / Installed / Settings. The active tab carries a
- * brand-colored underline; the bar itself draws a hairline bottom border so
- * the selected state reads clearly without extra chrome. */
+ * 一级导航（section tabs）：头部下方的下划线 tab 栏，在 市场 / 已安装 / 设置 间切换。
+ * 激活 tab 带品牌色下划线；栏本身画一条细底边，让选中态清晰、不多余装饰。 */
 
 .root {
   display: flex;

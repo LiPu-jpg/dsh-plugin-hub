@@ -2,11 +2,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * System diagnostics list: every connectivity probe is one row — name,
- * target address, latency and a live status badge (200 OK / Unreachable /
- * Checking…). The list runs automatically when the page opens; each row is
- * a button — click to re-probe just that channel with a visible
- * running→result feedback loop. Colors resolve through the --hub-* tokens. */
+ * 系统诊断列表：每个连通性探测一行 —— 名称、目标地址、延迟与实时状态徽标
+ * （200 OK / 不可达 / 检测中…）。页面打开时自动跑一轮；每行都是按钮 ——
+ * 点击只重测该通道，形成「运行→结果」的可见反馈闭环。颜色经 --hub-* 变量解析。 */
 
 .panel {
   display: flex;

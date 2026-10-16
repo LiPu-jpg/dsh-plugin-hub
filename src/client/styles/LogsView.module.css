@@ -2,9 +2,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * System logs: one row per entry — time, level badge (OK green / FAIL red /
- * WARN amber / INFO grey), event code and the message. Header holds the
- * refresh / copy-all / export (.log download) actions. */
+ * 系统日志：每条一行 —— 时间、级别徽标（OK 绿 / FAIL 红 / WARN 琥珀 / INFO 灰）、
+ * 事件码与消息。头部含 刷新 / 全部复制 / 导出（.log 下载）动作。 */
 
 .panel {
   display: flex;

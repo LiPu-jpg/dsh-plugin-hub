@@ -3,11 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Incremental list: renders only the first batch of a (potentially huge)
- * result set and appends the next batch whenever the end sentinel scrolls
- * into view, so the plugin market never mounts thousands of cards at once.
- * The items reference is the list identity — category / search / sort
- * changes produce a new array, which resets the window to the first batch.
+ * 增量列表：只渲染（可能很大的）结果集的第一批，末尾哨兵滚入视口时就追加下一批，
+ * 让插件市场绝不一次性挂载成千上万张卡片。
+ * items 引用即列表身份 —— 分类/搜索/排序变化会产出新数组，窗口随之重置回第一批。
  */
 import { useEffect, useRef, useState } from 'react'
 

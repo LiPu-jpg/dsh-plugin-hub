@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Catalog repository: fetches the plugin directory and the collection stats
- * from the online API and normalizes them. Components never see URLs or
- * fetch — the repository is the only place that knows where data lives.
+ * 目录数据仓库：从在线 API 拉取插件目录与收录统计并做归一化。
+ * 组件不接触 URL 与 fetch —— 这里是唯一知道数据所在地的地方。
  */
 import type { HubPlugin, LocaleId } from '../types.ts'
 import { normalize } from '../logic/normalize.ts'

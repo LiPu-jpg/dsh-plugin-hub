@@ -3,11 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Primary navigation: a compact segmented control switching between the
- * four top-level sections — Market (browse), Installed (manage), Custom
- * (manual command installs) and Settings (network sources & preferences).
- * Kept visually distinct from the category chips so the hierarchy reads:
- * section → category → plugin.
+ * 一级导航：紧凑分段控件，在四个顶层板块间切换 —— 市场（浏览）、已安装（管理）、
+ * 自定义（手动命令安装）与设置（网络源与偏好）。与分类 chip 视觉上区分开，
+ * 让层级清晰：板块 → 分类 → 插件。
  */
 import { createElement as h } from 'react'
 import styles from '../../styles/SectionTabs.module.css'

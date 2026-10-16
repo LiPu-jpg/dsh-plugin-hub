@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * URL builders: catalog detail pages, plugin site links and the pre-filled
- * GitHub issue URL used by the failure modal. Pure functions — the issue
- * URL stays within GitHub's 8192-byte request limit.
+ * URL 构造：目录详情页、插件官网链接，以及失败弹窗用的预填 GitHub Issue 链接。
+ * 均为纯函数，保证 issue URL 不超过 GitHub 8192 字节的请求上限。
  */
 import type { EnvInfo, HubPlugin, LocaleId } from '../types.ts'
 import { GITHUB_URL, HUB_REPO, PLUGIN_VERSION, SITE_URL } from './constants.ts'

@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Install/uninstall routes: validate the target and spawn the official dsh CLI
- * (see services/install/install.ts), reporting the captured result back.
- * Custom installs accept npm package names only.
+ * 安装/卸载路由：校验目标后 spawn 官方 dsh CLI（见 services/install/install.ts），
+ * 并回传捕获的结果。自定义安装只接受 npm 包名。
  */
 import { githubRepoOf, globalNpmPackagesOf, hasQueuedTarget, installTargetOf, startPluginMutation, validPackageName, type LoaderHandle } from '../services/install/install.ts'
 import { recordResolvedNpmPackage } from '../services/profile/installed-versions.ts'
@@ -156,7 +155,7 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
             sendJson(response, 409, { error: `already queued: ${target}` })
             return
           }
-          // Kick off the CLI in the background; the client polls /status for progress
+          // 后台启动 CLI；客户端轮询 /status 获取进度
           const task = startPluginMutation({
             // mode=update（已安装目标的覆盖更新）以 update 动作入队：
             // 日志按 update 类别落盘（update.start/done/fail），实际 CLI 执行仍是 add <target>@latest

@@ -1,17 +1,13 @@
 /**
- * Self-heal missing plugin CSS tags.
+ * 自愈缺失的插件 CSS 标签。
  *
- * CSS injection is a one-shot side effect of the bundle factory (guarded by
- * "tag already present"). When the host restarts the page survives, but the
- * host HMR chain may remove the <style data-plugin> tags while the in-memory
- * module cache still holds the old factory — so the factory never re-runs and
- * the styles never come back until some interaction triggers a reload.
+ * CSS 注入是 bundle 工厂的一次性副作用（以「标签已存在」为守卫）。宿主重启后页面仍在，
+ * 但宿主 HMR 链可能移除 <style data-plugin> 标签，而内存模块缓存仍持有旧工厂，工厂不再
+ * 重跑，样式就一直缺失，直到某次交互触发刷新才恢复。
  *
- * The tsdown `dsh-css-modules-inline` build plugin registers every module's
- * { tagId, css } into the global list `__DSH_PLUGIN_CSS__` at factory time.
- * This helper compares that list against the live DOM and re-injects any
- * missing tags, turning the "click around to fix it" self-heal into an
- * automatic one on mount / view switch.
+ * tsdown 的 `dsh-css-modules-inline` 构建插件会在工厂执行时把每个模块的 { tagId, css }
+ * 登记进全局列表 `__DSH_PLUGIN_CSS__`。此工具随后比对列表与实时 DOM，补注入缺失的标签，
+ * 把「点一圈才自愈」变成挂载 / 切换视图时自动完成。
  */
 
 interface PluginCssEntry {
@@ -25,7 +21,7 @@ declare global {
   }
 }
 
-/** Re-inject any registered stylesheet that is missing from the DOM. Idempotent. */
+/** 补注入 DOM 中缺失的已登记样式表，幂等。 */
 export function ensurePluginCss(): void {
   if (typeof document === 'undefined') return
   const registry = window.__DSH_PLUGIN_CSS__

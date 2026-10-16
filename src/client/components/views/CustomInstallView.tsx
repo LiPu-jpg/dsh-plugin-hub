@@ -3,15 +3,12 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Custom install view: a standalone top-level section for manually
- * installing npm packages outside the catalog. The installer card accepts a
- * bare name or a full npm/pnpm install command, including the official global
- * `npm install -g`, with an example above the input and its own format check.
- * Finished installs surface in the Installed view, marked as custom.
+ * 自定义安装视图：独立一级板块，用于手动安装目录之外的 npm 包。安装卡片接受裸包名或完整的
+ * npm/pnpm 安装命令（含官方全局 `npm install -g`），输入框上方带示例并自带格式校验。
+ * 装完的插件出现在「已安装」视图，标记为自定义安装。
  *
- * Pure presentational: owns only the local input/error state; the actual
- * install (custom source, gated by the security toggle) bubbles up via
- * onInstallCustom.
+ * 纯展示组件：只持有本地输入/错误状态；真正的安装（custom 源，受安全开关控制）经
+ * onInstallCustom 上抛。
  */
 import { createElement as h, useState } from 'react'
 import type { FormEvent, MouseEvent } from 'react'

@@ -3,10 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Plugin Hub section: wires the catalog data pipeline, the background task
- * queue and the feedback state together. Data/queue logic lives in hooks/,
- * rendering is delegated to the small presentational components in this
- * folder; it hosts the dialogs/toast and the section-level copy actions.
+ * 插件中心板块：把目录数据管道、后台任务队列与反馈状态接在一起。数据/队列逻辑在 hooks/，
+ * 渲染交给本目录下的小型展示组件；本文件托管各弹窗/Toast 与板块级复制动作。
  */
 import { createElement as h, useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
@@ -267,8 +265,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
       await navigator.clipboard.writeText(text)
       return true
     } catch {
-      // Clipboard API unavailable (permissions/iframe) — fall back to the
-      // legacy hidden-textarea trick, which works in any context.
+      // Clipboard API 不可用（权限/iframe）—— 退回旧的隐藏 textarea 方案，任何环境都可用。
       const ta = document.createElement('textarea')
       ta.value = text
       ta.style.position = 'fixed'

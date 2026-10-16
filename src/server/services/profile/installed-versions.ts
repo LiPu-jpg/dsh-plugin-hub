@@ -3,23 +3,19 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Installed-plugin version tracking.
+ * 已安装插件版本追踪。
  *
- * The installed table (`readInstalled` in routes.ts) only knows the manifest
- * spec of each Git dependency, which carries no version.
- * To let the Plugin Hub tell "an update is available", we record the catalog
- * signal present at install time into a small per-profile JSON file, then
- * compare it against the catalog's current signal later.
+ * 已安装表（routes.ts 的 `readInstalled`）只知道每个 Git 依赖的 manifest spec，不含版本号。
+ * 为让插件中心能判断「有更新」，我们把安装时的目录信号记进一个 per-profile 的小 JSON 文件，
+ * 之后再与目录当前信号比对。
  *
- * Two signals cover every repo:
- *   - version:  the catalog's latest release tag (e.g. v1.2.3). Repos that
- *     publish releases are compared on this.
- *   - updatedAt: the repo's last push time (GitHub pushed_at, `repoUpdatedAt`).
- *     Repos that never publish a release fall back to this: a newer push time
- *     means new commits → an update is available.
+ * 两个信号覆盖所有仓库：
+ *   - version：目录最新 release tag（如 v1.2.3），发 release 的仓库按它比对。
+ *   - updatedAt：仓库最近 push 时间（GitHub pushed_at，即 `repoUpdatedAt`），
+ *     从不发 release 的仓库回退用它：push 时间变新即有新提交 → 有更新。
  *
- * Storage: `DSH_HOME/profiles/<profile>/gro.ngilp-hsd-versions.json`
- *   { "<owner>/<repo>" (lowercase): { version: string, updatedAt: string, installedAt: string } }
+ * 存储：`DSH_HOME/profiles/<profile>/gro.ngilp-hsd-versions.json`
+ *   { "<owner>/<repo>"（小写）: { version, updatedAt, installedAt } }
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -51,7 +47,7 @@ export function readInstalledVersions(profile: string): InstalledVersionTable {
   }
 }
 
-/** Record the catalog signals (version + repo updated time) present at install time for one repo. */
+/** 记录某仓库安装时的目录信号（版本 + 仓库更新时间）。 */
 export function recordInstalledVersion(profile: string, repo: string, version: string, updatedAt: string): void {
   const table = readInstalledVersions(profile)
   const key = repo.toLowerCase()
@@ -62,10 +58,8 @@ export function recordInstalledVersion(profile: string, repo: string, version: s
 }
 
 /**
- * Record the npm package name resolved for a repo. Called at `/install` time so
- * the mapping exists even before the task finishes; harmless when the repo is
- * not (yet) installed — the client only treats a repo as installed when its
- * dependency key actually exists.
+ * 记录某仓库解析出的 npm 包名。在 `/install` 时调用，让映射在任务完成前就存在；
+ * 仓库尚未安装时也无害 —— 客户端只在依赖 key 真实存在时才把仓库当作已安装。
  */
 export function recordResolvedNpmPackage(profile: string, repo: string, npmPackage: string): void {
   const table = readInstalledVersions(profile)
@@ -74,7 +68,7 @@ export function recordResolvedNpmPackage(profile: string, repo: string, npmPacka
   writeVersions(profile, table)
 }
 
-/** Forget the recorded version for one repo (called on uninstall). */
+/** 清除某仓库记录的版本（卸载时调用）。 */
 export function removeInstalledVersion(profile: string, repo: string): void {
   const table = readInstalledVersions(profile)
   delete table[repo.toLowerCase()]

@@ -3,10 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Catalog list: the scrollable container with the loading / failed / empty
- * states, the plugin cards, and the count footer. Resets scroll position when
- * the category or install-status filter changes so the replaced content is
- * not mistaken for a no-op update.
+ * 目录列表：承载加载/失败/空三态、插件卡片与计数页脚的滚动容器。分类或安装状态
+ * 筛选变化时重置滚动位置，避免替换后的内容被误当成「没变化」。
  */
 import { createElement as h, useEffect, useRef } from 'react'
 import styles from '../../styles/List.module.css'

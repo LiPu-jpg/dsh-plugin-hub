@@ -12,7 +12,7 @@ import { basename, dirname, join } from 'node:path'
 import { PACKAGE_RE, REPO_RE } from '../install/install-types.ts'
 import { githubReleaseTarget } from '../install/release-target.ts'
 
-/** Resolve the active profile from the booted CLI args, falling back to `web`. */
+/** 从启动参数解析当前 profile，取不到落回 `web`。 */
 export function readProfileArg(fallback = 'web'): string {
   return profileFromArgv(process.argv, fallback)
 }
@@ -44,14 +44,13 @@ export function profileFromArgv(argv: readonly string[], fallback = 'web'): stri
   return fallback
 }
 
-/** Resolve a profile directory (`DSH_HOME` or `~/.dsh`). */
+/** 解析 profile 目录（`DSH_HOME` 或 `~/.dsh`）。 */
 export function profileDirectory(profile: string): string {
   return join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'profiles', profile)
 }
 
-/** Build a safe explicit HTTPS Git target, or null when the repo is unsafe.
- *  When `ref` is given it is appended as a Git ref (`#tag` / `#commit`) so an
- *  explicitly pinned revision reaches the installer instead of being dropped. */
+/** 把仓库身份转成规范的 GitHub 目标（git+https），仓库不合法时返回 null。
+ *  带 ref 时按 Git ref（`#tag` / `#commit`）拼接；安装通道已不再使用 git 目标，此函数仅做身份规范化。 */
 export function githubTarget(repo: string, ref?: string | null): string | null {
   if (typeof repo !== 'string' || !REPO_RE.test(repo)) return null
   const url = `git+https://github.com/${repo}.git`
@@ -90,7 +89,7 @@ export function globalNpmPackagesOf(value: string): string[] | null {
   return packages
 }
 
-/** Extract an owner/repo identity from a catalog value or an installed Git spec. */
+/** 从目录值或已装 Git spec 中提取 owner/repo 身份。 */
 export function githubRepoOf(value: string): string | null {
   if (typeof value !== 'string') return null
   const input = value.trim()
@@ -114,25 +113,24 @@ export function githubRepoOf(value: string): string | null {
   return null
 }
 
-/** Validate an npm package name (uninstall target grammar). */
+/** 校验 npm 包名（卸载目标的语法）。 */
 export function validPackageName(name: string): boolean {
   return typeof name === 'string' && PACKAGE_RE.test(name)
 }
 
 /**
- * The exact `allowBuilds` key pnpm printed in its
- * `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` hint. For Git installs pnpm
- * matches against `name@<resolved fetch URL>` — the URL it actually fetches,
- * e.g. `https://codeload.github.com/<owner>/<repo>/tar.gz/<commit>` — not the
- * `git+ssh://`/branch spec. A bare name or a `git+` spec does not match, so
- * the only reliable key is the one pnpm prints verbatim. Null when absent.
+ * 取 pnpm 在 `ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED` 提示里原样打印的 `allowBuilds` key。
+ * Git 安装时 pnpm 按 `name@<实际 fetch URL>`（如
+ * `https://codeload.github.com/<owner>/<repo>/tar.gz/<commit>`）匹配，而不是 `git+ssh://`
+ * 或分支 spec —— 裸包名与 `git+` spec 都匹配不上，唯一可靠的 key 就是 pnpm 原样输出的那个。
+ * 无则返回 null。
  */
 export function parseAllowBuildsKey(output: string): string | null {
   const m = /^[ \t]*(\S+@\S+):[ \t]*true[ \t]*$/m.exec(output)
   return m === null ? null : m[1].trim()
 }
 
-/** Quote a YAML block-mapping key when a plain scalar would be invalid. */
+/** 当裸标量非法时，为 YAML 块映射 key 加引号。 */
 function quoteYamlKey(key: string): string {
   if (/^[-?:,[\]{}#&*!|>'"%@`]/.test(key) || /:(\s|$)/.test(key)) {
     return `'${key.replace(/'/g, "''")}'`
@@ -141,15 +139,14 @@ function quoteYamlKey(key: string): string {
 }
 
 /**
- * Add one `allowBuilds` entry to the profile's pnpm-workspace.yaml, merging
- * with existing entries and leaving the rest of the yaml intact. Broken
- * placeholder entries (pnpm's failed-install bug writes a literal
- * `set this to true or false` value) are dropped on rewrite.
+ * 向 profile 的 pnpm-workspace.yaml 追加一条 `allowBuilds` 记录：与已有条目合并，
+ * 其余 yaml 保持不变；重写时丢弃损坏的占位条目（pnpm 安装失败的 bug 会写入
+ * 字面量 `set this to true or false`）。
  */
 export function addAllowBuildsKey(profile: string, key: string): void {
   const file = join(profileDirectory(profile), 'pnpm-workspace.yaml')
   let yaml = ''
-  try { yaml = readFileSync(file, 'utf8') } catch { /* created below */ }
+  try { yaml = readFileSync(file, 'utf8') } catch { /* 文件不存在，下方创建 */ }
   const eol = /\r\n/.test(yaml) ? '\r\n' : '\n'
   const blockRe = /allowBuilds:[ \t]*\r?\n((?:[ \t]+[^\r\n]*\r?\n?)*)/g
   const map = new Map<string, string>()

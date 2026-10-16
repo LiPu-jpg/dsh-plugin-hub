@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Category tabs: an "all" chip followed by one chip per catalog category.
- * The "all" chip carries the total plugin count; the per-category chips
- * carry no counts so their widths stay uniform.
+ * 分类 Tab：先是「全部」chip，其后每个目录分类一个 chip。「全部」chip 带插件总数，
+ * 各分类 chip 不带计数以保持宽度一致。
  */
 import { createElement as h } from 'react'
 import styles from '../../styles/Header.module.css'

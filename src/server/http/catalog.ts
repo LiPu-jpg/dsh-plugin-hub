@@ -3,8 +3,7 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Catalog proxy routes: server-side caching of the directory/stats payloads
- * and profile-level installed-package reads shared with the install/task modules.
+ * 目录代理路由：目录/统计载荷的服务端缓存，以及与安装/任务模块共享的 profile 级已装包读取。
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -53,7 +52,7 @@ export function profileDirectory(profile: string): string {
   return join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'profiles', profile)
 }
 
-/** Read non-official dependencies installed into one profile. */
+/** 读取安装进某 profile 的非官方依赖。 */
 export function readInstalled(profile: string): Record<string, string> {
   try {
     const manifest = JSON.parse(readFileSync(join(profileDirectory(profile), 'package.json'), 'utf8')) as {

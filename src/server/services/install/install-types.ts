@@ -36,7 +36,7 @@ export interface InstallTask {
   exitCode: number | null
   /** 0-100 估算进度：解析 pnpm 的 `Progress: resolved…` 输出，阶段行兜底 */
   progress: number
-  /** Newest output lines first (consumer shows the tail). */
+  /** 输出行最新在前（消费方展示尾部）。 */
   lines: string[]
   /** 完成后是否仍需宿主重启才生效：仅「热挂载失败 / 非 dsh 插件 / 更新（ESM 缓存取不到新代码）/
    *  无 loader」等刷新解决不了的兜底场景为 true（弹窗给「立即重启」）；其余一律 false。 */
@@ -86,13 +86,13 @@ export interface PendingRestart {
   at: number
 }
 
-/** Grammar of a catalog GitHub repository identity (`owner/repo`). */
+/** 目录 GitHub 仓库身份（`owner/repo`）的语法。 */
 export const REPO_RE = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/
-/** Grammar of an npm package name (used for uninstall targets). */
+/** npm 包名的语法（用于卸载目标）。 */
 export const PACKAGE_RE = /^(?:@[a-z0-9._-]+\/)?[A-Za-z0-9._-]+$/
 /** 捕获输出上限：stdout/stderr 各保留尾部 N 字节。 */
 export const CAPTURE_LIMIT_BYTES = 64 * 1024
-/** Max output lines kept per task (newest wins). */
+/** 每个任务保留的最大输出行数（最新优先）。 */
 export const MAX_TASK_LINES = 200
-/** Max tracked tasks; oldest finished tasks are dropped first. */
+/** 最多跟踪的任务数；超出时先丢弃最早结束的任务。 */
 export const MAX_TASKS = 50

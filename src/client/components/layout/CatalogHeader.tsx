@@ -3,8 +3,7 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Section header: brand title row (H1 + open-site button) + tagline, followed
- * by the purple ad banner that promotes the catalog stats.
+ * 板块头部：品牌标题行（H1 + 官网入口按钮）+ 副标题，其后是宣传目录统计的紫色广告条。
  */
 import { createElement as h, Fragment } from 'react'
 import styles from '../../styles/Header.module.css'

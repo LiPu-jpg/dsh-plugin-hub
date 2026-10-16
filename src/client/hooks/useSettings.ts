@@ -3,11 +3,10 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Hub settings state: loaded once from the host's local /settings route
- * (persisted at ~/.dsh/profiles/<profile>/hub-settings.json), updated
- * optimistically. Every change POSTs the patch immediately so a toggled
- * switch survives a reload; a host without the server routes falls back to
- * the defaults and keeps working (settings simply do not persist).
+ * 插件中心设置状态：从宿主本地 /settings 路由加载一次（持久化在
+ * ~/.dsh/profiles/<profile>/hub-settings.json），并按乐观方式更新。
+ * 每次改动立即 POST 补丁，切换过的开关刷新后仍在；宿主未挂服务端路由时退回默认值
+ * 继续可用（设置不持久化而已）。
  */
 import { useCallback, useEffect, useState } from 'react'
 

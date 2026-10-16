@@ -2,9 +2,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Plugin Hub catalog list: the scrollable body, plugin cards (name, badges,
- * description, topics, stats, actions), loading / empty states and the
- * browse-all footer. Colors resolve through the --hub-* design tokens. */
+ * 插件中心目录列表：可滚动主体、插件卡片（名称、徽标、描述、标签、统计、动作）、
+ * 加载/空态与「浏览全部」页脚。颜色经 --hub-* 设计变量解析。 */
 
 .body {
   flex: 1;
@@ -273,7 +272,7 @@ body[data-ds-dark-theme] .uninstallBtn:hover {
   user-select: none;
 }
 
-/* —— states —— */
+/* —— 状态 —— */
 
 .state {
   flex: 1;
@@ -341,7 +340,7 @@ body[data-ds-dark-theme] .uninstallBtn:hover {
   background: var(--hub-brand-hover);
 }
 
-/* —— footer —— */
+/* —— 页脚 —— */
 
 .footer {
   flex-shrink: 0;

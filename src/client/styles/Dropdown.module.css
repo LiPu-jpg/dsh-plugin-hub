@@ -2,10 +2,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Button-style dropdown: the trigger reads as a compact toolbar button
- * (hairline border + subtle fill + current value + chevron), the panel is
- * a floating menu with hover fills and a brand-highlighted active option.
- * Colors resolve through the --hub-* design tokens. */
+ * 按钮式下拉框：触发器呈现为紧凑工具栏按钮（细边框 + 淡填充 + 当前值 + 箭头），
+ * 面板是浮层菜单，选项有 hover 填充、激活项品牌高亮。颜色经 --hub-* 设计变量解析。 */
 
 .dropdown {
   position: relative;

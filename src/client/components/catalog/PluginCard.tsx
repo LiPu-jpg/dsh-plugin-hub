@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * One plugin card in the catalog list: name/category/verified badge,
- * description + topics, star/fork/date stats, and the detail/install/
- * uninstall actions.
+ * 目录列表里的单张插件卡片：名称/分类/verified 徽标、描述 + 标签、Star/Fork/日期
+ * 统计，以及详情/安装/卸载动作。
  */
 import { createElement as h } from 'react'
 import styles from '../../styles/List.module.css'

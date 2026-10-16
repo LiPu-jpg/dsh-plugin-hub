@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Shared HTTP utilities: route/service types, request validation helpers and
- * the same-origin check guarding every POST mutation. Imported by the other
- * route modules in this directory.
+ * 共享 HTTP 工具：路由/服务类型、请求校验助手，以及守卫每个 POST 变更的同源校验。
+ * 由本目录其它路由模块引入。
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
@@ -97,7 +96,7 @@ export interface WebRoute {
   handler: (request: IncomingMessage, response: ServerResponse) => void | Promise<void>
 }
 
-/** The subset of the host web-server service this plugin touches. */
+/** 本插件用到的宿主 web-server 服务子集。 */
 export interface WebServerService {
   register(route: WebRoute): () => void
 }
@@ -135,8 +134,8 @@ function loopbackAuthority(authority: string): string | null {
   }
 }
 
-/** POST mutations are only accepted from the local web server origin or the desktop host page.
- *  Exported for tests (tests/routes.test.ts) — the origin check is the whole CSRF defence. */
+/** POST 变更只接受来自本地 web server 来源或桌面宿主页面。转出供测试（tests/routes.test.ts）使用 ——
+ *  来源校验就是全部的 CSRF 防御。 */
 export function isSameOrigin(request: IncomingMessage): boolean {
   // 服务只绑定本机回环地址：Host 不是回环（局域网 IP、被改写的域名）一律拒绝，
   // 顺带挡掉 DNS rebinding（Host 是攻击者域名，即便解析到 127.0.0.1）。

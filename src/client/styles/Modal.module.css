@@ -2,11 +2,10 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Plugin Hub dialogs and overlays: install / uninstall modals, error dialog,
- * failure-record dialog, task-queue dialog, progress strip, inline progress
- * and the global toast. Colors resolve through the --hub-* design tokens. */
+ * 插件中心弹窗与遮罩：安装/卸载弹窗、错误弹窗、失败记录弹窗、任务队列弹窗、进度条、
+ * 内联进度与全局 Toast。颜色经 --hub-* 设计变量解析。 */
 
-/* —— modal base —— */
+/* —— 弹窗基座 —— */
 
 .overlay {
   position: fixed;
@@ -364,7 +363,7 @@
   overflow-y: auto;
 }
 
-/* —— toast —— */
+/* —— Toast 提示条 —— */
 
 /* 复制成功提示条：窗口正中央浮出，无遮罩无图标。采用反色浮层——亮色模式
    黑底白字、暗色模式白底深字（复用主按钮 token：primary-fill 与

@@ -3,13 +3,11 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Installed-plugin model (pure logic, zero React/UI dependencies).
+ * 已安装插件模型（纯逻辑，不依赖 React/UI）。
  *
- * Merges the local installed table (from the host's `/installed` route:
- * npm name → manifest spec) with the catalog projection into a single
- * `InstalledItem` view-model consumed by the Installed view. Also hosts the
- * install matching / update detection used by the market view, so both
- * views share one source of truth.
+ * 把宿主 `/installed` 路由下发的本地已装表（npm 包名 → manifest spec）与目录投影合并成
+ * 统一的 `InstalledItem` 视图模型，供「已安装」视图消费；同时承载市场视图用的安装匹配
+ * 与更新检测，让两个视图共享唯一数据源。
  */
 import type { HubPlugin } from '../types.ts'
 import { HUB_REPO } from './constants.ts'

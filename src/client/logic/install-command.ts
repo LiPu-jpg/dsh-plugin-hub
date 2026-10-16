@@ -3,15 +3,13 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Install target/command helpers: pick the npm package name for a catalog entry,
- * build the display command and normalize a raw install spec back to its
- * owner/repo identity.
+ * 安装目标/命令工具：为目录条目取 npm 包名、构造展示命令，并把原始安装 spec 归一化回 owner/repo 身份。
  */
 import type { HubPlugin } from '../types.ts'
 import { githubReleaseTarget } from '../../server/services/install/release-target.ts'
 
-/** Backend attempts are chronological; report the last executed command before a display fallback.
- * These prefixes are the task queue's recorded command shapes, never commands to execute here.
+/** 后端 attempts 按时间先后排列：取最后一次实际执行的命令，取不到再回退到展示用命令。
+ * 这里匹配的是任务队列记录的指令形态，不是要在此执行的命令。
  */
 export function executedCommandOf(command?: string, attempts?: string[]): string | undefined {
   if (attempts === undefined) return command
@@ -39,7 +37,7 @@ export function installCommandOf(p: HubPlugin, withProfile = false): string {
   return `${prefix}${installTargetOf(p)}`
 }
 
-/** Normalize a task/install target to its owner/repo display identity. */
+/** 把任务/安装目标归一化为 owner/repo 展示身份。 */
 export function repoFromInstallTarget(value: string): string {
   const input = value.trim()
   // release 直链（预构建 .tgz）走同一条身份归一化：解析出所属仓库，已装态/更新信号才能

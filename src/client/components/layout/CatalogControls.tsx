@@ -3,12 +3,11 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Toolbar above the market list:
- * row 1 — full-width search input;
- * row 2 — result count on the left, sort segmented control on the right
- * (mirrors the Installed view: clicking the same sort toggles
- * ascending/descending, a new sort uses its default order; the active
- * button shows an up/down arrow for the current direction).
+ * 市场列表上方的工具栏：
+ * 第一行 —— 整行宽的搜索框；
+ * 第二行 —— 左侧结果计数，右侧排序分段控件
+ * （与已安装视图一致：点同一排序切换正/倒序，点新排序用其默认方向；
+ *  激活按钮显示当前方向的上/下箭头）。
  */
 import { createElement as h, Fragment } from 'react'
 import type { FormEvent, ReactNode } from 'react'

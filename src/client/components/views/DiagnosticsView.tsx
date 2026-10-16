@@ -3,12 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * System diagnostics list: one row per connectivity channel (npm registry /
- * GitHub API / catalog site), each with a live status badge — 200 OK in
- * green, Unreachable in red, Checking… while probing. The list runs
- * automatically when the page opens; every row is a button that re-probes
- * just that channel, so a click always yields visible feedback
- * (row pulses → badge flips → latency refreshes).
+ * 系统诊断列表：每个连通性通道（npm registry / GitHub API / 目录站点）一行，各带实时
+ * 状态徽标 —— 200 OK 绿、不可达红、探测中显示「检测中…」。页面打开时自动跑一轮；
+ * 每行都是按钮，点击只重测该通道，因此点击总有可见反馈（行脉冲 → 徽标翻转 → 延迟刷新）。
  */
 import { createElement as h, useCallback, useEffect, useRef, useState } from 'react'
 import styles from '../../styles/DiagnosticsView.module.css'

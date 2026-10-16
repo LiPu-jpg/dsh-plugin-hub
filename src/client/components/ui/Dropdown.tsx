@@ -3,13 +3,11 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Button-style dropdown (native <select> replacement).
+ * 按钮式下拉框（替代原生 <select>）。
  *
- * The trigger is a compact toolbar button — hairline border + subtle grey
- * fill + current value + chevron — so it sits naturally next to the other
- * toolbar buttons and takes a single slot of horizontal space. Clicking
- * outside or pressing Esc closes the panel; options get a hover fill and
- * the active one a brand highlight, all driven by the --hub-* tokens.
+ * 触发器是紧凑的工具栏按钮 —— 细边框 + 淡灰填充 + 当前值 + 箭头 —— 与其它工具栏按钮
+ * 并排自然，只占一格横向空间。点击外部或按 Esc 关闭面板；选项有 hover 填充、
+ * 激活项为品牌高亮，全部由 --hub-* 变量驱动。
  */
 import { createElement as h, useEffect, useRef, useState } from 'react'
 import type { JSX } from 'react'

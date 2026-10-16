@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * dsh-plugin client entry: wires the Plugin Hub into the host settings via
- * the module-loader bundle (see tsdown.config.ts). All UI logic lives in
- * PluginHubSection; this file only performs the cordis apply wiring.
+ * dsh-plugin 客户端入口：通过模块加载器 bundle（见 tsdown.config.ts）把插件中心接入宿主设置。
+ * 全部 UI 逻辑都在 PluginHubSection；本文件只做 cordis apply 接线。
  */
 import { createElement as h } from 'react'
 import type { HubClientContext } from './types.ts'

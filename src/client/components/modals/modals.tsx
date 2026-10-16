@@ -3,11 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Dialog layer for the Plugin Hub: the install-confirm dialog, the uninstall
- * dialog and the global toast. Both dialogs lock themselves while a mutation
- * is running, then switch to a result view with a single action — "done" for
- * the common case (the page refreshes on close so the change applies), or a
- * single "restart now" for the rare changes a refresh cannot pick up.
+ * 插件中心的弹窗层：安装确认弹窗、卸载弹窗与全局 Toast。两个弹窗在变更执行期间
+ * 自我锁定，随后切到只有一个动作的结果视图 —— 常见情况给「完成」（关闭时刷新页面即生效），
+ * 刷新解决不了的少数情况才给单个「立即重启」。
  */
 import { createElement as h } from 'react'
 import type { MouseEvent } from 'react'

@@ -3,10 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Market view: the browse experience for the catalog — category tabs,
- * search/sort/install-state controls and the plugin list. Owns nothing;
- * it wires catalog state (query/sort/filter/category) to the small
- * presentational components so PluginHubSection stays free of view internals.
+ * 市场视图：目录的浏览体验 —— 分类 Tab、搜索/排序/安装状态控件与插件列表。自身不持有状态，
+ * 只把目录状态（query/sort/filter/category）接到小型展示组件上，让 PluginHubSection 不掺视图细节。
  */
 import { createElement as h, Fragment } from 'react'
 import type { HubPlugin, LocaleId } from '../../types.ts'

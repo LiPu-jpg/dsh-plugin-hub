@@ -3,24 +3,21 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Pure progress-estimation helpers shared by the install runner.
+ * 安装执行器共用的纯进度估算工具。
  *
- * The dsh CLI wraps pnpm, which refreshes its `Progress: …` line in place
- * with carriage returns, so raw output arrives as a stream of partial
- * fragments. These helpers normalize one fragment into a clean terminal
- * line and map it onto a 0-100 estimate; keeping them free of I/O makes the
- * estimation logic directly unit-testable (see tests/progress.test.ts).
+ * dsh CLI 包装了 pnpm，pnpm 用回车原地刷新 `Progress: …` 行，因此原始输出是一串碎片。
+ * 这些工具把单个碎片归一化成干净的终端行，并映射到 0-100 估算值；不碰 I/O
+ * 让估算逻辑可直接单测（见 tests/progress.test.ts）。
  */
 
-/** Strip the `[out]` / `[err]` source prefix and ANSI escape sequences. */
+/** 剥掉 `[out]` / `[err]` 来源前缀与 ANSI 转义序列。 */
 export function cleanLine(raw: string): string {
   return raw.replace(/^\[(?:err|out)\]\s*/, '').replace(/\x1b\[[0-9;]*[A-Za-z]/g, '').trim()
 }
 
 /**
- * Estimate 0-100 progress from one CLI output line. pnpm emits
- * `Progress: resolved N, reused X, downloaded Y, added Z` during the fetch
- * phase; resolution/install phase lines bump the estimate towards done.
+ * 从单行 CLI 输出估算 0-100 进度。pnpm 在 fetch 阶段输出
+ * `Progress: resolved N, reused X, downloaded Y, added Z`；解析/安装阶段的行把估算值推向完成。
  */
 export function estimateProgress(line: string): number {
   const progress = line.match(/Progress:\s*(.+)/)
@@ -28,7 +25,7 @@ export function estimateProgress(line: string): number {
     let resolved = 0
     let handled = 0
     for (const part of progress[1].split(',')) {
-      // pnpm emits `label count` tokens, e.g. `resolved 100, reused 40`
+      // pnpm 输出 `label count` 形式的 token，如 `resolved 100, reused 40`
       const [label, raw] = part.trim().split(/\s+/)
       const value = Number(raw)
       if (label === 'resolved') resolved = value

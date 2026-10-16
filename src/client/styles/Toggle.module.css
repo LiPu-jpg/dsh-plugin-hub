@@ -2,10 +2,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Toggle switch for settings rows: a small 34×18 track with a sliding
- * knob. Off = neutral hairline track; on = brand fill. Sized for the
- * compact settings row height (18px vs the 28px input rows), so labels
- * stay vertically centered without extra whitespace. */
+ * 设置行用的开关：小号 34×18 轨道 + 滑动圆钮。关 = 中性细线轨道；开 = 品牌填充。
+ * 尺寸贴合紧凑的设置行高（18px，输入行是 28px），让标签垂直居中且无多余留白。 */
 
 .toggle,
 .toggleOn {

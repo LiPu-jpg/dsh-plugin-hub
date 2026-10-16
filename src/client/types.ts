@@ -3,8 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Shared types for the dsh-plugin browser client. Kept dependency-free so
- * any client module can import them without pulling in components or styles.
+ * dsh-plugin 浏览器客户端的共享类型。保持零依赖，任何客户端模块都能直接引入，
+ * 而不会连带拉入组件或样式。
  */
 
 export type LocaleId = 'zh' | 'en'
@@ -13,10 +13,10 @@ export type LocaleId = 'zh' | 'en'
  *  客户端提交时显式上报，服务端落日志/报错提示据此溯源「从哪个入口发起」。 */
 export type InstallChannel = 'npm'
 
-/** Translation function signature shared by the host binder and the in-component dictionary. */
+/** 宿主绑定与组件内字典共用的翻译函数签名。 */
 export type Translate = (key: string, params?: Record<string, string | number>) => string
 
-/** The subset of the locale service this plugin touches. */
+/** 本插件用到的 locale 服务子集。 */
 export interface LocaleService {
   register(namespace: string, dicts: { zh: Record<string, string>; en: Record<string, string> }): unknown
   bind(namespace: string): (key: string, params?: Record<string, string | number>) => string
@@ -27,13 +27,13 @@ export interface LocaleService {
   setLocale(id: string): void
 }
 
-/** The subset of the slots service this plugin touches. */
+/** 本插件用到的 slots 服务子集。 */
 export interface SlotsService {
   inject(slot: string, register: () => unknown): void
   register(meta: Record<string, unknown>, component: () => unknown): unknown
 }
 
-/** The client cordis context shape this plugin relies on (structural). */
+/** 本插件依赖的客户端 cordis 上下文形态（结构化）。 */
 export interface HubClientContext {
   effect(callback: () => unknown, label?: string): void
   slots: SlotsService
@@ -45,7 +45,7 @@ export interface SectionProps {
   locale: LocaleService
 }
 
-/** Slim projection of the site's DirectoryPlugin entries. */
+/** 官网 DirectoryPlugin 条目的精简投影。 */
 export interface HubPlugin {
   /** 作者小写 key，与 slug 共同构成唯一身份（两级路径 /plugins/{ownerSlug}/{slug}）；可能缺省 */
   ownerSlug?: string

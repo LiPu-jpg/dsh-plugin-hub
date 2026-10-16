@@ -3,17 +3,14 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Settings view: desktop-settings navigation — a fixed left sidebar lists
- * the sections (icon + label, click to switch), the right pane shows the
- * active section's rows. New settings only add rows, new areas only add a
- * sidebar entry.
+ * 设置视图：桌面设置式导航 —— 固定左侧栏列出各分组（图标 + 名称，点击切换），
+ * 右侧面板展示当前分组的设置行。新增设置只加行，新增区域只加一条侧栏项。
  *
- * Sections mirror what the local server actually enforces:
- *   Updates & Sources — startup update check / npm mirror / HTTP proxy
- *                        (all wired into the install command path)
- *   Security & Trust  — restricted custom installs (server 403 gate)
- *   Diagnostics       — live connectivity probe + environment snapshot
- *   Logs              — system log viewer + storage location
+ * 各分组对应本地服务端实际强制的行为：
+ *   更新与源 —— 启动检查更新 / npm 镜像 / HTTP 代理（都接进安装命令链路）
+ *   安全与信任 —— 受限的自定义安装（服务端 403 门禁）
+ *   诊断 —— 实时连通性探测 + 环境快照
+ *   日志 —— 系统日志查看器 + 存放位置
  */
 import { createElement as h, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, MouseEvent, ReactNode } from 'react'

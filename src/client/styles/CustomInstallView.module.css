@@ -2,11 +2,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Custom install view: a standalone top-level section for manually
- * installing npm packages outside the catalog. The installer card stacks
- * one per line: channel label + example hint above the input + input row
- * (input + install button) + optional format-error note. Colors resolve
- * through the --hub-* tokens.
+ * 自定义安装视图：独立一级板块，用于手动安装目录之外的 npm 包。安装卡片逐行堆叠：
+ * 渠道标签 + 输入框上方的示例提示 + 输入行（输入框 + 安装按钮）+ 可选的格式错误提示。
+ * 颜色经 --hub-* 变量解析。
  */
 
 .root {

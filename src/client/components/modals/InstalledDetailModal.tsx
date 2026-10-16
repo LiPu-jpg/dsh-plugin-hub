@@ -3,12 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Installed-plugin detail dialog: opens from the Installed view (row click
- * or the detail button) and shows everything we know about an installed
- * entry — the catalog metadata (category, catalog entry, stars/forks,
- * latest version) merged with the host runtime facts (install path, installed
- * version, install time, last update). Update / uninstall actions are
- * offered from here too, mirroring the row actions.
+ * 已安装插件详情弹窗：从「已安装」视图打开（行点击或详情按钮），展示我们对某个已安装项
+ * 掌握的全部信息 —— 目录元数据（分类、收录入口、Star/Fork、最新版本）与宿主运行时事实
+ * （安装路径、已装版本、安装时间、最后更新）合并呈现。此处的更新/卸载动作与行内动作一致。
  */
 import { createElement as h } from 'react'
 import type { MouseEvent } from 'react'

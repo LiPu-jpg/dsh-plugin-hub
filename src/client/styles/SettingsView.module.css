@@ -2,11 +2,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Settings view: desktop-settings navigation — a fixed left sidebar lists
- * the sections (icon + label, click to switch), the right pane shows one
- * card per active section (rows: label left, control right, hairline
- * separators). High density, no whitespace waste: rows are 12px padding,
- * 28px controls, 11px descriptions. */
+ * 设置视图：桌面设置式导航 —— 固定左侧栏列出各分组（图标 + 名称，点击切换），
+ * 右侧面板每个分组一张卡片（行：标签左、控件右，细线分隔）。高密度、不浪费留白：
+ * 行内边距 12px、控件 28px、说明 11px。 */
 
 /* 整体：占满剩余高度，左导航右内容两栏 */
 .root {

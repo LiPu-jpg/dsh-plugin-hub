@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * dsh-plugin host entry: mounts the Plugin Hub HTTP routes once the host
- * web server service is available. The browser bundle (src/client) talks to
- * these same-origin routes to perform real installs from inside the app.
+ * dsh-plugin 宿主入口：宿主 webServer 服务就绪后挂载插件中心的 HTTP 路由。
+ * 浏览器 bundle（src/client）通过这些同源路由在应用内执行真正的安装。
  */
 import { readProfileArg, type LoaderHandle } from './services/install/install.ts'
 import { mountPluginHubRoutes, type WebServerService } from './http/routes.ts'
@@ -13,11 +12,11 @@ import { mountPluginHubRoutes, type WebServerService } from './http/routes.ts'
 export const name = 'dsh-plugin'
 
 export interface Config {
-  /** DSH profile that owns plugin mutations. Defaults to the booted profile. */
+  /** 拥有插件变更权限的 DSH profile，缺省用启动时的 profile。 */
   profile?: string
 }
 
-/** The subset of the cordis host context this plugin touches. */
+/** 本插件用到的 cordis 宿主上下文子集。 */
 interface HostContext {
   webServer: WebServerService
   /** 运行中 loader：卸载成功后主动移除条目、立即生效（宿主未提供时卸载仍需重启） */
@@ -27,9 +26,9 @@ interface HostContext {
 }
 
 /**
- * Mount the Plugin Hub routes after the web server service becomes available.
- * @param ctx - cordis host context.
- * @param config - optional profile override.
+ * webServer 服务就绪后挂载插件中心路由。
+ * @param ctx - cordis 宿主上下文。
+ * @param config - 可选的 profile 覆盖。
  */
 export function apply(ctx: HostContext, config: Config = {}): void {
   const profile = config.profile ?? readProfileArg('web')

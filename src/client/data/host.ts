@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Host repository: the local routes served by the DSH harness (installed
- * plugin table + environment snapshot). A host without the plugin's server
- * routes degrades to null / empty tables instead of throwing.
+ * 宿主数据仓库：DSH 宿主提供的本地路由（已装插件表 + 环境快照）。
+ * 宿主未挂载本插件服务端路由时降级为 null / 空表，而不是抛错。
  */
 import type { EnvInfo } from '../types.ts'
 import type { InstalledVersionSignal } from '../logic/installed.ts'

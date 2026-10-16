@@ -3,8 +3,7 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Constants: site URLs, category metadata and sort keys. Pure data — no
- * side effects, no network — so every consumer shares one definition.
+ * 常量：站点地址、分类元数据与排序 key。纯数据、无副作用、无网络，供所有使用方共享同一份定义。
  */
 import type { LocaleId } from '../types.ts'
 

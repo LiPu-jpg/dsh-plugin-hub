@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Compact switch used by the settings rows. Native-button based so it is
- * keyboard focusable and announces state via aria-checked; styling driven
- * by the --hub-* tokens (on = brand fill, off = neutral track).
+ * 设置行用的紧凑开关。基于原生 button，可键盘聚焦并通过 aria-checked 播报状态；
+ * 样式由 --hub-* 变量驱动（开 = 品牌填充，关 = 中性轨道）。
  */
 import { createElement as h } from 'react'
 import styles from '../../styles/Toggle.module.css'

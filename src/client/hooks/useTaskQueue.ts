@@ -3,11 +3,10 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Background install/remove task queue for the Plugin Hub.
+ * 插件中心的后台安装/卸载任务队列。
  *
- * Mirrors the server-side FIFO active queue by polling /active, settles
- * vanished tasks against /status, and exposes the queue actions (install,
- * uninstall, cancel) plus the modal task lookups used by the dialogs.
+ * 通过轮询 /active 镜像服务端 FIFO 活动队列，对消失的任务用 /status 收尾，并暴露
+ * 队列动作（安装、卸载、取消）以及弹窗用的任务查找。
  */
 import { useEffect, useRef, useState } from 'react'
 import type { HubPlugin, InstallChannel, LocaleId, Translate } from '../types.ts'
@@ -407,7 +406,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
           // 刷新后恢复的任务同样保持折叠：摘要条提示进行中，点开才看明细/日志
           pollQueue()
         }
-      } catch { /* host without the plugin's server routes */ }
+      } catch { /* 宿主未挂本插件服务端路由 */ }
     }
     void restore()
     return () => { cancelled = true }

@@ -3,11 +3,10 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Catalog data + view state for the Plugin Hub section.
+ * 插件中心的数据 + 视图状态。
  *
- * Owns the online-data pipeline (live fetch from api.dsh-plugin.org), the local
- * installed-plugin table, and the filter/search/sort/install-status view
- * state, exposing the derived visible list and per-category counts.
+ * 掌管在线数据管道（从 api.dsh-plugin.org 实时拉取）、本地已装插件表，以及
+ * 筛选/搜索/排序/安装状态等视图状态，对外暴露派生出的可见列表与各分类计数。
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { HubPlugin, LocaleId } from '../types.ts'
@@ -307,7 +306,7 @@ export function useCatalog(lang: LocaleId) {
     })
   }, [plugins, category, query, sort, sortDir, installed])
 
-  /** Per-category plugin counts shown on the category chips. */
+  /** 分类 chip 上展示的各分类插件计数。 */
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     for (const p of plugins ?? []) {

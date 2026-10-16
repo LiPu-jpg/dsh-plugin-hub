@@ -3,10 +3,9 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Inline progress block shared by the install and uninstall dialogs:
- * a real percentage bar (server-estimated, client-polled). No live terminal
- * window — pnpm emits nothing during git clone/build, so a log pane would be
- * empty for most of the run; failures surface their full output in ErrorModal.
+ * 安装与卸载弹窗共用的内联进度块：真实百分比进度条（服务端估算、客户端轮询）。
+ * 不做实时终端窗口 —— pnpm 在 git clone/构建期间几乎无输出，日志面板大部分时间是空的；
+ * 失败时完整输出在 ErrorModal 里展示。
  */
 import { createElement as h } from 'react'
 import styles from '../../styles/Modal.module.css'
