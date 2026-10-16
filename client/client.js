@@ -718,42 +718,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$11
 		});
 		var Header_module_css_default = {
+			"copyIcon": "qikqja_copyIcon",
+			"hubUpdateBadge": "qikqja_hubUpdateBadge",
+			"search": "qikqja_search",
+			"version": "qikqja_version",
+			"searchRow": "qikqja_searchRow",
+			"segBtn": "qikqja_segBtn",
+			"resultCount": "qikqja_resultCount",
+			"versionBtn": "qikqja_versionBtn",
+			"headerTitleRow": "qikqja_headerTitleRow",
+			"aboutBtn": "qikqja_aboutBtn",
+			"adBanner": "qikqja_adBanner",
+			"tagline": "qikqja_tagline",
+			"langBtn": "qikqja_langBtn",
+			"adText": "qikqja_adText",
+			"taglineLink": "qikqja_taglineLink",
+			"tabCount": "qikqja_tabCount",
+			"tabsRow": "qikqja_tabsRow",
+			"header": "qikqja_header",
+			"githubIcon": "qikqja_githubIcon",
+			"githubLink": "qikqja_githubLink",
+			"logoIcon": "qikqja_logoIcon",
 			"adBadge": "qikqja_adBadge",
 			"brandTitle": "qikqja_brandTitle",
-			"tabsRow": "qikqja_tabsRow",
-			"logoIcon": "qikqja_logoIcon",
-			"copyIcon": "qikqja_copyIcon",
-			"version": "qikqja_version",
-			"search": "qikqja_search",
-			"versionBtn": "qikqja_versionBtn",
-			"controls": "qikqja_controls",
-			"resultSeg": "qikqja_resultSeg",
-			"sortGroup": "qikqja_sortGroup",
-			"root": "qikqja_root",
-			"header": "qikqja_header",
-			"adBanner": "qikqja_adBanner",
-			"hubUpdateBadge": "qikqja_hubUpdateBadge",
-			"tabActive": "qikqja_tabActive",
-			"adText": "qikqja_adText",
-			"segBtn": "qikqja_segBtn",
-			"langBtn": "qikqja_langBtn",
-			"githubIcon": "qikqja_githubIcon",
-			"headerTitleRow": "qikqja_headerTitleRow",
-			"title": "qikqja_title",
-			"adArrow": "qikqja_adArrow",
-			"tab": "qikqja_tab",
-			"segBtnActive": "qikqja_segBtnActive",
-			"taglineLink": "qikqja_taglineLink",
-			"resultCount": "qikqja_resultCount",
-			"searchRow": "qikqja_searchRow",
-			"githubLink": "qikqja_githubLink",
-			"tabs": "qikqja_tabs",
-			"aboutBtn": "qikqja_aboutBtn",
-			"tabCount": "qikqja_tabCount",
-			"tagline": "qikqja_tagline",
-			"segLabel": "qikqja_segLabel",
 			"headerRight": "qikqja_headerRight",
-			"segGroup": "qikqja_segGroup"
+			"tabActive": "qikqja_tabActive",
+			"resultSeg": "qikqja_resultSeg",
+			"segLabel": "qikqja_segLabel",
+			"title": "qikqja_title",
+			"sortGroup": "qikqja_sortGroup",
+			"segBtnActive": "qikqja_segBtnActive",
+			"segGroup": "qikqja_segGroup",
+			"adArrow": "qikqja_adArrow",
+			"tabs": "qikqja_tabs",
+			"controls": "qikqja_controls",
+			"root": "qikqja_root",
+			"tab": "qikqja_tab"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Modal.module.css.mjs
@@ -772,137 +772,137 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$10
 		});
 		var Modal_module_css_default = {
-			"failedCopyHint": "BiQ1zG_failedCopyHint",
-			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
-			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
-			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
-			"detailStatusPending": "BiQ1zG_detailStatusPending",
-			"confirmIcon": "BiQ1zG_confirmIcon",
-			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
-			"noticeTime": "BiQ1zG_noticeTime",
-			"noticeIgnore": "BiQ1zG_noticeIgnore",
-			"stripCancel": "BiQ1zG_stripCancel",
-			"failRepo": "BiQ1zG_failRepo",
-			"queueRowDesc": "BiQ1zG_queueRowDesc",
-			"queueRowBody": "BiQ1zG_queueRowBody",
-			"errorCopySoft": "BiQ1zG_errorCopySoft",
-			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
-			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
-			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
-			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
-			"resultCheck": "BiQ1zG_resultCheck",
-			"failHead": "BiQ1zG_failHead",
-			"queuedHint": "BiQ1zG_queuedHint",
-			"errorHint": "BiQ1zG_errorHint",
-			"progressText": "BiQ1zG_progressText",
-			"failPrepareHint": "BiQ1zG_failPrepareHint",
-			"resultTitle": "BiQ1zG_resultTitle",
-			"noticeVersion": "BiQ1zG_noticeVersion",
-			"failEmpty": "BiQ1zG_failEmpty",
-			"noticeTextOk": "BiQ1zG_noticeTextOk",
-			"detailLabel": "BiQ1zG_detailLabel",
-			"progressHead": "BiQ1zG_progressHead",
-			"detailPathText": "BiQ1zG_detailPathText",
-			"failBigIssue": "BiQ1zG_failBigIssue",
-			"queueRowPct": "BiQ1zG_queueRowPct",
-			"noticeMain": "BiQ1zG_noticeMain",
-			"detailRow": "BiQ1zG_detailRow",
-			"modalActions": "BiQ1zG_modalActions",
-			"errorBox": "BiQ1zG_errorBox",
-			"overlay": "BiQ1zG_overlay",
-			"pendingRowActions": "BiQ1zG_pendingRowActions",
-			"noticeRowMain": "BiQ1zG_noticeRowMain",
-			"linkIcon": "BiQ1zG_linkIcon",
-			"restartNow": "BiQ1zG_restartNow",
-			"progress": "BiQ1zG_progress",
-			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
-			"queueSection": "BiQ1zG_queueSection",
-			"modalCmdText": "BiQ1zG_modalCmdText",
-			"toastFail": "BiQ1zG_toastFail",
-			"modalBody": "BiQ1zG_modalBody",
-			"errorTitle": "BiQ1zG_errorTitle",
-			"toastIn": "BiQ1zG_toastIn",
-			"queueRowStatus": "BiQ1zG_queueRowStatus",
-			"noticeHead": "BiQ1zG_noticeHead",
-			"detailStars": "BiQ1zG_detailStars",
-			"modalCancel": "BiQ1zG_modalCancel",
-			"aboutMeta": "BiQ1zG_aboutMeta",
-			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
-			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
-			"modalCopy": "BiQ1zG_modalCopy",
-			"modalDesc": "BiQ1zG_modalDesc",
-			"resultDesc": "BiQ1zG_resultDesc",
-			"queueRowHead": "BiQ1zG_queueRowHead",
-			"modal": "BiQ1zG_modal",
-			"overlayIn": "BiQ1zG_overlayIn",
-			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
-			"failRow": "BiQ1zG_failRow",
-			"modalInstall": "BiQ1zG_modalInstall",
-			"detailLink": "BiQ1zG_detailLink",
-			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
-			"errorModal": "BiQ1zG_errorModal",
-			"progressFill": "BiQ1zG_progressFill",
-			"aboutModal": "BiQ1zG_aboutModal",
-			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
-			"noticeList": "BiQ1zG_noticeList",
-			"detailValue": "BiQ1zG_detailValue",
-			"modalHead": "BiQ1zG_modalHead",
-			"dangerConfirm": "BiQ1zG_dangerConfirm",
-			"failKind": "BiQ1zG_failKind",
-			"noticeRowOk": "BiQ1zG_noticeRowOk",
-			"detailPathBtn": "BiQ1zG_detailPathBtn",
-			"failDiagBtn": "BiQ1zG_failDiagBtn",
-			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
-			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
-			"detailPathActions": "BiQ1zG_detailPathActions",
 			"detailDim": "BiQ1zG_detailDim",
-			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
-			"modalRow": "BiQ1zG_modalRow",
-			"queueRowTarget": "BiQ1zG_queueRowTarget",
-			"progressFillFail": "BiQ1zG_progressFillFail",
-			"noticeRow": "BiQ1zG_noticeRow",
-			"toast": "BiQ1zG_toast",
-			"result": "BiQ1zG_result",
-			"modalLink": "BiQ1zG_modalLink",
-			"failKindUninstall": "BiQ1zG_failKindUninstall",
-			"detailStatusText": "BiQ1zG_detailStatusText",
-			"queueRow": "BiQ1zG_queueRow",
-			"helpModal": "BiQ1zG_helpModal",
-			"failList": "BiQ1zG_failList",
-			"noticeTextFail": "BiQ1zG_noticeTextFail",
-			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
-			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
-			"detailModal": "BiQ1zG_detailModal",
-			"aboutContent": "BiQ1zG_aboutContent",
-			"modalTitle": "BiQ1zG_modalTitle",
-			"detailMono": "BiQ1zG_detailMono",
-			"logModal": "BiQ1zG_logModal",
-			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
-			"queueRowTrack": "BiQ1zG_queueRowTrack",
-			"failCopy": "BiQ1zG_failCopy",
-			"failClear": "BiQ1zG_failClear",
-			"trustHint": "BiQ1zG_trustHint",
-			"confirmPrimary": "BiQ1zG_confirmPrimary",
-			"modalWide": "BiQ1zG_modalWide",
-			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
-			"modalIn": "BiQ1zG_modalIn",
-			"modalCmd": "BiQ1zG_modalCmd",
-			"detailArrow": "BiQ1zG_detailArrow",
-			"detailGrid": "BiQ1zG_detailGrid",
-			"modalClose": "BiQ1zG_modalClose",
-			"failKindInstall": "BiQ1zG_failKindInstall",
-			"restartLater": "BiQ1zG_restartLater",
-			"detailPath": "BiQ1zG_detailPath",
 			"resultRestarting": "BiQ1zG_resultRestarting",
-			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
-			"modalLabel": "BiQ1zG_modalLabel",
-			"noticeRemove": "BiQ1zG_noticeRemove",
-			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
-			"noticeFoot": "BiQ1zG_noticeFoot",
-			"modalValue": "BiQ1zG_modalValue",
-			"progressTrack": "BiQ1zG_progressTrack",
+			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
+			"modal": "BiQ1zG_modal",
+			"linkIcon": "BiQ1zG_linkIcon",
+			"noticeVersion": "BiQ1zG_noticeVersion",
+			"noticeRowMain": "BiQ1zG_noticeRowMain",
+			"detailPathText": "BiQ1zG_detailPathText",
+			"detailLabel": "BiQ1zG_detailLabel",
+			"failDiagBtn": "BiQ1zG_failDiagBtn",
+			"modalInstall": "BiQ1zG_modalInstall",
+			"failBigIssue": "BiQ1zG_failBigIssue",
+			"detailStatusPending": "BiQ1zG_detailStatusPending",
+			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
+			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
+			"progressFill": "BiQ1zG_progressFill",
+			"failRow": "BiQ1zG_failRow",
+			"noticeMain": "BiQ1zG_noticeMain",
+			"noticeRowOk": "BiQ1zG_noticeRowOk",
+			"modalCancel": "BiQ1zG_modalCancel",
+			"resultTitle": "BiQ1zG_resultTitle",
+			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
 			"restartNowWarning": "BiQ1zG_restartNowWarning",
-			"detailUpdateHint": "BiQ1zG_detailUpdateHint"
+			"aboutMeta": "BiQ1zG_aboutMeta",
+			"logModal": "BiQ1zG_logModal",
+			"modalLabel": "BiQ1zG_modalLabel",
+			"modalClose": "BiQ1zG_modalClose",
+			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
+			"progressText": "BiQ1zG_progressText",
+			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
+			"detailRow": "BiQ1zG_detailRow",
+			"progressTrack": "BiQ1zG_progressTrack",
+			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
+			"modalTitle": "BiQ1zG_modalTitle",
+			"modalLink": "BiQ1zG_modalLink",
+			"failKindInstall": "BiQ1zG_failKindInstall",
+			"noticeRow": "BiQ1zG_noticeRow",
+			"queueRow": "BiQ1zG_queueRow",
+			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
+			"queueRowTrack": "BiQ1zG_queueRowTrack",
+			"modalRow": "BiQ1zG_modalRow",
+			"failedCopyHint": "BiQ1zG_failedCopyHint",
+			"modalValue": "BiQ1zG_modalValue",
+			"noticeTextOk": "BiQ1zG_noticeTextOk",
+			"modalWide": "BiQ1zG_modalWide",
+			"failRepo": "BiQ1zG_failRepo",
+			"modalDesc": "BiQ1zG_modalDesc",
+			"confirmIcon": "BiQ1zG_confirmIcon",
+			"modalCopy": "BiQ1zG_modalCopy",
+			"dangerConfirm": "BiQ1zG_dangerConfirm",
+			"queuedHint": "BiQ1zG_queuedHint",
+			"noticeTextFail": "BiQ1zG_noticeTextFail",
+			"errorHint": "BiQ1zG_errorHint",
+			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
+			"errorModal": "BiQ1zG_errorModal",
+			"helpModal": "BiQ1zG_helpModal",
+			"queueRowDesc": "BiQ1zG_queueRowDesc",
+			"stripCancel": "BiQ1zG_stripCancel",
+			"failEmpty": "BiQ1zG_failEmpty",
+			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
+			"failClear": "BiQ1zG_failClear",
+			"modalHead": "BiQ1zG_modalHead",
+			"restartLater": "BiQ1zG_restartLater",
+			"trustHint": "BiQ1zG_trustHint",
+			"errorCopySoft": "BiQ1zG_errorCopySoft",
+			"toastFail": "BiQ1zG_toastFail",
+			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
+			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
+			"noticeTime": "BiQ1zG_noticeTime",
+			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
+			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
+			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
+			"aboutModal": "BiQ1zG_aboutModal",
+			"failHead": "BiQ1zG_failHead",
+			"aboutContent": "BiQ1zG_aboutContent",
+			"progressHead": "BiQ1zG_progressHead",
+			"detailPath": "BiQ1zG_detailPath",
+			"resultDesc": "BiQ1zG_resultDesc",
+			"modalBody": "BiQ1zG_modalBody",
+			"queueRowStatus": "BiQ1zG_queueRowStatus",
+			"modalIn": "BiQ1zG_modalIn",
+			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
+			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
+			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
+			"queueRowTarget": "BiQ1zG_queueRowTarget",
+			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
+			"noticeList": "BiQ1zG_noticeList",
+			"detailLink": "BiQ1zG_detailLink",
+			"detailStatusText": "BiQ1zG_detailStatusText",
+			"failList": "BiQ1zG_failList",
+			"detailMono": "BiQ1zG_detailMono",
+			"queueSection": "BiQ1zG_queueSection",
+			"modalActions": "BiQ1zG_modalActions",
+			"toast": "BiQ1zG_toast",
+			"modalCmdText": "BiQ1zG_modalCmdText",
+			"confirmPrimary": "BiQ1zG_confirmPrimary",
+			"detailPathBtn": "BiQ1zG_detailPathBtn",
+			"detailArrow": "BiQ1zG_detailArrow",
+			"modalCmd": "BiQ1zG_modalCmd",
+			"queueRowPct": "BiQ1zG_queueRowPct",
+			"restartNow": "BiQ1zG_restartNow",
+			"detailPathActions": "BiQ1zG_detailPathActions",
+			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
+			"detailGrid": "BiQ1zG_detailGrid",
+			"toastIn": "BiQ1zG_toastIn",
+			"result": "BiQ1zG_result",
+			"noticeHead": "BiQ1zG_noticeHead",
+			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
+			"pendingRowActions": "BiQ1zG_pendingRowActions",
+			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
+			"progress": "BiQ1zG_progress",
+			"resultCheck": "BiQ1zG_resultCheck",
+			"detailModal": "BiQ1zG_detailModal",
+			"overlay": "BiQ1zG_overlay",
+			"failPrepareHint": "BiQ1zG_failPrepareHint",
+			"queueRowHead": "BiQ1zG_queueRowHead",
+			"errorTitle": "BiQ1zG_errorTitle",
+			"failCopy": "BiQ1zG_failCopy",
+			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
+			"noticeFoot": "BiQ1zG_noticeFoot",
+			"detailStars": "BiQ1zG_detailStars",
+			"errorBox": "BiQ1zG_errorBox",
+			"detailValue": "BiQ1zG_detailValue",
+			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
+			"failKind": "BiQ1zG_failKind",
+			"noticeIgnore": "BiQ1zG_noticeIgnore",
+			"overlayIn": "BiQ1zG_overlayIn",
+			"queueRowBody": "BiQ1zG_queueRowBody",
+			"progressFillFail": "BiQ1zG_progressFillFail",
+			"noticeRemove": "BiQ1zG_noticeRemove",
+			"failKindUninstall": "BiQ1zG_failKindUninstall"
 		};
 		//#endregion
 		//#region src/server/services/install/release-target.ts
@@ -1145,6 +1145,22 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				return null;
 			}
 		}
+		/** 批量查询已安装插件 npm 包的最新版本发布时间（供应链门禁用）；失败返回 null（调用方按原逻辑照常提示）。 */
+		async function fetchNpmReleaseAge(packages) {
+			if (packages.length === 0) return {};
+			try {
+				const res = await fetch("/dsh-plugin-hub/npm-release-age", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify({ packages }),
+					cache: "no-store"
+				});
+				if (!res.ok) return null;
+				return (await res.json()).packages ?? null;
+			} catch {
+				return null;
+			}
+		}
 		let envPromise = null;
 		/** 在系统文件管理器里定位并打开已安装插件的目录（服务端 spawn open，跨平台）；失败返回 false。 */
 		async function revealInstallFolder(name) {
@@ -1304,6 +1320,25 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			}
 		}
 		//#endregion
+		//#region src/client/logic/release-age.ts
+		/**
+		* DSH Plugin Hub — the community plugin marketplace for DeepSeek Harness.
+		* Website: https://dsh-plugin.org
+		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
+		*
+		* 供应链门禁的时间判定（纯函数）：pnpm 会静默回退发布未满门槛的版本，
+		* 故发布太新的版本不该提示更新。Hub 自身更新与插件更新共用同一门槛。
+		*/
+		/** pnpm 供应链门禁：dsh profile 默认 minimumReleaseAge=1440（分钟）；+30 分钟缓冲抵消网络/CDN 边缘时间偏差。 */
+		const MIN_RELEASE_AGE_MS = 882e5;
+		/** 发布时间是否仍在门禁窗口内（太新 → 暂缓提示）；无值/解析不出返回 false（不拦真实更新）。 */
+		function isReleaseTooFresh(publishedAt, now) {
+			if (typeof publishedAt !== "string" || publishedAt === "") return false;
+			const ms = Date.parse(publishedAt);
+			if (Number.isNaN(ms)) return false;
+			return now - ms < MIN_RELEASE_AGE_MS;
+		}
+		//#endregion
 		//#region src/client/logic/installed.ts
 		/** 安装时记录的目录信号（按仓库小写 key 查表）。 */
 		function signalOf(repo, versions) {
@@ -1328,6 +1363,12 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			const repo = plugin.source?.repo;
 			if (!repo) return null;
 			return versions[repo.toLowerCase()]?.version ?? null;
+		}
+		/** 该插件对应的 npm 包名（目录下发，或安装时反查持久化的映射）；无则 null。决定更新是否走 npm registry。 */
+		function npmPackageOf(plugin, versions) {
+			const repo = plugin.source?.repo;
+			const pkg = (plugin.source?.npmPackage || (repo ? versions[repo.toLowerCase()]?.npmPackage : void 0) || "").trim();
+			return pkg === "" ? null : pkg;
 		}
 		/**
 		* 是否有更新：仅对已安装插件有意义。
@@ -1464,6 +1505,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		*/
 		/** 插件市场自身仓库：DSH Plugin Hub 不显示在目录里（自己不进自己的插件列表） */
 		const SELF_REPO = "dshplugin/dsh-plugin-hub";
+		/** 共享的空门禁集合：无暂缓包时复用，避免每次渲染新建 Set。 */
+		const EMPTY_PACKAGES = /* @__PURE__ */ new Set();
 		/** 市场各排序的默认方向：全部按倒序（Star/Fork 多、更新/收录近的在前） */
 		const SORT_DEFAULT_DIR$1 = {
 			sortStars: "desc",
@@ -1604,19 +1647,89 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			/** 该插件安装时记录的目录版本（无记录/未安装 → null）。 */
 			const installedVersion = (p) => installedVersionOf(p, versions);
 			/**
-			* 是否有更新：仅对已安装插件有意义。
-			* 双信号判定——有 release 版本的比版本；无版本（repo 不打 tag）的比仓库最近更新时间
-			* （repoUpdatedAt，ISO 字符串字典序 = 时间序），更新时间变新说明有新提交。
+			* 供应链门禁状态：包名集合为当前「暂缓提示」的 npm 包（最新版本发布未满门槛）。
+			* key 是这批候选包名的指纹，与已查出的 key 一致才算就绪，避免查询未回来时先显示更新。
 			*/
-			const hasUpdate = (p) => hasUpdateOf(p, installed, versions);
-			/** 已安装项统一列表（目录元数据 + 运行时信息合并）：驱动「已安装」tab。 */
-			const installedItems = (0, react.useMemo)(() => installedItemsOf(plugins, installed, versions, installPaths, loadedNames, dshCapableNames), [
+			const [releaseAge, setReleaseAge] = (0, react.useState)({
+				key: "",
+				held: EMPTY_PACKAGES
+			});
+			/** 已安装项原始列表（未套门禁）：先算出来才能收集需要查发布时间的候选包名。 */
+			const rawInstalledItems = (0, react.useMemo)(() => installedItemsOf(plugins, installed, versions, installPaths, loadedNames, dshCapableNames), [
 				plugins,
 				installed,
 				versions,
 				installPaths,
 				loadedNames,
 				dshCapableNames
+			]);
+			/** 门禁候选：有更新、且有 npm 包名（更新走 npm registry）的已安装插件包名。 */
+			const releaseAgeCandidates = (0, react.useMemo)(() => {
+				const names = /* @__PURE__ */ new Set();
+				for (const item of rawInstalledItems) {
+					if (!item.hasUpdate || !item.plugin) continue;
+					const pkg = npmPackageOf(item.plugin, versions);
+					if (pkg !== null) names.add(pkg);
+				}
+				return [...names].sort();
+			}, [rawInstalledItems, versions]);
+			const releaseAgeKey = releaseAgeCandidates.join("\n");
+			(0, react.useEffect)(() => {
+				if (releaseAgeKey === releaseAge.key) return;
+				if (releaseAgeCandidates.length === 0) {
+					setReleaseAge({
+						key: "",
+						held: EMPTY_PACKAGES
+					});
+					return;
+				}
+				let cancelled = false;
+				fetchNpmReleaseAge(releaseAgeCandidates).then((result) => {
+					if (cancelled) return;
+					const now = Date.now();
+					const held = /* @__PURE__ */ new Set();
+					for (const name of releaseAgeCandidates) {
+						const info = result?.[name];
+						if (info && isReleaseTooFresh(info.publishedAt, now)) held.add(name);
+					}
+					setReleaseAge({
+						key: releaseAgeKey,
+						held
+					});
+				});
+				return () => {
+					cancelled = true;
+				};
+			}, [releaseAgeKey, releaseAge.key]);
+			/** 门禁结果是否已就绪（候选为空也算就绪）：未就绪时不写更新提醒，等查询回来再定。 */
+			const releaseAgeReady = releaseAgeKey === releaseAge.key;
+			const heldPackages = releaseAgeReady ? releaseAge.held : EMPTY_PACKAGES;
+			/**
+			* 是否有更新：仅对已安装插件有意义。
+			* 双信号判定——有 release 版本的比版本；无版本（repo 不打 tag）的比仓库最近更新时间
+			* （repoUpdatedAt，ISO 字符串字典序 = 时间序），更新时间变新说明有新提交。
+			* 另加供应链门禁：npm 包最新版本发布未满门槛时视为暂缓，不打更新标记。
+			*/
+			const hasUpdate = (p) => {
+				if (!hasUpdateOf(p, installed, versions)) return false;
+				const pkg = npmPackageOf(p, versions);
+				return pkg === null || !heldPackages.has(pkg);
+			};
+			/** 已安装项统一列表（目录元数据 + 运行时信息合并）：门禁命中的去掉更新标记，驱动「已安装」tab。 */
+			const installedItems = (0, react.useMemo)(() => {
+				if (heldPackages.size === 0) return rawInstalledItems;
+				return rawInstalledItems.map((item) => {
+					if (!item.hasUpdate || !item.plugin) return item;
+					const pkg = npmPackageOf(item.plugin, versions);
+					return pkg !== null && heldPackages.has(pkg) ? {
+						...item,
+						hasUpdate: false
+					} : item;
+				});
+			}, [
+				rawInstalledItems,
+				heldPackages,
+				versions
 			]);
 			/**
 			* Hub 自身更新状态：Hub 就是当前运行的应用（始终已安装，无需 installedName 命中）。
@@ -1633,13 +1746,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			const hubUpdateState = (() => {
 				if (!hubUpdateInfo) return "none";
 				if (hubUpdateInfo.version === hubCurrentVersion) return "latest";
-				const publishedAt = hubUpdateInfo.publishedAt;
-				if (publishedAt) {
-					const publishedMs = Date.parse(publishedAt);
-					if (!Number.isNaN(publishedMs)) {
-						if (Date.now() - publishedMs < 882e5) return "pending";
-					}
-				}
+				if (isReleaseTooFresh(hubUpdateInfo.publishedAt, Date.now())) return "pending";
 				return "available";
 			})();
 			const hubHasUpdate = hubUpdateState === "available";
@@ -1693,6 +1800,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				hasUpdate,
 				hubHasUpdate,
 				hubUpdateState,
+				releaseAgeReady,
 				hubCurrentVersion,
 				hubUpdateInfo,
 				hubAboutInfo,
@@ -4363,40 +4471,40 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$9
 		});
 		var List_module_css_default = {
-			"retryBtn": "_3XaZHa_retryBtn",
-			"body": "_3XaZHa_body",
-			"cardMain": "_3XaZHa_cardMain",
-			"cardTitle": "_3XaZHa_cardTitle",
-			"topic": "_3XaZHa_topic",
-			"cardSide": "_3XaZHa_cardSide",
-			"fork": "_3XaZHa_fork",
+			"cardHead": "_3XaZHa_cardHead",
+			"moreSentinel": "_3XaZHa_moreSentinel",
 			"card": "_3XaZHa_card",
-			"installBtn": "_3XaZHa_installBtn",
-			"topics": "_3XaZHa_topics",
-			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
-			"stateTitle": "_3XaZHa_stateTitle",
-			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
-			"stateActions": "_3XaZHa_stateActions",
-			"updateBadge": "_3XaZHa_updateBadge",
+			"cardTitle": "_3XaZHa_cardTitle",
 			"stateDesc": "_3XaZHa_stateDesc",
-			"uninstallBtn": "_3XaZHa_uninstallBtn",
+			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
+			"stats": "_3XaZHa_stats",
+			"star": "_3XaZHa_star",
+			"topics": "_3XaZHa_topics",
+			"state": "_3XaZHa_state",
+			"cardMain": "_3XaZHa_cardMain",
+			"stateActions": "_3XaZHa_stateActions",
+			"topic": "_3XaZHa_topic",
+			"verified": "_3XaZHa_verified",
+			"desc": "_3XaZHa_desc",
+			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
+			"footer": "_3XaZHa_footer",
+			"actions": "_3XaZHa_actions",
+			"categoryBadge": "_3XaZHa_categoryBadge",
+			"updateBadge": "_3XaZHa_updateBadge",
 			"versionBadge": "_3XaZHa_versionBadge",
 			"footLink": "_3XaZHa_footLink",
+			"stateTitle": "_3XaZHa_stateTitle",
+			"installBtn": "_3XaZHa_installBtn",
+			"body": "_3XaZHa_body",
 			"diagBtn": "_3XaZHa_diagBtn",
-			"state": "_3XaZHa_state",
+			"retryBtn": "_3XaZHa_retryBtn",
 			"installBtnCopied": "_3XaZHa_installBtnCopied",
+			"fork": "_3XaZHa_fork",
 			"list": "_3XaZHa_list",
-			"moreSentinel": "_3XaZHa_moreSentinel",
-			"stats": "_3XaZHa_stats",
-			"categoryBadge": "_3XaZHa_categoryBadge",
-			"cardHead": "_3XaZHa_cardHead",
-			"verified": "_3XaZHa_verified",
-			"date": "_3XaZHa_date",
-			"star": "_3XaZHa_star",
-			"footer": "_3XaZHa_footer",
-			"desc": "_3XaZHa_desc",
 			"detailBtn": "_3XaZHa_detailBtn",
-			"actions": "_3XaZHa_actions"
+			"uninstallBtn": "_3XaZHa_uninstallBtn",
+			"cardSide": "_3XaZHa_cardSide",
+			"date": "_3XaZHa_date"
 		};
 		//#endregion
 		//#region src/client/hooks/useIncrementalList.ts
@@ -4603,15 +4711,15 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$8
 		});
 		var SectionTabs_module_css_default = {
-			"noticeBtn": "_7tvizq_noticeBtn",
-			"tab": "_7tvizq_tab",
-			"tabIcon": "_7tvizq_tabIcon",
+			"noticeIcon": "_7tvizq_noticeIcon",
 			"noticeCount": "_7tvizq_noticeCount",
-			"root": "_7tvizq_root",
 			"tabActive": "_7tvizq_tabActive",
 			"tabCountActive": "_7tvizq_tabCountActive",
+			"root": "_7tvizq_root",
+			"tabIcon": "_7tvizq_tabIcon",
+			"tab": "_7tvizq_tab",
 			"tabCount": "_7tvizq_tabCount",
-			"noticeIcon": "_7tvizq_noticeIcon"
+			"noticeBtn": "_7tvizq_noticeBtn"
 		};
 		//#endregion
 		//#region src/client/components/layout/SectionTabs.tsx
@@ -4688,42 +4796,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$7
 		});
 		var InstalledView_module_css_default = {
-			"statusDot": "_1nXeGW_statusDot",
-			"rowDetail": "_1nXeGW_rowDetail",
-			"segRow": "_1nXeGW_segRow",
+			"rowCategory": "_1nXeGW_rowCategory",
 			"list": "_1nXeGW_list",
-			"rowMeta": "_1nXeGW_rowMeta",
-			"root": "_1nXeGW_root",
-			"statusInactive": "_1nXeGW_statusInactive",
-			"empty": "_1nXeGW_empty",
-			"exampleRow": "_1nXeGW_exampleRow",
-			"rowRepo": "_1nXeGW_rowRepo",
-			"rowRestart": "_1nXeGW_rowRestart",
-			"segLabel": "_1nXeGW_segLabel",
-			"rowUninstall": "_1nXeGW_rowUninstall",
-			"rowTitle": "_1nXeGW_rowTitle",
-			"updateBadge": "_1nXeGW_updateBadge",
 			"emptyDesc": "_1nXeGW_emptyDesc",
+			"root": "_1nXeGW_root",
+			"rowTitle": "_1nXeGW_rowTitle",
+			"statusPending": "_1nXeGW_statusPending",
+			"updateBadge": "_1nXeGW_updateBadge",
+			"rowDesc": "_1nXeGW_rowDesc",
+			"segLabel": "_1nXeGW_segLabel",
+			"statusDot": "_1nXeGW_statusDot",
+			"empty": "_1nXeGW_empty",
+			"versionBadge": "_1nXeGW_versionBadge",
+			"rowMain": "_1nXeGW_rowMain",
+			"row": "_1nXeGW_row",
+			"segBtnActive": "_1nXeGW_segBtnActive",
+			"searchInput": "_1nXeGW_searchInput",
+			"rowDetail": "_1nXeGW_rowDetail",
+			"rowSourceTag": "_1nXeGW_rowSourceTag",
+			"segBtn": "_1nXeGW_segBtn",
+			"rowTitleLine": "_1nXeGW_rowTitleLine",
+			"rowActions": "_1nXeGW_rowActions",
+			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
+			"rowRestart": "_1nXeGW_rowRestart",
+			"rowUninstall": "_1nXeGW_rowUninstall",
+			"exampleRow": "_1nXeGW_exampleRow",
+			"segRow": "_1nXeGW_segRow",
+			"statusInactive": "_1nXeGW_statusInactive",
+			"rowMeta": "_1nXeGW_rowMeta",
+			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"searchWrap": "_1nXeGW_searchWrap",
 			"segGroup": "_1nXeGW_segGroup",
 			"emptyTitle": "_1nXeGW_emptyTitle",
-			"rowUpdate": "_1nXeGW_rowUpdate",
-			"rowDesc": "_1nXeGW_rowDesc",
-			"segBtnActive": "_1nXeGW_segBtnActive",
-			"rowTitleLine": "_1nXeGW_rowTitleLine",
-			"rowMain": "_1nXeGW_rowMain",
-			"versionBadge": "_1nXeGW_versionBadge",
-			"segBtn": "_1nXeGW_segBtn",
-			"rowActions": "_1nXeGW_rowActions",
-			"rowSourceTag": "_1nXeGW_rowSourceTag",
-			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
-			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"rowRepo": "_1nXeGW_rowRepo",
 			"exampleBadge": "_1nXeGW_exampleBadge",
-			"row": "_1nXeGW_row",
-			"searchWrap": "_1nXeGW_searchWrap",
-			"toolbar": "_1nXeGW_toolbar",
-			"statusPending": "_1nXeGW_statusPending",
-			"rowCategory": "_1nXeGW_rowCategory",
-			"searchInput": "_1nXeGW_searchInput"
+			"rowUpdate": "_1nXeGW_rowUpdate",
+			"toolbar": "_1nXeGW_toolbar"
 		};
 		//#endregion
 		//#region src/client/components/views/InstalledView.tsx
@@ -4972,27 +5080,27 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$6
 		});
 		var CustomInstallView_module_css_default = {
-			"installCard": "zISxCG_installCard",
 			"desc": "zISxCG_desc",
+			"installCard": "zISxCG_installCard",
+			"installCardHead": "zISxCG_installCardHead",
+			"installCards": "zISxCG_installCards",
+			"installBtn": "zISxCG_installBtn",
+			"root": "zISxCG_root",
+			"installLabel": "zISxCG_installLabel",
 			"installExample": "zISxCG_installExample",
+			"installInput": "zISxCG_installInput",
+			"helpLine": "zISxCG_helpLine",
+			"channelOffText": "zISxCG_channelOffText",
+			"installRow": "zISxCG_installRow",
 			"helpNote": "zISxCG_helpNote",
 			"installCardDisabled": "zISxCG_installCardDisabled",
 			"channelOff": "zISxCG_channelOff",
-			"installInput": "zISxCG_installInput",
-			"installHelpBtn": "zISxCG_installHelpBtn",
-			"installLabel": "zISxCG_installLabel",
-			"installCards": "zISxCG_installCards",
-			"installInputError": "zISxCG_installInputError",
-			"installRow": "zISxCG_installRow",
-			"installBtn": "zISxCG_installBtn",
-			"helpCmd": "zISxCG_helpCmd",
-			"installError": "zISxCG_installError",
-			"root": "zISxCG_root",
-			"installCardHead": "zISxCG_installCardHead",
-			"channelOffText": "zISxCG_channelOffText",
+			"channelOffBtn": "zISxCG_channelOffBtn",
 			"helpBody": "zISxCG_helpBody",
-			"helpLine": "zISxCG_helpLine",
-			"channelOffBtn": "zISxCG_channelOffBtn"
+			"installHelpBtn": "zISxCG_installHelpBtn",
+			"installInputError": "zISxCG_installInputError",
+			"installError": "zISxCG_installError",
+			"helpCmd": "zISxCG_helpCmd"
 		};
 		//#endregion
 		//#region src/client/components/views/CustomInstallView.tsx
@@ -5151,29 +5259,29 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$5
 		});
 		var SettingsView_module_css_default = {
-			"proxyControl": "_506LLG_proxyControl",
-			"proxyHintOk": "_506LLG_proxyHintOk",
-			"proxyHintFail": "_506LLG_proxyHintFail",
-			"resetBtn": "_506LLG_resetBtn",
-			"pageDesc": "_506LLG_pageDesc",
-			"pageTitle": "_506LLG_pageTitle",
-			"textInput": "_506LLG_textInput",
-			"navItem": "_506LLG_navItem",
-			"controlDropdown": "_506LLG_controlDropdown",
-			"root": "_506LLG_root",
 			"proxyHint": "_506LLG_proxyHint",
-			"card": "_506LLG_card",
-			"navItemActive": "_506LLG_navItemActive",
-			"settingRow": "_506LLG_settingRow",
+			"controlDropdown": "_506LLG_controlDropdown",
 			"content": "_506LLG_content",
-			"pageHeader": "_506LLG_pageHeader",
-			"sidebar": "_506LLG_sidebar",
-			"navIcon": "_506LLG_navIcon",
-			"settingLabel": "_506LLG_settingLabel",
-			"settingTitle": "_506LLG_settingTitle",
+			"navItemActive": "_506LLG_navItemActive",
+			"pageTitle": "_506LLG_pageTitle",
+			"root": "_506LLG_root",
+			"navItem": "_506LLG_navItem",
 			"settingDesc": "_506LLG_settingDesc",
-			"settingControl": "_506LLG_settingControl",
+			"pageHeader": "_506LLG_pageHeader",
+			"settingLabel": "_506LLG_settingLabel",
 			"settingRowStack": "_506LLG_settingRowStack",
+			"settingTitle": "_506LLG_settingTitle",
+			"proxyControl": "_506LLG_proxyControl",
+			"proxyHintFail": "_506LLG_proxyHintFail",
+			"proxyHintOk": "_506LLG_proxyHintOk",
+			"resetBtn": "_506LLG_resetBtn",
+			"card": "_506LLG_card",
+			"settingRow": "_506LLG_settingRow",
+			"settingControl": "_506LLG_settingControl",
+			"navIcon": "_506LLG_navIcon",
+			"textInput": "_506LLG_textInput",
+			"pageDesc": "_506LLG_pageDesc",
+			"sidebar": "_506LLG_sidebar",
 			"settingControlStack": "_506LLG_settingControlStack"
 		};
 		//#endregion
@@ -5193,18 +5301,18 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$4
 		});
 		var Dropdown_module_css_default = {
-			"dropdownCount": "B_Gxsq_dropdownCount",
-			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
-			"dropdownPanel": "B_Gxsq_dropdownPanel",
-			"dropdown": "B_Gxsq_dropdown",
-			"dropdownBtn": "B_Gxsq_dropdownBtn",
-			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
-			"dropdownItem": "B_Gxsq_dropdownItem",
-			"dropdownArrow": "B_Gxsq_dropdownArrow",
 			"dropdownLabel": "B_Gxsq_dropdownLabel",
+			"dropdownPanel": "B_Gxsq_dropdownPanel",
+			"dropdownBtn": "B_Gxsq_dropdownBtn",
 			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
-			"dropdownFill": "B_Gxsq_dropdownFill",
-			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen"
+			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen",
+			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
+			"dropdownArrow": "B_Gxsq_dropdownArrow",
+			"dropdownItem": "B_Gxsq_dropdownItem",
+			"dropdown": "B_Gxsq_dropdown",
+			"dropdownCount": "B_Gxsq_dropdownCount",
+			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
+			"dropdownFill": "B_Gxsq_dropdownFill"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Toggle.module.css.mjs
@@ -5223,9 +5331,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$3
 		});
 		var Toggle_module_css_default = {
-			"toggleOn": "k-cD4G_toggleOn",
 			"knob": "k-cD4G_knob",
-			"toggle": "k-cD4G_toggle"
+			"toggle": "k-cD4G_toggle",
+			"toggleOn": "k-cD4G_toggleOn"
 		};
 		//#endregion
 		//#region src/client/components/ui/Toggle.tsx
@@ -5325,29 +5433,29 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$2
 		});
 		var DiagnosticsView_module_css_default = {
-			"badge": "k9eRya_badge",
-			"summary": "k9eRya_summary",
-			"envRow": "k9eRya_envRow",
-			"headHint": "k9eRya_headHint",
-			"head": "k9eRya_head",
-			"name": "k9eRya_name",
-			"panel": "k9eRya_panel",
-			"summaryRunning": "k9eRya_summaryRunning",
-			"row": "k9eRya_row",
-			"summaryOk": "k9eRya_summaryOk",
-			"envCopyBtn": "k9eRya_envCopyBtn",
-			"runBtn": "k9eRya_runBtn",
-			"meta": "k9eRya_meta",
 			"summaryFail": "k9eRya_summaryFail",
+			"meta": "k9eRya_meta",
 			"envDesc": "k9eRya_envDesc",
-			"badgeOk": "k9eRya_badgeOk",
+			"head": "k9eRya_head",
+			"row": "k9eRya_row",
 			"diagPulse": "k9eRya_diagPulse",
+			"badgeOk": "k9eRya_badgeOk",
+			"envCopyBtn": "k9eRya_envCopyBtn",
+			"name": "k9eRya_name",
+			"badge": "k9eRya_badge",
+			"summaryRunning": "k9eRya_summaryRunning",
+			"summaryOk": "k9eRya_summaryOk",
+			"panel": "k9eRya_panel",
+			"envRow": "k9eRya_envRow",
 			"envLabel": "k9eRya_envLabel",
-			"badgeIdle": "k9eRya_badgeIdle",
 			"badgeFail": "k9eRya_badgeFail",
-			"display": "k9eRya_display",
+			"badgeIdle": "k9eRya_badgeIdle",
+			"runBtn": "k9eRya_runBtn",
+			"summary": "k9eRya_summary",
 			"badgeRunning": "k9eRya_badgeRunning",
-			"envTitle": "k9eRya_envTitle"
+			"envTitle": "k9eRya_envTitle",
+			"headHint": "k9eRya_headHint",
+			"display": "k9eRya_display"
 		};
 		//#endregion
 		//#region src/client/components/views/DiagnosticsView.tsx
@@ -5525,57 +5633,57 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$1
 		});
 		var LogsView_module_css_default = {
-			"pathDialogDesc": "_3j77BW_pathDialogDesc",
-			"badgeSuccess": "_3j77BW_badgeSuccess",
-			"catSettings": "_3j77BW_catSettings",
-			"entry": "_3j77BW_entry",
-			"foot": "_3j77BW_foot",
-			"pathDialogHint": "_3j77BW_pathDialogHint",
-			"footPath": "_3j77BW_footPath",
-			"btn": "_3j77BW_btn",
-			"message": "_3j77BW_message",
-			"pathDialog": "_3j77BW_pathDialog",
-			"linkBtn": "_3j77BW_linkBtn",
-			"pathDialogReset": "_3j77BW_pathDialogReset",
-			"badge": "_3j77BW_badge",
-			"catUninstall": "_3j77BW_catUninstall",
-			"filterBar": "_3j77BW_filterBar",
-			"event": "_3j77BW_event",
-			"badgeDebug": "_3j77BW_badgeDebug",
-			"catSystem": "_3j77BW_catSystem",
 			"pathRow": "_3j77BW_pathRow",
-			"badgeInfo": "_3j77BW_badgeInfo",
-			"catInstall": "_3j77BW_catInstall",
-			"panel": "_3j77BW_panel",
-			"time": "_3j77BW_time",
-			"logList": "_3j77BW_logList",
-			"catUpdate": "_3j77BW_catUpdate",
-			"pathDialogFoot": "_3j77BW_pathDialogFoot",
-			"search": "_3j77BW_search",
-			"pathDialogRow": "_3j77BW_pathDialogRow",
-			"headActions": "_3j77BW_headActions",
-			"pathDraft": "_3j77BW_pathDraft",
-			"pathLabel": "_3j77BW_pathLabel",
-			"filterChip": "_3j77BW_filterChip",
-			"moreEnd": "_3j77BW_moreEnd",
-			"head": "_3j77BW_head",
-			"footFail": "_3j77BW_footFail",
-			"list": "_3j77BW_list",
 			"pathText": "_3j77BW_pathText",
-			"previewRow": "_3j77BW_previewRow",
-			"badgeError": "_3j77BW_badgeError",
-			"headHint": "_3j77BW_headHint",
 			"footCount": "_3j77BW_footCount",
-			"badgeWarn": "_3j77BW_badgeWarn",
-			"catDiagnostics": "_3j77BW_catDiagnostics",
-			"searchInput": "_3j77BW_searchInput",
-			"more": "_3j77BW_more",
-			"clearBtn": "_3j77BW_clearBtn",
-			"actions": "_3j77BW_actions",
-			"filterChipActive": "_3j77BW_filterChipActive",
-			"footActions": "_3j77BW_footActions",
+			"badge": "_3j77BW_badge",
+			"pathDialogRow": "_3j77BW_pathDialogRow",
+			"pathDialogDesc": "_3j77BW_pathDialogDesc",
 			"catBadge": "_3j77BW_catBadge",
-			"empty": "_3j77BW_empty"
+			"catDiagnostics": "_3j77BW_catDiagnostics",
+			"empty": "_3j77BW_empty",
+			"pathDraft": "_3j77BW_pathDraft",
+			"catUpdate": "_3j77BW_catUpdate",
+			"head": "_3j77BW_head",
+			"pathLabel": "_3j77BW_pathLabel",
+			"foot": "_3j77BW_foot",
+			"filterChipActive": "_3j77BW_filterChipActive",
+			"headActions": "_3j77BW_headActions",
+			"pathDialogHint": "_3j77BW_pathDialogHint",
+			"footActions": "_3j77BW_footActions",
+			"catUninstall": "_3j77BW_catUninstall",
+			"pathDialogFoot": "_3j77BW_pathDialogFoot",
+			"list": "_3j77BW_list",
+			"catSettings": "_3j77BW_catSettings",
+			"time": "_3j77BW_time",
+			"catSystem": "_3j77BW_catSystem",
+			"more": "_3j77BW_more",
+			"moreEnd": "_3j77BW_moreEnd",
+			"actions": "_3j77BW_actions",
+			"linkBtn": "_3j77BW_linkBtn",
+			"pathDialog": "_3j77BW_pathDialog",
+			"search": "_3j77BW_search",
+			"logList": "_3j77BW_logList",
+			"pathDialogReset": "_3j77BW_pathDialogReset",
+			"filterBar": "_3j77BW_filterBar",
+			"previewRow": "_3j77BW_previewRow",
+			"searchInput": "_3j77BW_searchInput",
+			"badgeSuccess": "_3j77BW_badgeSuccess",
+			"badgeInfo": "_3j77BW_badgeInfo",
+			"btn": "_3j77BW_btn",
+			"badgeError": "_3j77BW_badgeError",
+			"badgeWarn": "_3j77BW_badgeWarn",
+			"event": "_3j77BW_event",
+			"panel": "_3j77BW_panel",
+			"entry": "_3j77BW_entry",
+			"filterChip": "_3j77BW_filterChip",
+			"footPath": "_3j77BW_footPath",
+			"message": "_3j77BW_message",
+			"badgeDebug": "_3j77BW_badgeDebug",
+			"catInstall": "_3j77BW_catInstall",
+			"footFail": "_3j77BW_footFail",
+			"headHint": "_3j77BW_headHint",
+			"clearBtn": "_3j77BW_clearBtn"
 		};
 		//#endregion
 		//#region src/client/components/modals/LogsModal.tsx
@@ -6568,6 +6676,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			(0, react.useEffect)(() => {
 				if (startupCheckedRef.current) return;
 				if (!settingsReady || catalog.plugins === null || catalog.failed) return;
+				if (!catalog.releaseAgeReady) return;
 				startupCheckedRef.current = true;
 				if (!hubSettings.checkUpdatesOnStart) return;
 				syncUpdateNotices();
@@ -6577,6 +6686,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				catalog.plugins,
 				catalog.failed,
 				catalog.installedItems,
+				catalog.releaseAgeReady,
 				queue
 			]);
 			(0, react.useEffect)(() => {
@@ -6745,7 +6855,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				t,
 				noticeCount: notifications.length + queue.queue.length + queue.pendingRestarts.length,
 				onOpenNotifications: () => {
-					if (hubSettings.checkUpdatesOnStart) syncUpdateNotices();
+					if (hubSettings.checkUpdatesOnStart && catalog.releaseAgeReady) syncUpdateNotices();
 					setShowNotifications(true);
 				}
 			})), view === "market" ? (0, react.createElement)(MarketView, {
