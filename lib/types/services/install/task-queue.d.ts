@@ -1,6 +1,6 @@
 import type { InstallResult, InstallTask, Invocation } from './install-types.ts';
 import type { LoaderHandle } from '../loader.ts';
-/** Snapshot of a task (keeps the live object untouched by consumers). */
+/** 任务快照（避免消费方改动实时对象）。 */
 export declare function getTask(id: number): InstallTask | undefined;
 export interface ActiveTaskInfo {
     id: number;
@@ -14,23 +14,21 @@ export interface ActiveTaskInfo {
     /** 自定义安装入口渠道（NPM 包卡片）：前端刷新恢复后仍能精准溯源 */
     installChannel?: 'npm';
 }
-/** All non-terminal tasks in queue order (running first, then pending). Lets the client resume a queue after a page reload. */
+/** 全部未终态任务，按队列顺序（running 在前、pending 在后）。供客户端刷新页面后恢复队列。 */
 export declare function activeTask(): ActiveTaskInfo[];
 /**
- * True while a mutation child process is still alive. The concurrent slot is
- * keyed off the live child set rather than task.status: cancelling a running
- * task flips its status immediately, but the child may still be shutting down
- * (the close event lands later) — the slot must stay held until then, otherwise
- * a new task would start while the old pnpm still runs in the same profile dir.
+ * 变更子进程仍存活时为 true。并发占位以存活子进程集合为准，而非 task.status：
+ * 取消运行中任务会立即翻转其状态，但子进程可能仍在退出中（close 事件稍后才到）——
+ * 占位必须维持到那时，否则旧 pnpm 还在同一 profile 目录跑，新任务就开始了。
  */
 export declare function hasRunningTask(): boolean;
-/** Whether the target already has a non-terminal task in the queue (install/uninstall dedupe). */
+/** 目标在队列里是否已有未终态任务（安装/卸载去重）。 */
 export declare function hasQueuedTarget(target: string): boolean;
 /**
- * Cancel a queued or running task.
- * - pending: removed from the queue immediately (never spawned).
- * - running: kills the child process; the queue worker then picks the next one.
- * Returns false when the task is unknown or already finished.
+ * 取消排队中或运行中的任务。
+ * - pending：立即移出队列（从未 spawn）。
+ * - running：杀掉子进程；队列 worker 随后取下一个。
+ * 任务不存在或已结束时返回 false。
  */
 export declare function cancelTask(id: number): boolean;
 /**
@@ -41,9 +39,8 @@ export declare function cancelTask(id: number): boolean;
  */
 export declare function desktopCliBootstrap(entry: string): string | null;
 /**
- * Enqueue a plugin mutation and return its task. Tasks run strictly serially:
- * the queue worker starts the next one only after the previous finishes.
- * Progress is visible through `getTask(id)` / `activeTask()` until done.
+ * 插件变更入队并返回其任务。任务严格串行：队列 worker 只在上一个结束后才启动下一个。
+ * 完成前可通过 `getTask(id)` / `activeTask()` 查看进度。
  */
 export declare function startPluginMutation(options: {
     action: 'add' | 'remove' | 'update';
@@ -85,13 +82,11 @@ export declare function verifyInstalledEntry(profile: string, target: string): {
  */
 export declare function hostSpawnMarker(invocation: Invocation, error: unknown): string | null;
 /**
- * Run a plugin mutation with one recovery path: when `add` fails because
- * pnpm's allowBuilds gate blocks a build script — either the git-hosted
- * package's own `prepare` (`ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`, key from
- * the printed key@url hint) or a dependency's native build
- * (`ERR_PNPM_IGNORED_BUILDS`, key = the listed name@version) — write the
- * exact keys into the profile's pnpm-workspace.yaml and retry once.
- * Other failures fall through to the single-spawn result.
+ * 执行插件变更，带一条恢复路径：当 `add` 因 pnpm 的 allowBuilds 门禁拦下构建脚本而失败 ——
+ * 或是 git 源包自己的 `prepare`（`ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED`，key 取自打印的
+ * key@url 提示），或是某依赖的原生构建（`ERR_PNPM_IGNORED_BUILDS`，key = 列出的 name@version）——
+ * 就把确切的 key 写进 profile 的 pnpm-workspace.yaml 并重试一次。
+ * 其它失败一律落到单次 spawn 的结果。
  */
 export declare function runPluginMutation(options: {
     action: 'add' | 'remove' | 'update';

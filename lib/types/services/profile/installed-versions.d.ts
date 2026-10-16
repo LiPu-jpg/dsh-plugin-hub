@@ -11,14 +11,12 @@ export interface InstalledVersionRecord {
 export type InstalledVersionTable = Record<string, InstalledVersionRecord>;
 export declare function versionsFilePath(profile: string): string;
 export declare function readInstalledVersions(profile: string): InstalledVersionTable;
-/** Record the catalog signals (version + repo updated time) present at install time for one repo. */
+/** 记录某仓库安装时的目录信号（版本 + 仓库更新时间）。 */
 export declare function recordInstalledVersion(profile: string, repo: string, version: string, updatedAt: string): void;
 /**
- * Record the npm package name resolved for a repo. Called at `/install` time so
- * the mapping exists even before the task finishes; harmless when the repo is
- * not (yet) installed — the client only treats a repo as installed when its
- * dependency key actually exists.
+ * 记录某仓库解析出的 npm 包名。在 `/install` 时调用，让映射在任务完成前就存在；
+ * 仓库尚未安装时也无害 —— 客户端只在依赖 key 真实存在时才把仓库当作已安装。
  */
 export declare function recordResolvedNpmPackage(profile: string, repo: string, npmPackage: string): void;
-/** Forget the recorded version for one repo (called on uninstall). */
+/** 清除某仓库记录的版本（卸载时调用）。 */
 export declare function removeInstalledVersion(profile: string, repo: string): void;

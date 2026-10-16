@@ -3,9 +3,8 @@
  * Website: https://dsh-plugin.org
  * GitHub: https://github.com/dshplugin/dsh-plugin-hub
  *
- * Install/uninstall routes: validate the target and spawn the official dsh CLI
- * (see services/install/install.ts), reporting the captured result back.
- * Custom installs accept npm package names only.
+ * 安装/卸载路由：校验目标后 spawn 官方 dsh CLI（见 services/install/install.ts），
+ * 并回传捕获的结果。自定义安装只接受 npm 包名。
  */
 import { type LoaderHandle } from '../services/install/install.ts';
 import { type WebRoute, type WebServerService } from './shared.ts';

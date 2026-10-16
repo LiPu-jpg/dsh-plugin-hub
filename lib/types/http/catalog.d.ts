@@ -1,6 +1,6 @@
 import { type WebRoute, type WebServerService } from './shared.ts';
 export declare function profileDirectory(profile: string): string;
-/** Read non-official dependencies installed into one profile. */
+/** 读取安装进某 profile 的非官方依赖。 */
 export declare function readInstalled(profile: string): Record<string, string>;
 /** 读已装依赖实际落在磁盘上的仓库身份（`owner/repo`）：解析 node_modules/<name>/package.json
  *  的 repository 字段。已装 spec 可能是纯版本号（丢了仓库身份），但真实包元数据仍指向来源仓库，

@@ -11,7 +11,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* zh/en dictionaries for the DSH Plugin Hub settings section.
+		* 插件中心设置板块的 zh/en 字典。
 		*/
 		const zh = {
 			nav: "插件市场",
@@ -718,42 +718,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$11
 		});
 		var Header_module_css_default = {
-			"githubIcon": "qikqja_githubIcon",
-			"version": "qikqja_version",
+			"search": "qikqja_search",
 			"headerTitleRow": "qikqja_headerTitleRow",
-			"segLabel": "qikqja_segLabel",
-			"tabActive": "qikqja_tabActive",
-			"aboutBtn": "qikqja_aboutBtn",
-			"resultSeg": "qikqja_resultSeg",
-			"brandTitle": "qikqja_brandTitle",
-			"root": "qikqja_root",
-			"langBtn": "qikqja_langBtn",
-			"adText": "qikqja_adText",
 			"tabs": "qikqja_tabs",
-			"tab": "qikqja_tab",
-			"tabsRow": "qikqja_tabsRow",
-			"adArrow": "qikqja_adArrow",
-			"githubLink": "qikqja_githubLink",
-			"hubUpdateBadge": "qikqja_hubUpdateBadge",
-			"adBanner": "qikqja_adBanner",
-			"segGroup": "qikqja_segGroup",
-			"header": "qikqja_header",
-			"searchRow": "qikqja_searchRow",
-			"resultCount": "qikqja_resultCount",
-			"segBtnActive": "qikqja_segBtnActive",
+			"aboutBtn": "qikqja_aboutBtn",
 			"copyIcon": "qikqja_copyIcon",
-			"headerRight": "qikqja_headerRight",
-			"tagline": "qikqja_tagline",
+			"segLabel": "qikqja_segLabel",
+			"searchRow": "qikqja_searchRow",
+			"resultSeg": "qikqja_resultSeg",
+			"logoIcon": "qikqja_logoIcon",
+			"controls": "qikqja_controls",
+			"segBtn": "qikqja_segBtn",
+			"adBanner": "qikqja_adBanner",
 			"adBadge": "qikqja_adBadge",
+			"adArrow": "qikqja_adArrow",
+			"tabsRow": "qikqja_tabsRow",
+			"segBtnActive": "qikqja_segBtnActive",
+			"adText": "qikqja_adText",
+			"resultCount": "qikqja_resultCount",
+			"tab": "qikqja_tab",
+			"tabCount": "qikqja_tabCount",
+			"segGroup": "qikqja_segGroup",
+			"root": "qikqja_root",
+			"hubUpdateBadge": "qikqja_hubUpdateBadge",
+			"header": "qikqja_header",
+			"githubLink": "qikqja_githubLink",
+			"githubIcon": "qikqja_githubIcon",
 			"versionBtn": "qikqja_versionBtn",
 			"taglineLink": "qikqja_taglineLink",
-			"tabCount": "qikqja_tabCount",
-			"logoIcon": "qikqja_logoIcon",
-			"title": "qikqja_title",
+			"tagline": "qikqja_tagline",
+			"brandTitle": "qikqja_brandTitle",
+			"version": "qikqja_version",
 			"sortGroup": "qikqja_sortGroup",
-			"segBtn": "qikqja_segBtn",
-			"controls": "qikqja_controls",
-			"search": "qikqja_search"
+			"tabActive": "qikqja_tabActive",
+			"langBtn": "qikqja_langBtn",
+			"headerRight": "qikqja_headerRight",
+			"title": "qikqja_title"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Modal.module.css.mjs
@@ -772,137 +772,137 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$10
 		});
 		var Modal_module_css_default = {
-			"queuedHint": "BiQ1zG_queuedHint",
-			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
-			"dangerConfirm": "BiQ1zG_dangerConfirm",
-			"queueRowTarget": "BiQ1zG_queueRowTarget",
-			"detailGrid": "BiQ1zG_detailGrid",
-			"restartNowWarning": "BiQ1zG_restartNowWarning",
-			"overlayIn": "BiQ1zG_overlayIn",
-			"modalDesc": "BiQ1zG_modalDesc",
-			"overlay": "BiQ1zG_overlay",
-			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
-			"restartLater": "BiQ1zG_restartLater",
-			"detailStatusText": "BiQ1zG_detailStatusText",
-			"progress": "BiQ1zG_progress",
-			"detailArrow": "BiQ1zG_detailArrow",
-			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
-			"noticeList": "BiQ1zG_noticeList",
-			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
-			"failDiagBtn": "BiQ1zG_failDiagBtn",
-			"toastIn": "BiQ1zG_toastIn",
-			"modalTitle": "BiQ1zG_modalTitle",
-			"errorModal": "BiQ1zG_errorModal",
-			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
-			"modalCmd": "BiQ1zG_modalCmd",
-			"detailPathActions": "BiQ1zG_detailPathActions",
-			"errorHint": "BiQ1zG_errorHint",
-			"modalIn": "BiQ1zG_modalIn",
-			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
-			"errorBox": "BiQ1zG_errorBox",
-			"noticeRowOk": "BiQ1zG_noticeRowOk",
-			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
-			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
-			"failKindUninstall": "BiQ1zG_failKindUninstall",
-			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
-			"progressTrack": "BiQ1zG_progressTrack",
-			"resultCheck": "BiQ1zG_resultCheck",
-			"modalActions": "BiQ1zG_modalActions",
-			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
-			"noticeTime": "BiQ1zG_noticeTime",
-			"detailPathBtn": "BiQ1zG_detailPathBtn",
-			"pendingRowActions": "BiQ1zG_pendingRowActions",
-			"failEmpty": "BiQ1zG_failEmpty",
-			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
-			"failKind": "BiQ1zG_failKind",
-			"detailPathText": "BiQ1zG_detailPathText",
-			"modalCopy": "BiQ1zG_modalCopy",
-			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
-			"queueRow": "BiQ1zG_queueRow",
-			"noticeIgnore": "BiQ1zG_noticeIgnore",
-			"failCopy": "BiQ1zG_failCopy",
-			"aboutContent": "BiQ1zG_aboutContent",
-			"failRow": "BiQ1zG_failRow",
-			"modalCancel": "BiQ1zG_modalCancel",
-			"queueRowPct": "BiQ1zG_queueRowPct",
-			"modalInstall": "BiQ1zG_modalInstall",
-			"aboutMeta": "BiQ1zG_aboutMeta",
-			"noticeFoot": "BiQ1zG_noticeFoot",
-			"failRepo": "BiQ1zG_failRepo",
-			"detailRow": "BiQ1zG_detailRow",
-			"queueRowHead": "BiQ1zG_queueRowHead",
-			"failPrepareHint": "BiQ1zG_failPrepareHint",
-			"confirmPrimary": "BiQ1zG_confirmPrimary",
-			"queueRowDesc": "BiQ1zG_queueRowDesc",
-			"detailMono": "BiQ1zG_detailMono",
-			"detailDim": "BiQ1zG_detailDim",
-			"noticeHead": "BiQ1zG_noticeHead",
-			"detailStatusPending": "BiQ1zG_detailStatusPending",
-			"modalRow": "BiQ1zG_modalRow",
-			"modalCmdText": "BiQ1zG_modalCmdText",
-			"modalBody": "BiQ1zG_modalBody",
-			"queueSection": "BiQ1zG_queueSection",
-			"trustHint": "BiQ1zG_trustHint",
-			"errorTitle": "BiQ1zG_errorTitle",
-			"resultTitle": "BiQ1zG_resultTitle",
-			"noticeMain": "BiQ1zG_noticeMain",
-			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
-			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
-			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
-			"failedCopyHint": "BiQ1zG_failedCopyHint",
 			"failClear": "BiQ1zG_failClear",
-			"detailLink": "BiQ1zG_detailLink",
-			"stripCancel": "BiQ1zG_stripCancel",
-			"noticeRow": "BiQ1zG_noticeRow",
-			"noticeTextOk": "BiQ1zG_noticeTextOk",
-			"progressFillFail": "BiQ1zG_progressFillFail",
-			"queueRowStatus": "BiQ1zG_queueRowStatus",
-			"progressText": "BiQ1zG_progressText",
-			"progressHead": "BiQ1zG_progressHead",
-			"failList": "BiQ1zG_failList",
-			"errorCopySoft": "BiQ1zG_errorCopySoft",
-			"modalValue": "BiQ1zG_modalValue",
 			"detailStars": "BiQ1zG_detailStars",
-			"toastFail": "BiQ1zG_toastFail",
-			"noticeRemove": "BiQ1zG_noticeRemove",
-			"failKindInstall": "BiQ1zG_failKindInstall",
-			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
-			"restartNow": "BiQ1zG_restartNow",
-			"aboutModal": "BiQ1zG_aboutModal",
-			"failHead": "BiQ1zG_failHead",
-			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
-			"modalLink": "BiQ1zG_modalLink",
-			"modalLabel": "BiQ1zG_modalLabel",
-			"linkIcon": "BiQ1zG_linkIcon",
-			"noticeVersion": "BiQ1zG_noticeVersion",
-			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
-			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
-			"noticeRowMain": "BiQ1zG_noticeRowMain",
-			"noticeTextFail": "BiQ1zG_noticeTextFail",
-			"detailPath": "BiQ1zG_detailPath",
-			"detailLabel": "BiQ1zG_detailLabel",
-			"failBigIssue": "BiQ1zG_failBigIssue",
-			"resultRestarting": "BiQ1zG_resultRestarting",
-			"queueRowTrack": "BiQ1zG_queueRowTrack",
-			"modalHead": "BiQ1zG_modalHead",
-			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
-			"modalWide": "BiQ1zG_modalWide",
-			"helpModal": "BiQ1zG_helpModal",
-			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
-			"modalClose": "BiQ1zG_modalClose",
-			"logModal": "BiQ1zG_logModal",
-			"resultDesc": "BiQ1zG_resultDesc",
-			"confirmIcon": "BiQ1zG_confirmIcon",
-			"modal": "BiQ1zG_modal",
-			"detailValue": "BiQ1zG_detailValue",
-			"result": "BiQ1zG_result",
 			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
-			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
-			"queueRowBody": "BiQ1zG_queueRowBody",
-			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
+			"modalTitle": "BiQ1zG_modalTitle",
+			"failKindUninstall": "BiQ1zG_failKindUninstall",
+			"detailStatusPending": "BiQ1zG_detailStatusPending",
+			"failPrepareHint": "BiQ1zG_failPrepareHint",
+			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
+			"detailPathText": "BiQ1zG_detailPathText",
+			"progressHead": "BiQ1zG_progressHead",
+			"restartNow": "BiQ1zG_restartNow",
+			"detailLink": "BiQ1zG_detailLink",
+			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
+			"queueRowDesc": "BiQ1zG_queueRowDesc",
+			"errorBox": "BiQ1zG_errorBox",
+			"confirmPrimary": "BiQ1zG_confirmPrimary",
+			"detailGrid": "BiQ1zG_detailGrid",
+			"stripCancel": "BiQ1zG_stripCancel",
+			"modalCmd": "BiQ1zG_modalCmd",
+			"failDiagBtn": "BiQ1zG_failDiagBtn",
+			"detailPathBtn": "BiQ1zG_detailPathBtn",
+			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
+			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
+			"noticeTextFail": "BiQ1zG_noticeTextFail",
+			"progressText": "BiQ1zG_progressText",
+			"modalCmdText": "BiQ1zG_modalCmdText",
+			"noticeVersion": "BiQ1zG_noticeVersion",
+			"modalLabel": "BiQ1zG_modalLabel",
+			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
+			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
+			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
+			"progressFill": "BiQ1zG_progressFill",
+			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
 			"detailModal": "BiQ1zG_detailModal",
+			"detailArrow": "BiQ1zG_detailArrow",
+			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
+			"modalActions": "BiQ1zG_modalActions",
+			"queuedHint": "BiQ1zG_queuedHint",
+			"resultRestarting": "BiQ1zG_resultRestarting",
+			"linkIcon": "BiQ1zG_linkIcon",
+			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
+			"queueRowHead": "BiQ1zG_queueRowHead",
+			"trustHint": "BiQ1zG_trustHint",
+			"noticeTime": "BiQ1zG_noticeTime",
+			"detailPathActions": "BiQ1zG_detailPathActions",
+			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
+			"modalInstall": "BiQ1zG_modalInstall",
+			"overlayIn": "BiQ1zG_overlayIn",
+			"queueRowStatus": "BiQ1zG_queueRowStatus",
+			"modalWide": "BiQ1zG_modalWide",
+			"restartNowWarning": "BiQ1zG_restartNowWarning",
+			"toastFail": "BiQ1zG_toastFail",
+			"logModal": "BiQ1zG_logModal",
+			"modalClose": "BiQ1zG_modalClose",
+			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
+			"failedCopyHint": "BiQ1zG_failedCopyHint",
+			"noticeHead": "BiQ1zG_noticeHead",
+			"resultCheck": "BiQ1zG_resultCheck",
+			"failEmpty": "BiQ1zG_failEmpty",
+			"modal": "BiQ1zG_modal",
+			"queueRowBody": "BiQ1zG_queueRowBody",
+			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
+			"result": "BiQ1zG_result",
+			"detailRow": "BiQ1zG_detailRow",
+			"detailPath": "BiQ1zG_detailPath",
+			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
+			"modalValue": "BiQ1zG_modalValue",
+			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
+			"progress": "BiQ1zG_progress",
+			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
+			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
+			"noticeRow": "BiQ1zG_noticeRow",
+			"failRepo": "BiQ1zG_failRepo",
+			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
+			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
+			"errorHint": "BiQ1zG_errorHint",
+			"modalRow": "BiQ1zG_modalRow",
+			"progressFillFail": "BiQ1zG_progressFillFail",
+			"failRow": "BiQ1zG_failRow",
+			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
+			"noticeFoot": "BiQ1zG_noticeFoot",
+			"queueRowPct": "BiQ1zG_queueRowPct",
+			"modalDesc": "BiQ1zG_modalDesc",
+			"modalIn": "BiQ1zG_modalIn",
+			"confirmIcon": "BiQ1zG_confirmIcon",
+			"resultTitle": "BiQ1zG_resultTitle",
+			"noticeRowOk": "BiQ1zG_noticeRowOk",
+			"toastIn": "BiQ1zG_toastIn",
+			"failBigIssue": "BiQ1zG_failBigIssue",
+			"modalCancel": "BiQ1zG_modalCancel",
+			"errorCopySoft": "BiQ1zG_errorCopySoft",
+			"failCopy": "BiQ1zG_failCopy",
+			"dangerConfirm": "BiQ1zG_dangerConfirm",
+			"aboutMeta": "BiQ1zG_aboutMeta",
+			"pendingRowActions": "BiQ1zG_pendingRowActions",
+			"modalLink": "BiQ1zG_modalLink",
+			"errorModal": "BiQ1zG_errorModal",
+			"failList": "BiQ1zG_failList",
+			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
+			"detailLabel": "BiQ1zG_detailLabel",
+			"detailValue": "BiQ1zG_detailValue",
+			"modalBody": "BiQ1zG_modalBody",
+			"noticeRowMain": "BiQ1zG_noticeRowMain",
 			"toast": "BiQ1zG_toast",
-			"progressFill": "BiQ1zG_progressFill"
+			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
+			"queueRowTarget": "BiQ1zG_queueRowTarget",
+			"progressTrack": "BiQ1zG_progressTrack",
+			"helpModal": "BiQ1zG_helpModal",
+			"queueRow": "BiQ1zG_queueRow",
+			"aboutContent": "BiQ1zG_aboutContent",
+			"detailStatusText": "BiQ1zG_detailStatusText",
+			"failHead": "BiQ1zG_failHead",
+			"noticeIgnore": "BiQ1zG_noticeIgnore",
+			"failKindInstall": "BiQ1zG_failKindInstall",
+			"modalHead": "BiQ1zG_modalHead",
+			"modalCopy": "BiQ1zG_modalCopy",
+			"noticeRemove": "BiQ1zG_noticeRemove",
+			"noticeTextOk": "BiQ1zG_noticeTextOk",
+			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
+			"detailMono": "BiQ1zG_detailMono",
+			"overlay": "BiQ1zG_overlay",
+			"noticeList": "BiQ1zG_noticeList",
+			"errorTitle": "BiQ1zG_errorTitle",
+			"resultDesc": "BiQ1zG_resultDesc",
+			"detailDim": "BiQ1zG_detailDim",
+			"noticeMain": "BiQ1zG_noticeMain",
+			"failKind": "BiQ1zG_failKind",
+			"queueRowTrack": "BiQ1zG_queueRowTrack",
+			"restartLater": "BiQ1zG_restartLater",
+			"queueSection": "BiQ1zG_queueSection",
+			"aboutModal": "BiQ1zG_aboutModal"
 		};
 		//#endregion
 		//#region src/server/services/install/release-target.ts
@@ -930,8 +930,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		}
 		//#endregion
 		//#region src/client/logic/install-command.ts
-		/** Backend attempts are chronological; report the last executed command before a display fallback.
-		* These prefixes are the task queue's recorded command shapes, never commands to execute here.
+		/** 后端 attempts 按时间先后排列：取最后一次实际执行的命令，取不到再回退到展示用命令。
+		* 这里匹配的是任务队列记录的指令形态，不是要在此执行的命令。
 		*/
 		function executedCommandOf(command, attempts) {
 			if (attempts === void 0) return command;
@@ -953,7 +953,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			if (cmd) return cmd;
 			return `${`dsh plugin${withProfile ? " --profile web" : ""} add `}${installTargetOf(p)}`;
 		}
-		/** Normalize a task/install target to its owner/repo display identity. */
+		/** 把任务/安装目标归一化为 owner/repo 展示身份。 */
 		function repoFromInstallTarget(value) {
 			const input = value.trim();
 			const release = githubReleaseTarget(input);
@@ -1111,7 +1111,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		];
 		//#endregion
 		//#region src/client/logic/ensure-plugin-css.ts
-		/** Re-inject any registered stylesheet that is missing from the DOM. Idempotent. */
+		/** 补注入 DOM 中缺失的已登记样式表，幂等。 */
 		function ensurePluginCss() {
 			if (typeof document === "undefined") return;
 			const registry = window.__DSH_PLUGIN_CSS__;
@@ -1497,11 +1497,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Catalog data + view state for the Plugin Hub section.
+		* 插件中心的数据 + 视图状态。
 		*
-		* Owns the online-data pipeline (live fetch from api.dsh-plugin.org), the local
-		* installed-plugin table, and the filter/search/sort/install-status view
-		* state, exposing the derived visible list and per-category counts.
+		* 掌管在线数据管道（从 api.dsh-plugin.org 实时拉取）、本地已装插件表，以及
+		* 筛选/搜索/排序/安装状态等视图状态，对外暴露派生出的可见列表与各分类计数。
 		*/
 		/** 插件市场自身仓库：DSH Plugin Hub 不显示在目录里（自己不进自己的插件列表） */
 		const SELF_REPO = "dshplugin/dsh-plugin-hub";
@@ -1778,7 +1777,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				sortDir,
 				installed
 			]);
-			/** Per-category plugin counts shown on the category chips. */
+			/** 分类 chip 上展示的各分类插件计数。 */
 			const categoryCounts = (0, react.useMemo)(() => {
 				const counts = {};
 				for (const p of plugins ?? []) if (p.category) counts[p.category] = (counts[p.category] ?? 0) + 1;
@@ -1942,7 +1941,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			if (rec.action !== void 0) return rec.action;
 			return rec.kind === "uninstall" ? "uninstall" : rec.kind === "update" ? "update" : "install";
 		}
-		/** Match the pnpm error code, not a generic mention of checksum or integrity. */
+		/** 只匹配 pnpm 的错误码，不匹配泛泛出现的 checksum / integrity 字样。 */
 		function missingTarballIntegrity(message) {
 			return /\bERR_PNPM_MISSING_TARBALL_INTEGRITY\b/.test(message);
 		}
@@ -1955,9 +1954,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			return `${new Date(published + 864e5).toISOString().slice(0, 16)}Z`;
 		}
 		/**
-		* The same policy subtype selects recovery copy in live and saved failures.
-		* minimumReleaseAge 只有在能算出可重试时刻时才走专属文案（给出确切的「何时可再试」），
-		* 算不出时退回通用文案，避免出现「预计可重试时间：」后接空值的残缺句子。
+		* 同一策略子类型也用于选择实时/已保存失败的提示文案：minimumReleaseAge 只有在能算出
+		* 可重试时刻时才走专属文案（给出确切的「何时可再试」），算不出时退回通用文案，
+		* 避免出现「预计可重试时间：」后接空值的残缺句子。
 		*/
 		function pnpmPolicyHintOf(message) {
 			if (missingTarballIntegrity(message)) return "failPnpmTarballIntegrityHint";
@@ -2316,11 +2315,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Language state for the section: the Hub shares the host (system) locale —
-		* the header language toggle writes the host locale preference via setLocale,
-		* so the host chrome (left sidebar, settings dialog) and the Hub panel switch
-		* together instead of drifting apart. Exposes the localized dictionary lookup
-		* `t()` plus the zh/en language flag and the /zh/ URL path prefix.
+		* 板块的语言状态：Hub 与宿主（系统）locale 共用 —— 头部语言开关通过 setLocale 写入
+		* 宿主语言偏好，让宿主界面（左侧菜单、设置弹窗）与 Hub 面板一起切换、不会各说各话。
+		* 对外暴露本地化字典查询 `t()`、zh/en 语言标记与 /zh/ URL 路径前缀。
 		*/
 		function useLanguage(locale) {
 			const [, setRev] = (0, react.useState)(0);
@@ -2348,11 +2345,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Hub settings state: loaded once from the host's local /settings route
-		* (persisted at ~/.dsh/profiles/<profile>/hub-settings.json), updated
-		* optimistically. Every change POSTs the patch immediately so a toggled
-		* switch survives a reload; a host without the server routes falls back to
-		* the defaults and keeps working (settings simply do not persist).
+		* 插件中心设置状态：从宿主本地 /settings 路由加载一次（持久化在
+		* ~/.dsh/profiles/<profile>/hub-settings.json），并按乐观方式更新。
+		* 每次改动立即 POST 补丁，切换过的开关刷新后仍在；宿主未挂服务端路由时退回默认值
+		* 继续可用（设置不持久化而已）。
 		*/
 		const DEFAULT_SETTINGS = {
 			checkUpdatesOnStart: true,
@@ -2422,11 +2418,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Background install/remove task queue for the Plugin Hub.
+		* 插件中心的后台安装/卸载任务队列。
 		*
-		* Mirrors the server-side FIFO active queue by polling /active, settles
-		* vanished tasks against /status, and exposes the queue actions (install,
-		* uninstall, cancel) plus the modal task lookups used by the dialogs.
+		* 通过轮询 /active 镜像服务端 FIFO 活动队列，对消失的任务用 /status 收尾，并暴露
+		* 队列动作（安装、卸载、取消）以及弹窗用的任务查找。
 		*/
 		/** 安装/卸载请求超时（ms）：服务端入队前要做目录包校验与网络探测（各自有超时，合计可达十几秒），
 		*  给足余量；超时主动中止，避免服务端网络挂起时前端永久卡「安装中 0%」。 */
@@ -2943,8 +2938,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Inline SVG icons used across the client. Icons inherit currentColor so
-		* they adapt to themes and disabled states automatically.
+		* 客户端各处使用的内联 SVG 图标。图标继承 currentColor，自动适配主题与禁用态。
 		*/
 		/** 弹窗右上角关闭按钮图标：内联 SVG 十字（stroke 继承 currentColor），随按钮禁用态一起变淡。 */
 		function CloseIcon() {
@@ -3432,10 +3426,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Inline progress block shared by the install and uninstall dialogs:
-		* a real percentage bar (server-estimated, client-polled). No live terminal
-		* window — pnpm emits nothing during git clone/build, so a log pane would be
-		* empty for most of the run; failures surface their full output in ErrorModal.
+		* 安装与卸载弹窗共用的内联进度块：真实百分比进度条（服务端估算、客户端轮询）。
+		* 不做实时终端窗口 —— pnpm 在 git clone/构建期间几乎无输出，日志面板大部分时间是空的；
+		* 失败时完整输出在 ErrorModal 里展示。
 		*/
 		function ProgressView({ task }) {
 			return (0, react.createElement)("div", { className: Modal_module_css_default.progress }, (0, react.createElement)("div", { className: Modal_module_css_default.progressHead }, (0, react.createElement)("span", { className: Modal_module_css_default.progressText }, `${Math.round(task.progress)}%`)), (0, react.createElement)("div", { className: Modal_module_css_default.progressTrack }, (0, react.createElement)("div", {
@@ -3450,11 +3443,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Dialog layer for the Plugin Hub: the install-confirm dialog, the uninstall
-		* dialog and the global toast. Both dialogs lock themselves while a mutation
-		* is running, then switch to a result view with a single action — "done" for
-		* the common case (the page refreshes on close so the change applies), or a
-		* single "restart now" for the rare changes a refresh cannot pick up.
+		* 插件中心的弹窗层：安装确认弹窗、卸载弹窗与全局 Toast。两个弹窗在变更执行期间
+		* 自我锁定，随后切到只有一个动作的结果视图 —— 常见情况给「完成」（关闭时刷新页面即生效），
+		* 刷新解决不了的少数情况才给单个「立即重启」。
 		*/
 		/** 完成结果视图：绿色对勾 + 标题/描述；
 		*  终态只有两种：
@@ -3944,12 +3935,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Installed-plugin detail dialog: opens from the Installed view (row click
-		* or the detail button) and shows everything we know about an installed
-		* entry — the catalog metadata (category, catalog entry, stars/forks,
-		* latest version) merged with the host runtime facts (install path, installed
-		* version, install time, last update). Update / uninstall actions are
-		* offered from here too, mirroring the row actions.
+		* 已安装插件详情弹窗：从「已安装」视图打开（行点击或详情按钮），展示我们对某个已安装项
+		* 掌握的全部信息 —— 目录元数据（分类、收录入口、Star/Fork、最新版本）与宿主运行时事实
+		* （安装路径、已装版本、安装时间、最后更新）合并呈现。此处的更新/卸载动作与行内动作一致。
 		*/
 		/** ISO 安装时间 → 本地可读；非法值返回 null（行内不显示）。 */
 		function fmtDate(iso, lang) {
@@ -4026,13 +4014,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Generic confirm dialog — the single entry point for every "are you sure?"
-		* question in the app. Rule: any question must be a modal dialog, never an
-		* in-button double-click.
+		* 通用确认弹窗 —— 应用里所有「确定吗？」问题的唯一入口。规则：任何询问都必须是
+		* 弹窗，绝不用按钮内双击。
 		*
-		* The icon in the middle tells the type at a glance: a blue question mark
-		* for routine confirmations (install / update / restart / ignore), a red
-		* action glyph for destructive ones (clear / delete / uninstall / reset).
+		* 中间的图标一眼说明类型：常规确认（安装/更新/重启/忽略）用蓝色问号，
+		* 危险操作（清空/删除/卸载/重置）用红色动作图形。
 		*/
 		/** 通用确认弹窗：标题 + 类型图标 + 描述 + 取消/确认按钮。
 		*  type='question' → 蓝问号 + 品牌蓝确认按钮；危险类型 → 红图形 + 红色确认按钮。 */
@@ -4071,15 +4057,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Notification-center dialog: a persistent log of every settled install /
-		* remove task — successes and failures alike.
+		* 通知中心弹窗：每个已结算的安装/卸载任务（成功与失败）的持久化清单。
 		*
-		* Records are written to localStorage at settle time (see logic/failures.ts),
-		* so a result is never lost even when the dialog was dismissed or the user
-		* was away. Each entry carries a circular status badge (green check for
-		* success, red cross for failure) with white glyph and message text;
-		* failures keep their copy / fix / file-an-issue actions. Opened from the
-		* header entry button (after the Settings tab).
+		* 记录在结算时写入 localStorage（见 logic/failures.ts），即使弹窗被关闭或用户离开，
+		* 结果也不会丢失。每条带圆形状态徽标（成功绿勾、失败红叉，白色图形）与消息文本；
+		* 失败项保留复制/修复/提 Issue 动作。由头部入口按钮（「设置」tab 之后）打开。
 		*/
 		/** 记录时间完整展示：YYYY-MM-DD HH:mm:ss（每条通知都带精确到秒的时间戳）。 */
 		function fmtTime(at) {
@@ -4332,8 +4314,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Section header: brand title row (H1 + open-site button) + tagline, followed
-		* by the purple ad banner that promotes the catalog stats.
+		* 板块头部：品牌标题行（H1 + 官网入口按钮）+ 副标题，其后是宣传目录统计的紫色广告条。
 		*/
 		function CatalogHeader({ t, langPath, statsTotal, statsVerified, onToggleLang, hubUpdate, onVersionClick, onAboutClick }) {
 			return (0, react.createElement)(react.Fragment, null, (0, react.createElement)("div", { className: Header_module_css_default.header }, (0, react.createElement)("div", { className: Header_module_css_default.headerTitleRow }, (0, react.createElement)("a", {
@@ -4394,9 +4375,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Category tabs: an "all" chip followed by one chip per catalog category.
-		* The "all" chip carries the total plugin count; the per-category chips
-		* carry no counts so their widths stay uniform.
+		* 分类 Tab：先是「全部」chip，其后每个目录分类一个 chip。「全部」chip 带插件总数，
+		* 各分类 chip 不带计数以保持宽度一致。
 		*/
 		function CategoryTabs({ category, setCategory, allLabel, totalCount, langKey }) {
 			return (0, react.createElement)("div", { className: Header_module_css_default.tabs }, (0, react.createElement)("button", {
@@ -4416,12 +4396,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Toolbar above the market list:
-		* row 1 — full-width search input;
-		* row 2 — result count on the left, sort segmented control on the right
-		* (mirrors the Installed view: clicking the same sort toggles
-		* ascending/descending, a new sort uses its default order; the active
-		* button shows an up/down arrow for the current direction).
+		* 市场列表上方的工具栏：
+		* 第一行 —— 整行宽的搜索框；
+		* 第二行 —— 左侧结果计数，右侧排序分段控件
+		* （与已安装视图一致：点同一排序切换正/倒序，点新排序用其默认方向；
+		*  激活按钮显示当前方向的上/下箭头）。
 		*/
 		/** 单选按钮组中的一个按钮（segmented control，与已安装视图排序按钮同款） */
 		function SegBtn$1({ active, onClick, label, icon }) {
@@ -4471,40 +4450,40 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$9
 		});
 		var List_module_css_default = {
-			"retryBtn": "_3XaZHa_retryBtn",
-			"verified": "_3XaZHa_verified",
-			"updateBadge": "_3XaZHa_updateBadge",
-			"topics": "_3XaZHa_topics",
-			"moreSentinel": "_3XaZHa_moreSentinel",
-			"cardMain": "_3XaZHa_cardMain",
-			"uninstallBtn": "_3XaZHa_uninstallBtn",
-			"cardTitle": "_3XaZHa_cardTitle",
-			"fork": "_3XaZHa_fork",
-			"categoryBadge": "_3XaZHa_categoryBadge",
-			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
-			"stats": "_3XaZHa_stats",
-			"cardHead": "_3XaZHa_cardHead",
-			"state": "_3XaZHa_state",
-			"star": "_3XaZHa_star",
-			"cardSide": "_3XaZHa_cardSide",
-			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
-			"detailBtn": "_3XaZHa_detailBtn",
-			"desc": "_3XaZHa_desc",
-			"list": "_3XaZHa_list",
-			"body": "_3XaZHa_body",
-			"stateDesc": "_3XaZHa_stateDesc",
-			"stateTitle": "_3XaZHa_stateTitle",
-			"versionBadge": "_3XaZHa_versionBadge",
-			"diagBtn": "_3XaZHa_diagBtn",
-			"footLink": "_3XaZHa_footLink",
-			"actions": "_3XaZHa_actions",
-			"installBtn": "_3XaZHa_installBtn",
-			"card": "_3XaZHa_card",
-			"installBtnCopied": "_3XaZHa_installBtnCopied",
-			"date": "_3XaZHa_date",
 			"topic": "_3XaZHa_topic",
+			"topics": "_3XaZHa_topics",
+			"verified": "_3XaZHa_verified",
+			"cardSide": "_3XaZHa_cardSide",
+			"body": "_3XaZHa_body",
+			"updateBadge": "_3XaZHa_updateBadge",
+			"actions": "_3XaZHa_actions",
+			"versionBadge": "_3XaZHa_versionBadge",
+			"state": "_3XaZHa_state",
+			"categoryBadge": "_3XaZHa_categoryBadge",
+			"cardHead": "_3XaZHa_cardHead",
+			"star": "_3XaZHa_star",
+			"date": "_3XaZHa_date",
+			"stateDesc": "_3XaZHa_stateDesc",
 			"footer": "_3XaZHa_footer",
-			"stateActions": "_3XaZHa_stateActions"
+			"footLink": "_3XaZHa_footLink",
+			"cardTitle": "_3XaZHa_cardTitle",
+			"stateActions": "_3XaZHa_stateActions",
+			"desc": "_3XaZHa_desc",
+			"installBtn": "_3XaZHa_installBtn",
+			"retryBtn": "_3XaZHa_retryBtn",
+			"installBtnCopied": "_3XaZHa_installBtnCopied",
+			"cardMain": "_3XaZHa_cardMain",
+			"stats": "_3XaZHa_stats",
+			"detailBtn": "_3XaZHa_detailBtn",
+			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
+			"stateTitle": "_3XaZHa_stateTitle",
+			"fork": "_3XaZHa_fork",
+			"list": "_3XaZHa_list",
+			"diagBtn": "_3XaZHa_diagBtn",
+			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
+			"moreSentinel": "_3XaZHa_moreSentinel",
+			"card": "_3XaZHa_card",
+			"uninstallBtn": "_3XaZHa_uninstallBtn"
 		};
 		//#endregion
 		//#region src/client/hooks/useIncrementalList.ts
@@ -4513,11 +4492,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Incremental list: renders only the first batch of a (potentially huge)
-		* result set and appends the next batch whenever the end sentinel scrolls
-		* into view, so the plugin market never mounts thousands of cards at once.
-		* The items reference is the list identity — category / search / sort
-		* changes produce a new array, which resets the window to the first batch.
+		* 增量列表：只渲染（可能很大的）结果集的第一批，末尾哨兵滚入视口时就追加下一批，
+		* 让插件市场绝不一次性挂载成千上万张卡片。
+		* items 引用即列表身份 —— 分类/搜索/排序变化会产出新数组，窗口随之重置回第一批。
 		*/
 		/** 首批渲染条数 & 每次滚到底追加的增量（单卡约 80px 高，100 条已远超一屏） */
 		const PAGE_SIZE = 100;
@@ -4551,9 +4528,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* One plugin card in the catalog list: name/category/verified badge,
-		* description + topics, star/fork/date stats, and the detail/install/
-		* uninstall actions.
+		* 目录列表里的单张插件卡片：名称/分类/verified 徽标、描述 + 标签、Star/Fork/日期
+		* 统计，以及详情/安装/卸载动作。
 		*/
 		function PluginCard({ plugin: p, copied, installedName, installedVersion, hasUpdate, t, langKey, langPath, onInstall, onUninstall }) {
 			const repo = p.source?.repo ?? "";
@@ -4602,10 +4578,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Catalog list: the scrollable container with the loading / failed / empty
-		* states, the plugin cards, and the count footer. Resets scroll position when
-		* the category or install-status filter changes so the replaced content is
-		* not mistaken for a no-op update.
+		* 目录列表：承载加载/失败/空三态、插件卡片与计数页脚的滚动容器。分类或安装状态
+		* 筛选变化时重置滚动位置，避免替换后的内容被误当成「没变化」。
 		*/
 		function CatalogList({ plugins, failed, visible, total, t, langPath, reload, category, copied, installedName, installedVersion, hasUpdate, langKey, onInstall, onUninstall, hasProxy, onOpenDiagnostics }) {
 			/** 列表滚动容器：分类/搜索切换后列表内容替换但 scrollTop 保留，会让用户误以为列表没更新，需重置回顶部 */
@@ -4654,10 +4628,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Market view: the browse experience for the catalog — category tabs,
-		* search/sort/install-state controls and the plugin list. Owns nothing;
-		* it wires catalog state (query/sort/filter/category) to the small
-		* presentational components so PluginHubSection stays free of view internals.
+		* 市场视图：目录的浏览体验 —— 分类 Tab、搜索/排序/安装状态控件与插件列表。自身不持有状态，
+		* 只把目录状态（query/sort/filter/category）接到小型展示组件上，让 PluginHubSection 不掺视图细节。
 		*/
 		function MarketView({ catalog, t, langPath, langKey, copied, resultText, onInstall, onUninstall, hasProxy, onOpenDiagnostics }) {
 			return (0, react.createElement)(react.Fragment, null, (0, react.createElement)(CategoryTabs, {
@@ -4711,14 +4683,14 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$8
 		});
 		var SectionTabs_module_css_default = {
-			"tabIcon": "_7tvizq_tabIcon",
-			"noticeIcon": "_7tvizq_noticeIcon",
-			"noticeBtn": "_7tvizq_noticeBtn",
 			"tab": "_7tvizq_tab",
-			"root": "_7tvizq_root",
+			"noticeBtn": "_7tvizq_noticeBtn",
 			"tabActive": "_7tvizq_tabActive",
+			"root": "_7tvizq_root",
 			"tabCountActive": "_7tvizq_tabCountActive",
+			"noticeIcon": "_7tvizq_noticeIcon",
 			"noticeCount": "_7tvizq_noticeCount",
+			"tabIcon": "_7tvizq_tabIcon",
 			"tabCount": "_7tvizq_tabCount"
 		};
 		//#endregion
@@ -4728,11 +4700,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Primary navigation: a compact segmented control switching between the
-		* four top-level sections — Market (browse), Installed (manage), Custom
-		* (manual command installs) and Settings (network sources & preferences).
-		* Kept visually distinct from the category chips so the hierarchy reads:
-		* section → category → plugin.
+		* 一级导航：紧凑分段控件，在四个顶层板块间切换 —— 市场（浏览）、已安装（管理）、
+		* 自定义（手动命令安装）与设置（网络源与偏好）。与分类 chip 视觉上区分开，
+		* 让层级清晰：板块 → 分类 → 插件。
 		*/
 		const ORDER = [
 			{
@@ -4796,42 +4766,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$7
 		});
 		var InstalledView_module_css_default = {
-			"exampleRow": "_1nXeGW_exampleRow",
-			"rowActions": "_1nXeGW_rowActions",
-			"rowTitleLine": "_1nXeGW_rowTitleLine",
-			"updateBadge": "_1nXeGW_updateBadge",
-			"list": "_1nXeGW_list",
-			"searchWrap": "_1nXeGW_searchWrap",
-			"emptyTitle": "_1nXeGW_emptyTitle",
-			"rowMeta": "_1nXeGW_rowMeta",
-			"segGroup": "_1nXeGW_segGroup",
-			"statusDot": "_1nXeGW_statusDot",
-			"rowCategory": "_1nXeGW_rowCategory",
-			"versionBadge": "_1nXeGW_versionBadge",
-			"rowUpdate": "_1nXeGW_rowUpdate",
-			"rowRepo": "_1nXeGW_rowRepo",
-			"empty": "_1nXeGW_empty",
 			"rowDetail": "_1nXeGW_rowDetail",
-			"toolbar": "_1nXeGW_toolbar",
-			"rowUninstall": "_1nXeGW_rowUninstall",
-			"segRow": "_1nXeGW_segRow",
-			"rowSourceTag": "_1nXeGW_rowSourceTag",
-			"row": "_1nXeGW_row",
-			"segLabel": "_1nXeGW_segLabel",
-			"rowTitle": "_1nXeGW_rowTitle",
+			"segBtnActive": "_1nXeGW_segBtnActive",
+			"versionBadge": "_1nXeGW_versionBadge",
+			"rowRestart": "_1nXeGW_rowRestart",
+			"rowCategory": "_1nXeGW_rowCategory",
+			"rowActions": "_1nXeGW_rowActions",
 			"segBtn": "_1nXeGW_segBtn",
-			"rowDesc": "_1nXeGW_rowDesc",
-			"root": "_1nXeGW_root",
+			"rowMeta": "_1nXeGW_rowMeta",
+			"searchInput": "_1nXeGW_searchInput",
+			"segLabel": "_1nXeGW_segLabel",
 			"statusInactive": "_1nXeGW_statusInactive",
 			"rowMain": "_1nXeGW_rowMain",
-			"segBtnActive": "_1nXeGW_segBtnActive",
-			"statusPending": "_1nXeGW_statusPending",
-			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
-			"emptyDesc": "_1nXeGW_emptyDesc",
+			"rowTitle": "_1nXeGW_rowTitle",
+			"segRow": "_1nXeGW_segRow",
+			"rowRepo": "_1nXeGW_rowRepo",
+			"toolbar": "_1nXeGW_toolbar",
 			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"emptyTitle": "_1nXeGW_emptyTitle",
+			"searchWrap": "_1nXeGW_searchWrap",
 			"exampleBadge": "_1nXeGW_exampleBadge",
-			"rowRestart": "_1nXeGW_rowRestart",
-			"searchInput": "_1nXeGW_searchInput"
+			"statusPending": "_1nXeGW_statusPending",
+			"updateBadge": "_1nXeGW_updateBadge",
+			"rowUpdate": "_1nXeGW_rowUpdate",
+			"emptyDesc": "_1nXeGW_emptyDesc",
+			"statusDot": "_1nXeGW_statusDot",
+			"rowSourceTag": "_1nXeGW_rowSourceTag",
+			"rowDesc": "_1nXeGW_rowDesc",
+			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
+			"exampleRow": "_1nXeGW_exampleRow",
+			"rowUninstall": "_1nXeGW_rowUninstall",
+			"rowTitleLine": "_1nXeGW_rowTitleLine",
+			"root": "_1nXeGW_root",
+			"list": "_1nXeGW_list",
+			"row": "_1nXeGW_row",
+			"segGroup": "_1nXeGW_segGroup",
+			"empty": "_1nXeGW_empty"
 		};
 		//#endregion
 		//#region src/client/components/views/InstalledView.tsx
@@ -4840,18 +4810,13 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Installed view: manages the plugins installed into the current profile.
-		* Follows the mainstream extension-manager pattern (VSCode Installed tab) —
-		* a searchable, sortable list of installed entries that mixes catalog
-		* plugins (full metadata) and custom command installs (outside the catalog,
-		* only runtime info, tagged with a custom badge). The toolbar carries a
-		* search box plus two segmented radio-button groups: source filter
-		* (all / catalog / custom) and sort (name / recently installed / stars / forks).
-		* Each row carries restart (when pending), update and uninstall actions
-		* and opens a detail modal with the full install metadata.
+		* 已安装视图：管理安装进当前 profile 的插件。沿用主流扩展管理器模式（VSCode 已安装 tab）——
+		* 可搜索、可排序的已安装清单，混排目录插件（完整元数据）与命令行自定义安装（目录之外，
+		* 只有运行时信息，打「自定义」徽标）。工具栏含搜索框与两组分段单选：来源筛选
+		* （全部/目录/自定义）与排序（名称/最近安装/Star/Fork）。每行带重启（待重启时）、更新与
+		* 卸载动作，并打开含完整安装元数据的详情弹窗。
 		*
-		* Pure presentational: owns only local search/sort state; the InstalledItem
-		* model arrives from the catalog hook and actions bubble up via callbacks.
+		* 纯展示组件：只持有本地搜索/排序状态；InstalledItem 模型来自目录 hook，动作经回调上抛。
 		*/
 		const INSTALLED_SORTS = [
 			"sortName",
@@ -5080,27 +5045,27 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$6
 		});
 		var CustomInstallView_module_css_default = {
-			"channelOffBtn": "zISxCG_channelOffBtn",
-			"helpCmd": "zISxCG_helpCmd",
-			"desc": "zISxCG_desc",
-			"installCard": "zISxCG_installCard",
-			"root": "zISxCG_root",
-			"channelOffText": "zISxCG_channelOffText",
-			"installCards": "zISxCG_installCards",
-			"installExample": "zISxCG_installExample",
-			"installInputError": "zISxCG_installInputError",
-			"installError": "zISxCG_installError",
 			"installHelpBtn": "zISxCG_installHelpBtn",
-			"helpBody": "zISxCG_helpBody",
-			"helpNote": "zISxCG_helpNote",
 			"installInput": "zISxCG_installInput",
+			"installCards": "zISxCG_installCards",
+			"channelOffText": "zISxCG_channelOffText",
+			"installExample": "zISxCG_installExample",
+			"helpCmd": "zISxCG_helpCmd",
 			"helpLine": "zISxCG_helpLine",
+			"installCard": "zISxCG_installCard",
 			"installBtn": "zISxCG_installBtn",
+			"installError": "zISxCG_installError",
+			"helpNote": "zISxCG_helpNote",
 			"installRow": "zISxCG_installRow",
-			"installCardHead": "zISxCG_installCardHead",
-			"installLabel": "zISxCG_installLabel",
+			"installCardDisabled": "zISxCG_installCardDisabled",
+			"channelOffBtn": "zISxCG_channelOffBtn",
+			"desc": "zISxCG_desc",
+			"helpBody": "zISxCG_helpBody",
 			"channelOff": "zISxCG_channelOff",
-			"installCardDisabled": "zISxCG_installCardDisabled"
+			"installInputError": "zISxCG_installInputError",
+			"installLabel": "zISxCG_installLabel",
+			"installCardHead": "zISxCG_installCardHead",
+			"root": "zISxCG_root"
 		};
 		//#endregion
 		//#region src/client/components/views/CustomInstallView.tsx
@@ -5109,15 +5074,12 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Custom install view: a standalone top-level section for manually
-		* installing npm packages outside the catalog. The installer card accepts a
-		* bare name or a full npm/pnpm install command, including the official global
-		* `npm install -g`, with an example above the input and its own format check.
-		* Finished installs surface in the Installed view, marked as custom.
+		* 自定义安装视图：独立一级板块，用于手动安装目录之外的 npm 包。安装卡片接受裸包名或完整的
+		* npm/pnpm 安装命令（含官方全局 `npm install -g`），输入框上方带示例并自带格式校验。
+		* 装完的插件出现在「已安装」视图，标记为自定义安装。
 		*
-		* Pure presentational: owns only the local input/error state; the actual
-		* install (custom source, gated by the security toggle) bubbles up via
-		* onInstallCustom.
+		* 纯展示组件：只持有本地输入/错误状态；真正的安装（custom 源，受安全开关控制）经
+		* onInstallCustom 上抛。
 		*/
 		/** npm 包名（含 @scope/pkg） */
 		const NPM_PACKAGE_RE = /^(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+$/;
@@ -5259,30 +5221,30 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$5
 		});
 		var SettingsView_module_css_default = {
-			"pageHeader": "_506LLG_pageHeader",
-			"settingControl": "_506LLG_settingControl",
-			"proxyHintFail": "_506LLG_proxyHintFail",
-			"textInput": "_506LLG_textInput",
-			"controlDropdown": "_506LLG_controlDropdown",
-			"pageTitle": "_506LLG_pageTitle",
-			"root": "_506LLG_root",
-			"proxyHintOk": "_506LLG_proxyHintOk",
-			"content": "_506LLG_content",
-			"navItem": "_506LLG_navItem",
-			"settingRow": "_506LLG_settingRow",
-			"settingRowStack": "_506LLG_settingRowStack",
 			"navIcon": "_506LLG_navIcon",
-			"proxyHint": "_506LLG_proxyHint",
-			"sidebar": "_506LLG_sidebar",
-			"settingControlStack": "_506LLG_settingControlStack",
-			"card": "_506LLG_card",
+			"navItem": "_506LLG_navItem",
 			"resetBtn": "_506LLG_resetBtn",
-			"pageDesc": "_506LLG_pageDesc",
-			"settingTitle": "_506LLG_settingTitle",
-			"navItemActive": "_506LLG_navItemActive",
-			"settingDesc": "_506LLG_settingDesc",
 			"settingLabel": "_506LLG_settingLabel",
-			"proxyControl": "_506LLG_proxyControl"
+			"proxyControl": "_506LLG_proxyControl",
+			"controlDropdown": "_506LLG_controlDropdown",
+			"settingRow": "_506LLG_settingRow",
+			"pageHeader": "_506LLG_pageHeader",
+			"pageTitle": "_506LLG_pageTitle",
+			"settingControlStack": "_506LLG_settingControlStack",
+			"settingTitle": "_506LLG_settingTitle",
+			"content": "_506LLG_content",
+			"root": "_506LLG_root",
+			"settingDesc": "_506LLG_settingDesc",
+			"textInput": "_506LLG_textInput",
+			"sidebar": "_506LLG_sidebar",
+			"settingControl": "_506LLG_settingControl",
+			"proxyHint": "_506LLG_proxyHint",
+			"proxyHintOk": "_506LLG_proxyHintOk",
+			"navItemActive": "_506LLG_navItemActive",
+			"pageDesc": "_506LLG_pageDesc",
+			"card": "_506LLG_card",
+			"settingRowStack": "_506LLG_settingRowStack",
+			"proxyHintFail": "_506LLG_proxyHintFail"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Dropdown.module.css.mjs
@@ -5301,18 +5263,18 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$4
 		});
 		var Dropdown_module_css_default = {
-			"dropdown": "B_Gxsq_dropdown",
-			"dropdownBtn": "B_Gxsq_dropdownBtn",
-			"dropdownFill": "B_Gxsq_dropdownFill",
-			"dropdownPanel": "B_Gxsq_dropdownPanel",
-			"dropdownLabel": "B_Gxsq_dropdownLabel",
-			"dropdownItem": "B_Gxsq_dropdownItem",
+			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
 			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen",
 			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
-			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
-			"dropdownArrow": "B_Gxsq_dropdownArrow",
+			"dropdownPanel": "B_Gxsq_dropdownPanel",
+			"dropdownLabel": "B_Gxsq_dropdownLabel",
+			"dropdownFill": "B_Gxsq_dropdownFill",
+			"dropdown": "B_Gxsq_dropdown",
+			"dropdownItem": "B_Gxsq_dropdownItem",
 			"dropdownCount": "B_Gxsq_dropdownCount",
-			"dropdownItemActive": "B_Gxsq_dropdownItemActive"
+			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
+			"dropdownArrow": "B_Gxsq_dropdownArrow",
+			"dropdownBtn": "B_Gxsq_dropdownBtn"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Toggle.module.css.mjs
@@ -5331,8 +5293,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$3
 		});
 		var Toggle_module_css_default = {
-			"toggleOn": "k-cD4G_toggleOn",
 			"knob": "k-cD4G_knob",
+			"toggleOn": "k-cD4G_toggleOn",
 			"toggle": "k-cD4G_toggle"
 		};
 		//#endregion
@@ -5342,9 +5304,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Compact switch used by the settings rows. Native-button based so it is
-		* keyboard focusable and announces state via aria-checked; styling driven
-		* by the --hub-* tokens (on = brand fill, off = neutral track).
+		* 设置行用的紧凑开关。基于原生 button，可键盘聚焦并通过 aria-checked 播报状态；
+		* 样式由 --hub-* 变量驱动（开 = 品牌填充，关 = 中性轨道）。
 		*/
 		function Toggle({ checked, onChange, title, disabled }) {
 			return (0, react.createElement)("button", {
@@ -5364,13 +5325,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Button-style dropdown (native <select> replacement).
+		* 按钮式下拉框（替代原生 <select>）。
 		*
-		* The trigger is a compact toolbar button — hairline border + subtle grey
-		* fill + current value + chevron — so it sits naturally next to the other
-		* toolbar buttons and takes a single slot of horizontal space. Clicking
-		* outside or pressing Esc closes the panel; options get a hover fill and
-		* the active one a brand highlight, all driven by the --hub-* tokens.
+		* 触发器是紧凑的工具栏按钮 —— 细边框 + 淡灰填充 + 当前值 + 箭头 —— 与其它工具栏按钮
+		* 并排自然，只占一格横向空间。点击外部或按 Esc 关闭面板；选项有 hover 填充、
+		* 激活项为品牌高亮，全部由 --hub-* 变量驱动。
 		*/
 		function Dropdown({ value, options, onChange, title, className }) {
 			const [open, setOpen] = (0, react.useState)(false);
@@ -5433,29 +5392,29 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$2
 		});
 		var DiagnosticsView_module_css_default = {
-			"summary": "k9eRya_summary",
-			"summaryOk": "k9eRya_summaryOk",
-			"display": "k9eRya_display",
-			"envCopyBtn": "k9eRya_envCopyBtn",
-			"meta": "k9eRya_meta",
-			"badgeRunning": "k9eRya_badgeRunning",
+			"envLabel": "k9eRya_envLabel",
 			"envTitle": "k9eRya_envTitle",
+			"summaryRunning": "k9eRya_summaryRunning",
+			"summary": "k9eRya_summary",
+			"badgeFail": "k9eRya_badgeFail",
 			"envDesc": "k9eRya_envDesc",
-			"head": "k9eRya_head",
-			"summaryFail": "k9eRya_summaryFail",
+			"badgeOk": "k9eRya_badgeOk",
+			"panel": "k9eRya_panel",
+			"meta": "k9eRya_meta",
+			"name": "k9eRya_name",
+			"badgeIdle": "k9eRya_badgeIdle",
+			"summaryOk": "k9eRya_summaryOk",
 			"row": "k9eRya_row",
 			"envRow": "k9eRya_envRow",
-			"badgeIdle": "k9eRya_badgeIdle",
+			"head": "k9eRya_head",
 			"headHint": "k9eRya_headHint",
-			"name": "k9eRya_name",
-			"panel": "k9eRya_panel",
-			"runBtn": "k9eRya_runBtn",
-			"badge": "k9eRya_badge",
-			"badgeOk": "k9eRya_badgeOk",
+			"summaryFail": "k9eRya_summaryFail",
+			"display": "k9eRya_display",
+			"badgeRunning": "k9eRya_badgeRunning",
 			"diagPulse": "k9eRya_diagPulse",
-			"summaryRunning": "k9eRya_summaryRunning",
-			"envLabel": "k9eRya_envLabel",
-			"badgeFail": "k9eRya_badgeFail"
+			"envCopyBtn": "k9eRya_envCopyBtn",
+			"badge": "k9eRya_badge",
+			"runBtn": "k9eRya_runBtn"
 		};
 		//#endregion
 		//#region src/client/components/views/DiagnosticsView.tsx
@@ -5464,12 +5423,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* System diagnostics list: one row per connectivity channel (npm registry /
-		* GitHub API / catalog site), each with a live status badge — 200 OK in
-		* green, Unreachable in red, Checking… while probing. The list runs
-		* automatically when the page opens; every row is a button that re-probes
-		* just that channel, so a click always yields visible feedback
-		* (row pulses → badge flips → latency refreshes).
+		* 系统诊断列表：每个连通性通道（npm registry / GitHub API / 目录站点）一行，各带实时
+		* 状态徽标 —— 200 OK 绿、不可达红、探测中显示「检测中…」。页面打开时自动跑一轮；
+		* 每行都是按钮，点击只重测该通道，因此点击总有可见反馈（行脉冲 → 徽标翻转 → 延迟刷新）。
 		*/
 		/** 系统版本文本：提交 Issue 时粘贴到正文，方便作者复现。 */
 		function formatEnv(env) {
@@ -5633,57 +5589,57 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$1
 		});
 		var LogsView_module_css_default = {
-			"filterChipActive": "_3j77BW_filterChipActive",
-			"badgeInfo": "_3j77BW_badgeInfo",
-			"pathDialogRow": "_3j77BW_pathDialogRow",
-			"filterChip": "_3j77BW_filterChip",
-			"headHint": "_3j77BW_headHint",
-			"catUninstall": "_3j77BW_catUninstall",
-			"catUpdate": "_3j77BW_catUpdate",
-			"head": "_3j77BW_head",
-			"footCount": "_3j77BW_footCount",
-			"catDiagnostics": "_3j77BW_catDiagnostics",
-			"badgeError": "_3j77BW_badgeError",
-			"pathDialogReset": "_3j77BW_pathDialogReset",
-			"actions": "_3j77BW_actions",
-			"message": "_3j77BW_message",
-			"badgeDebug": "_3j77BW_badgeDebug",
-			"headActions": "_3j77BW_headActions",
-			"pathDialogHint": "_3j77BW_pathDialogHint",
-			"filterBar": "_3j77BW_filterBar",
-			"btn": "_3j77BW_btn",
-			"event": "_3j77BW_event",
-			"panel": "_3j77BW_panel",
-			"previewRow": "_3j77BW_previewRow",
-			"entry": "_3j77BW_entry",
-			"pathDraft": "_3j77BW_pathDraft",
-			"moreEnd": "_3j77BW_moreEnd",
-			"badge": "_3j77BW_badge",
-			"badgeSuccess": "_3j77BW_badgeSuccess",
-			"catSettings": "_3j77BW_catSettings",
-			"footFail": "_3j77BW_footFail",
 			"search": "_3j77BW_search",
-			"pathDialogFoot": "_3j77BW_pathDialogFoot",
-			"list": "_3j77BW_list",
-			"time": "_3j77BW_time",
-			"pathDialog": "_3j77BW_pathDialog",
-			"footPath": "_3j77BW_footPath",
-			"badgeWarn": "_3j77BW_badgeWarn",
-			"empty": "_3j77BW_empty",
-			"pathDialogDesc": "_3j77BW_pathDialogDesc",
-			"pathLabel": "_3j77BW_pathLabel",
-			"linkBtn": "_3j77BW_linkBtn",
-			"pathText": "_3j77BW_pathText",
+			"head": "_3j77BW_head",
+			"actions": "_3j77BW_actions",
+			"entry": "_3j77BW_entry",
 			"pathRow": "_3j77BW_pathRow",
-			"more": "_3j77BW_more",
+			"pathDialogDesc": "_3j77BW_pathDialogDesc",
+			"filterBar": "_3j77BW_filterBar",
+			"pathDialog": "_3j77BW_pathDialog",
+			"filterChipActive": "_3j77BW_filterChipActive",
 			"footActions": "_3j77BW_footActions",
+			"badgeError": "_3j77BW_badgeError",
 			"catBadge": "_3j77BW_catBadge",
-			"catInstall": "_3j77BW_catInstall",
+			"catSettings": "_3j77BW_catSettings",
+			"time": "_3j77BW_time",
+			"panel": "_3j77BW_panel",
 			"catSystem": "_3j77BW_catSystem",
 			"clearBtn": "_3j77BW_clearBtn",
+			"pathDialogHint": "_3j77BW_pathDialogHint",
+			"badge": "_3j77BW_badge",
+			"pathDialogReset": "_3j77BW_pathDialogReset",
+			"badgeSuccess": "_3j77BW_badgeSuccess",
+			"badgeWarn": "_3j77BW_badgeWarn",
+			"pathDialogRow": "_3j77BW_pathDialogRow",
+			"message": "_3j77BW_message",
+			"previewRow": "_3j77BW_previewRow",
+			"pathText": "_3j77BW_pathText",
+			"moreEnd": "_3j77BW_moreEnd",
+			"catUninstall": "_3j77BW_catUninstall",
+			"catInstall": "_3j77BW_catInstall",
+			"foot": "_3j77BW_foot",
+			"badgeDebug": "_3j77BW_badgeDebug",
+			"headHint": "_3j77BW_headHint",
+			"btn": "_3j77BW_btn",
+			"linkBtn": "_3j77BW_linkBtn",
+			"event": "_3j77BW_event",
+			"pathLabel": "_3j77BW_pathLabel",
+			"footFail": "_3j77BW_footFail",
+			"pathDraft": "_3j77BW_pathDraft",
+			"pathDialogFoot": "_3j77BW_pathDialogFoot",
+			"more": "_3j77BW_more",
+			"headActions": "_3j77BW_headActions",
 			"searchInput": "_3j77BW_searchInput",
+			"footPath": "_3j77BW_footPath",
 			"logList": "_3j77BW_logList",
-			"foot": "_3j77BW_foot"
+			"badgeInfo": "_3j77BW_badgeInfo",
+			"list": "_3j77BW_list",
+			"footCount": "_3j77BW_footCount",
+			"catUpdate": "_3j77BW_catUpdate",
+			"catDiagnostics": "_3j77BW_catDiagnostics",
+			"empty": "_3j77BW_empty",
+			"filterChip": "_3j77BW_filterChip"
 		};
 		//#endregion
 		//#region src/client/components/modals/LogsModal.tsx
@@ -5692,20 +5648,15 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Built-in log viewer dialog: no external software needed — the app opens
-		* its own window and loads the local system log (JSONL at
-		* ~/.dsh/profiles/<profile>/hub.log) straight from the server, one page at
-		* a time.
+		* 内置日志查看器弹窗：无需外部软件 —— 应用自己开窗，从服务端直接分页加载本地系统日志
+		* （JSONL，位于 ~/.dsh/profiles/<profile>/hub.log）。
 		*
-		* Every line is categorized twice: a function area (install / uninstall /
-		* update / diagnostics / settings / system) and a severity level (debug /
-		* info / success / warn / error). Filtering on both axes lets you target,
-		* say, only install errors — so the exact incompatible step of an install
-		* (or uninstall) is easy to spot. Search narrows by event code or message.
+		* 每行双重归类：功能域（安装/卸载/更新/诊断/设置/系统）与严重级别（debug/info/success/
+		* warn/error）。两轴筛选可只盯某类，比如只看安装错误 —— 便于定位安装（或卸载）中真正
+		* 卡住的那一步；搜索按事件码或消息缩小范围。
 		*
-		* Server pagination: GET /dsh-plugin-hub/logs?offset=&limit=&category=
-		* &level=&query= → { entries, total, hasMore, path }. The footer shows the
-		* real file location and reveals it in the system file manager.
+		* 服务端分页：GET /dsh-plugin-hub/logs?offset=&limit=&category=&level=&query=
+		* → { entries, total, hasMore, path }。底部展示日志真实路径并可在系统文件管理器中定位。
 		*/
 		const PAGE = 100;
 		/** 类别筛选标签：值 → 语言包 key（弹窗内 chip 与行内类别徽章共用）。 */
@@ -6242,17 +6193,14 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Settings view: desktop-settings navigation — a fixed left sidebar lists
-		* the sections (icon + label, click to switch), the right pane shows the
-		* active section's rows. New settings only add rows, new areas only add a
-		* sidebar entry.
+		* 设置视图：桌面设置式导航 —— 固定左侧栏列出各分组（图标 + 名称，点击切换），
+		* 右侧面板展示当前分组的设置行。新增设置只加行，新增区域只加一条侧栏项。
 		*
-		* Sections mirror what the local server actually enforces:
-		*   Updates & Sources — startup update check / npm mirror / HTTP proxy
-		*                        (all wired into the install command path)
-		*   Security & Trust  — restricted custom installs (server 403 gate)
-		*   Diagnostics       — live connectivity probe + environment snapshot
-		*   Logs              — system log viewer + storage location
+		* 各分组对应本地服务端实际强制的行为：
+		*   更新与源 —— 启动检查更新 / npm 镜像 / HTTP 代理（都接进安装命令链路）
+		*   安全与信任 —— 受限的自定义安装（服务端 403 门禁）
+		*   诊断 —— 实时连通性探测 + 环境快照
+		*   日志 —— 系统日志查看器 + 存放位置
 		*/
 		/** npm 镜像源预设：空串 = 未配置（跟随用户本机 npm 配置，本插件不注入任何 registry）。
 		*  只提供常见国内顶级镜像下拉，不做自定义输入 —— 想用其它镜像直接在 ~/.npmrc 配置即可。 */
@@ -6483,10 +6431,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* Plugin Hub section: wires the catalog data pipeline, the background task
-		* queue and the feedback state together. Data/queue logic lives in hooks/,
-		* rendering is delegated to the small presentational components in this
-		* folder; it hosts the dialogs/toast and the section-level copy actions.
+		* 插件中心板块：把目录数据管道、后台任务队列与反馈状态接在一起。数据/队列逻辑在 hooks/，
+		* 渲染交给本目录下的小型展示组件；本文件托管各弹窗/Toast 与板块级复制动作。
 		*/
 		function PluginHubSection({ t: _hostT, locale }) {
 			const { lang, langKey, langPath, t, toggleLang } = useLanguage(locale);
@@ -7214,9 +7160,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* Website: https://dsh-plugin.org
 		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
 		*
-		* dsh-plugin client entry: wires the Plugin Hub into the host settings via
-		* the module-loader bundle (see tsdown.config.ts). All UI logic lives in
-		* PluginHubSection; this file only performs the cordis apply wiring.
+		* dsh-plugin 客户端入口：通过模块加载器 bundle（见 tsdown.config.ts）把插件中心接入宿主设置。
+		* 全部 UI 逻辑都在 PluginHubSection；本文件只做 cordis apply 接线。
 		*/
 		const NS = "dsh-plugin";
 		const name = NS;
