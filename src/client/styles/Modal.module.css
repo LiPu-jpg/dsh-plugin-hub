@@ -1139,6 +1139,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
   line-height: 18px;
+  /* 来源参数 ?ref=hub 只保留在 href 里，不显示 */
   color: var(--hub-brand);
   text-decoration: none;
   cursor: pointer;
@@ -1147,6 +1148,11 @@
 
 .failRepo:hover {
   text-decoration: underline;
+}
+
+/* 只有真正的超链接用蓝色（同类名也用于纯文本的仓库名/更新记录） */
+a.failRepo {
+  color: #2f6feb;
 }
 
 /* 记录内的复制按钮：纯灰文字、无边框，低调隐蔽，点击即可复制该条完整错误日志 */
