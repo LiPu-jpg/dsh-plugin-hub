@@ -168,6 +168,15 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
       setNotifications(addSuccess({ kind: 'uninstall', repo: repo ?? '' }))
     },
     onError: (message, repo, kind, command, attempts, update) => {
+      // 失败只由错误弹窗呈现：先关掉发起本次操作的确认/进度弹窗
+      setInstallDone(false)
+      setUninstallDone(false)
+      setConfirmPlugin(null)
+      setConfirmCustomTarget(null)
+      setConfirmCustomChannel(null)
+      setConfirmGlobalNpm(null)
+      setUninstallPlugin(null)
+      setUninstallItem(null)
       // 提 Issue 目标先反查仓库身份：npm 包名能在已安装表/目录里反查到 owner/repo 才保留，
       // 反查不到置 null —— 错误弹窗据此不显示「一键提 Issue」按钮（防提到错误仓库）
       const issueRepo = issueRepoOf(repo ?? '', catalog.installedItems, catalog.plugins)

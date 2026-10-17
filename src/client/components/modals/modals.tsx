@@ -394,7 +394,10 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
                 target: '_blank',
                 rel: 'noopener noreferrer',
                 title: url,
-              }, `${t('detailTitle')} · ${url.replace(/^https?:\/\//, '').split('?')[0]}`)
+              },
+                h('span', { className: styles.failRepoLabel }, `${t('detailTitle')} · `),
+                h('span', { className: styles.failRepoUrl }, url.replace(/^https?:\/\//, '').split('?')[0]),
+              )
             })() : null,
             // 复制按钮放最上面、浅灰隐蔽；报错正文不允许鼠标选择复制，只能点这里
             h('button', { className: styles.errorCopySoft, onClick: () => onCopy(copyText) }, t('errorCopy')),

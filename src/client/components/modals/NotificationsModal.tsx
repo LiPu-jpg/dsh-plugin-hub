@@ -211,7 +211,9 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                               target: '_blank',
                               rel: 'noopener noreferrer',
                               title: url,
-                            }, `${t('detailTitle')} · ${url.replace(/^https?:\/\//, '').split('?')[0]}`)
+                            },
+                              h('span', { className: styles.failRepoLabel }, `${t('detailTitle')} · `),
+                              h('span', { className: styles.failRepoUrl }, url.replace(/^https?:\/\//, '').split('?')[0]))
                           })()
                           // 反查不到仓库身份（如命令行安装的裸 npm 包名）：回退显示记录里的原始值，
                           // 保证通知永不只剩一句「安装/更新成功」没有名字 —— 只是不给官网外链（查不到不敢乱跳）

@@ -1147,12 +1147,22 @@
 }
 
 .failRepo:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* 只有真正的超链接用蓝色（同类名也用于纯文本的仓库名/更新记录） */
 a.failRepo {
   color: #2f6feb;
+}
+
+/* 链接里的「插件详情」前缀保持正文色，只有后面的网址是蓝色 */
+.failRepoLabel {
+  color: var(--hub-text-secondary);
+}
+
+/* 下划线只加在网址上，前缀不跟着变成链接样式 */
+a.failRepo:hover .failRepoUrl {
+  text-decoration: underline;
 }
 
 /* 记录内的复制按钮：纯灰文字、无边框，低调隐蔽，点击即可复制该条完整错误日志 */
