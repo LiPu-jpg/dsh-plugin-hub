@@ -634,6 +634,16 @@ test('summarizeError keeps descriptive failure lines like a missing submodule', 
   assert.ok(!out.includes('Progress:'))
 })
 
+test('summarizeError keeps the host version-gate line, not just the wrapper', () => {
+  const msg = [
+    'dsh: plugin command failed; diagnostics: /Users/x/.dsh/profiles/web/.plugin-manager/logs/operation-abc/pnpm.log',
+    'dsh: installation rejected: Plugin dsh-better-sidebar@0.28.0 is incompatible with dsh 0.2.0-rc.2: peerDependencies {"@deepseek-ai/dsh-llm":"^0.2.1-rc.1"}. Running it may cause crashes or data loss.',
+    'dsh: nothing was installed.',
+  ].join('\n')
+  const out = summarizeError(msg)
+  assert.ok(out.includes('incompatible with dsh 0.2.0-rc.2'), 'issue body must carry the real rejection, not only the wrapper line')
+})
+
 test('summarizeError falls back to head+tail snapshot when nothing matches', () => {
   const head = 'line one start'
   const tail = 'last line end'

@@ -291,7 +291,7 @@ export function npmTooLowVersion(message: string): string | null {
 }
 
 /** 核心行特征：错误代码 / 生命周期脚本失败 / prepare 失败 / 描述性报错（子模块缺失、找不到等）/ 退出与宿主提示信息。 */
-const CORE_LINE_RE = /ERR_[A-Z_]+|ELIFECYCLE|Command failed|prepare-guard|Failed to prepare|exit code|\bprepare\b|pnpm failed in profile|git-hosted plugins build|submodule|not found|cannot find|no such|unable to|fatal|missing|error/i
+const CORE_LINE_RE = /ERR_[A-Z_]+|ELIFECYCLE|Command failed|prepare-guard|Failed to prepare|exit code|\bprepare\b|pnpm failed in profile|git-hosted plugins build|incompatible with dsh|submodule|not found|cannot find|no such|unable to|fatal|missing|error/i
 /** pnpm 的 peer 依赖告警行（`missing peer …` / `Issues with peer dependencies found` /
  *  `Peer dependencies that should be installed`）：宿主提供的 peer（@deepseek-ai/*、react、
  *  dsh-client-* 等，DSH profile 用 autoInstallPeers:false 不自动装）缺失是无害噪音，与插件本身
