@@ -14,7 +14,7 @@ import type { MouseEvent } from 'react'
 import styles from '../../styles/Modal.module.css'
 import type { EnvInfo, Translate } from '../../types.ts'
 import type { NotificationRecord } from '../../logic/failures.ts'
-import { actionOfRecord, classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import { actionOfRecord, classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
 import type { PendingRestart, QueueTask } from '../../hooks/useTaskQueue.ts'
 import { pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { CloseIcon } from '../ui/icons.tsx'
@@ -221,7 +221,7 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       : null,
                     !r.ok && h('button', {
                       className: styles.failCopy,
-                      onClick: () => onCopy(r.message),
+                      onClick: () => onCopy(formatFailureMessage(r.message)),
                     }, t('failCopy')),
                     // 成功通知：时间戳在行右侧，与图标/文字垂直居中，卡片保持单行内容
                     r.ok

@@ -15,7 +15,7 @@ import { CloseIcon, ConfirmIcon, CopyIcon, LinkIcon } from '../ui/icons.tsx'
 import { ProgressView } from './ProgressView.tsx'
 import { installCommandOf } from '../../logic/install-command.ts'
 import { pluginDetailUrl, pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
-import { classifyFailure, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import { classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
 import type { FailureAction } from '../../logic/failures.ts'
 
 /** 完成结果视图：绿色对勾 + 标题/描述；
@@ -359,10 +359,13 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
   // 复制完整错误：实际执行/尝试过的安装命令（如有）+ 完整错误正文。
   // 只复制 message 会丢上下文 —— 命令行安装输入的目标、执行过的命令都在 command/attempts 里，
   // 光拷一句「unsupported install target」出去没人看得懂
+  // 展示与复制都用展开后的文本：宿主门禁消息里的 peerDependencies 是压缩 JSON，
+  // 原样展示会挤成一整行；格式化只影响可读性，不改变归类与上报逻辑
+  const displayMessage = formatFailureMessage(message)
   const copyText = [
     ...(command ? [command] : []),
     ...(attempts ?? []),
-    message,
+    displayMessage,
   ].join('\n')
   return h('div', {
     className: styles.overlay,
@@ -403,7 +406,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
             h('button', { className: styles.errorCopySoft, onClick: () => onCopy(copyText) }, t('errorCopy')),
           ),
           // 报错信息完整展示（可滚动），比失败记录的预览看得更多
-          h('pre', { className: styles.errorBox }, message),
+          h('pre', { className: styles.errorBox }, displayMessage),
           // 统一失败卡片头部：报错类型 + 一句话原因（各类型的具体指引仍在下面的分支里）
           h('div', { className: styles.failKindTitle }, t(`failKind_${failureKind}`, failureKind === 'hostIncompatible'
             ? { version: /incompatible with dsh\s+([^\s:;,]+)/i.exec(message)?.[1] ?? '' }

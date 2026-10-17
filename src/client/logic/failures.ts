@@ -306,6 +306,20 @@ export const MAX_CORE_CHARS = 5000
 const MAX_LINE_CHARS = 400
 
 /**
+ * 展示用格式化：宿主门禁消息里的 peerDependencies 是压缩成一行的 JSON，
+ * 直接展示像一团乱码；展开成缩进格式，解析失败则原样返回。
+ */
+export function formatFailureMessage(message: string): string {
+  return message.replace(/peerDependencies (\{.*?\})/g, (whole: string, json: string) => {
+    try {
+      return `peerDependencies ${JSON.stringify(JSON.parse(json), null, 2)}`
+    } catch {
+      return whole
+    }
+  })
+}
+
+/**
  * 核心错误收集器：从完整安装输出里挑出真正说明问题的行（错误代码、构建脚本失败、
  * 退出与宿主提示），去重后拼接，单行与总量都截断 —— 只把「重点 + 原因」带进 issue 正文，
  * 避免完整日志塞进 URL 导致请求过长。无关键行时退化为「头部 + 尾部」快照。

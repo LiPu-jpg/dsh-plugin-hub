@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyFailure, coreErrorCode, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh } from '../src/client/logic/failures.ts'
+import { classifyFailure, coreErrorCode, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh } from '../src/client/logic/failures.ts'
 
 const dshTailHint = 'dsh: git-hosted plugins build on install via their prepare script, which pnpm blocks until allowed — add the exact key pnpm printed above under allowBuilds in /Users/x/.dsh/profiles/web/pnpm-workspace.yaml, then re-run'
 
@@ -642,6 +642,14 @@ test('summarizeError keeps the host version-gate line, not just the wrapper', ()
   ].join('\n')
   const out = summarizeError(msg)
   assert.ok(out.includes('incompatible with dsh 0.2.0-rc.2'), 'issue body must carry the real rejection, not only the wrapper line')
+})
+
+test('formatFailureMessage expands the minified peerDependencies JSON', () => {
+  const msg = 'dsh: installation rejected: Plugin x@1.0.0 is incompatible with dsh 0.2.0-rc.2: peerDependencies {"@deepseek-ai/dsh-llm":"^0.2.1-rc.1","@deepseek-ai/dsh-tools":"^0.2.1-rc.1"}. Running it may cause crashes.'
+  const out = formatFailureMessage(msg)
+  assert.ok(out.includes('\n  "@deepseek-ai/dsh-llm": "^0.2.1-rc.1"'))
+  assert.ok(out.includes('is incompatible with dsh 0.2.0-rc.2'))
+  assert.ok(formatFailureMessage('nothing to format').includes('nothing to format'))
 })
 
 test('summarizeError falls back to head+tail snapshot when nothing matches', () => {
