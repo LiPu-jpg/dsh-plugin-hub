@@ -61,6 +61,7 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
     case 'fsUnavailable': return 'local file system unavailable on the user machine'
     case 'pnpmIgnoredBuild': return 'build scripts blocked by pnpm allowlist'
     case 'pluginPrepare': return 'plugin distribution incomplete'
+    case 'hostIncompatible': return 'plugin does not support the DSH version in use'
     case 'network': return 'network failure on the user side'
     case 'hostCliSpawn': return 'the DSH host could not be launched on the user machine'
     case 'hubState': return `stale ${word} state in the plugin hub`
@@ -91,7 +92,9 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
   const zhWord = actionWordZh(action)
   // 标题 = 错误原因（非动作词），让 issue 列表一眼可分流
   const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind, action)}: ${repo}`
-  const reason = /\[packaging\]/i.test(message)
+  const reason = kind === 'hostIncompatible'
+    ? 'the plugin declares a dsh compatibility range that does not include the runtime in use, so the host rejects it before installing anything; please extend the supported dsh versions or publish a compatible release'
+    : /\[packaging\]/i.test(message)
     ? 'plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published npm package; please publish a complete package'
       : /\[registry-missing\]/i.test(message)
         // 服务端用官方 registry 复核过：缺的包在官方源上也不存在，且不是用户 profile 的残留依赖

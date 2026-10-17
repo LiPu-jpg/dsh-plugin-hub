@@ -330,6 +330,21 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         }, t('failIssueBig')) : null,
                       ])
                     }
+                    if (kind === 'hostIncompatible') {
+                      // 宿主版本门禁：插件声明的兼容范围不含当前 dsh 版本，安装前就被拒绝。
+                      // 作者能修（把该版本加进兼容清单），故引导到作者仓库；同时说明本地可临时授权
+                      const version = /incompatible with dsh\s+([^\s:;,]+)/i.exec(r.message ?? '')?.[1] ?? ''
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failHostIncompatibleHint', { version })),
+                        r.repo && shownRepo ? h('a', {
+                          className: styles.failBigIssue,
+                          href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts, action),
+                          target: '_blank',
+                          rel: 'noopener noreferrer',
+                          title: t('failIssueHint'),
+                        }, t('failIssueBig')) : null,
+                      ])
+                    }
                     if (kind === 'registryVersionStale') {
                       // 要装的版本在「实际执行安装的那个源」里查不到（ERR_PNPM_NO_MATCHING_VERSION / ETARGET）：
                       // 常见于镜像滞后 —— 实际安装沿用本机 ~/.npmrc 的源；

@@ -148,7 +148,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
 
 /** 失败动作口径：标题、上报正文与提示文案按安装/更新/卸载取词，不写死「安装」。 */
 export type FailureAction = 'install' | 'update' | 'uninstall'
@@ -208,6 +208,9 @@ export function pnpmPolicyHintParams(message: string): Record<string, string> {
  * （只影响这个插件 → 才引导提 Issue）。各分支判定顺序有依赖，见函数内注释。
  */
 export function classifyFailure(message: string): FailureKind {
+  // 宿主版本门禁：插件声明的兼容范围不含当前 dsh 版本，宿主在安装前直接拒绝。
+  // 必须最先判 —— 这是宿主自己给的结论，不是 pnpm 的安装失败
+  if (/installation rejected:.*incompatible with dsh/i.test(message)) return 'hostIncompatible'
   // npm 自身崩溃（edgesOut）或服务端标记的本机 npm 版本过低。必须最先判，否则会被外层
   // ERR_PNPM_PREPARE_PACKAGE 吞成「插件打包问题」
   if (/\[npm-too-low\]|edgesOut/i.test(message)) return 'npmTooOld'

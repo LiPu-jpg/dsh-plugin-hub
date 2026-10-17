@@ -19,6 +19,11 @@ test('classifyFailure: git prepare blocked by the allowlist is a plugin distribu
   assert.equal(classifyFailure('[ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED] ... not in the "allowBuilds" allowlist'), 'pnpmIgnoredBuild')
 })
 
+test('classifyFailure: host version gate rejection is hostIncompatible, not an install failure', () => {
+  const msg = 'dsh: installation rejected: Plugin @scope/pkg@0.1.23 is incompatible with dsh 0.2.1-rc.2: requirements {"@deepseek-ai/dsh-llm":"0.2.0-rc.2"}. dsh: nothing was installed.'
+  assert.equal(classifyFailure(msg), 'hostIncompatible')
+})
+
 test('classifyFailure: [npm-too-low] marker from the server is a local npm issue, not a plugin issue', () => {
   const msg = [
     '[ERR_PNPM_PREPARE_PACKAGE] Failed to prepare git-hosted package fetched from "https://codeload.github.com/x/y/tar.gz/abc"',
