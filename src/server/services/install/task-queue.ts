@@ -15,7 +15,7 @@ import type { InstallResult, InstallTask, Invocation, QueueItem } from './instal
 import { CAPTURE_LIMIT_BYTES, MAX_TASKS, MAX_TASK_LINES } from './install-types.ts'
 import { npmTooLowMarker } from './npm-check.ts'
 import { registryMissingMarker } from './registry-check.ts'
-import { backfillOperationLog, operationLogPathOf } from './operation-log.ts'
+import { backfillOperationLog, createOperationLogTap, operationLogPathOf } from './operation-log.ts'
 import { cleanLine, estimateProgress } from '../profile/progress.ts'
 import type { LoaderHandle } from '../loader.ts'
 import { hasClientUi, isDshPlugin, mountLoadedEntry, removeLoadedEntry } from '../loader.ts'
@@ -767,6 +767,8 @@ export async function runPluginMutation(options: {
   /** 全局 npm 安装（官方 `npm install -g <pkgs>`）：非空时执行全局安装，不进任何 profile、无需宿主重启 */
   globalNpm?: string[]
 }): Promise<InstallResult> {
+  // operation 日志只在运行期存在（宿主结束后可能清掉），先开抓取，退出后按路径读作兜底
+  const logTap = createOperationLogTap(profileDirectory(options.profile))
   let result = await spawnMutation(options)
   // allowBuilds 放行 / 装后入口校验都是 profile 专属（pnpm 装进 profile 的场景）；
   // 全局 npm 安装直接走 npm，无 pnpm allowBuilds 拦截、也不进 profile，跳过这两类恢复
@@ -805,6 +807,8 @@ export async function runPluginMutation(options: {
       }
     }
   }
+  // 重试会产生新的 operation 日志，运行期抓取到此为止
+  const tappedLog = logTap.stop()
   // pnpm 安装本身成功，但目标包声明分发的文件缺失（分发物缺构建产物 / 缺声明的补丁）→ 判为失败：
   // 撤销刚登记的待重启，避免用户重启时宿主加载残缺包直接崩溃。
   // 全局 npm 安装不进 profile（profile deps 里没有这些包），跳过入口校验
@@ -827,7 +831,7 @@ export async function runPluginMutation(options: {
   // 只在输出本就不含错误码时回捞 —— pnpm 已回显报错时无需多读一次文件。
   if (result.exitCode !== 0 && !result.timedOut && !/\bERR_[A-Z0-9_]+\b/.test(`${result.stderr}\n${result.stdout}`)) {
     const output = `${result.stderr}\n${result.stdout}`
-    const backfilled = backfillOperationLog(output)
+    const backfilled = tappedLog !== '' ? tappedLog : backfillOperationLog(output)
     if (backfilled !== null) {
       if (options.task && options.task.status !== 'cancelled') {
         pushLine(options.task, '[pnpm log] DSH did not echo pnpm output — recovered the operation log from disk')
