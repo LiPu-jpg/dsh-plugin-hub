@@ -385,17 +385,17 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
         // 与失败记录一致的布局：类型徽标 + 仓库超链接 + 顶部隐蔽复制按钮
         h('div', { className: styles.failRow },
           h('div', { className: styles.failHead },
-            h('span', {
-              className: action === 'install' ? styles.failKindInstall : styles.failKindUninstall,
-            }, actionWord),
-            // 跳官网「插件详情」页（含收录信息）；链接文字用「插件详情」，仓库名放 tooltip
-            repo ? h('a', {
-              className: styles.failRepo,
-              href: pluginSiteUrl(repo),
-              target: '_blank',
-              rel: 'noopener noreferrer',
-              title: repo,
-            }, t('detailTitle')) : null,
+            // 跳官网「插件详情」页；文字里直接给出目标地址（去掉协议），点前就知道会去哪
+            repo ? (() => {
+              const url = pluginSiteUrl(repo)
+              return h('a', {
+                className: styles.failRepo,
+                href: url,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                title: url,
+              }, `${t('detailTitle')} · ${url.replace(/^https?:\/\//, '')}`)
+            })() : null,
             // 复制按钮放最上面、浅灰隐蔽；报错正文不允许鼠标选择复制，只能点这里
             h('button', { className: styles.errorCopySoft, onClick: () => onCopy(copyText) }, t('errorCopy')),
           ),
