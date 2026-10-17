@@ -388,14 +388,14 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
             h('span', {
               className: action === 'install' ? styles.failKindInstall : styles.failKindUninstall,
             }, actionWord),
-            // 仓库地址（用户名/仓库）统一显示为可点击超链接，跳转到官网详情页（含插件收录信息），而非直接跳 GitHub
+            // 跳官网「插件详情」页（含收录信息）；链接文字用「插件详情」，仓库名放 tooltip
             repo ? h('a', {
               className: styles.failRepo,
               href: pluginSiteUrl(repo),
               target: '_blank',
               rel: 'noopener noreferrer',
               title: repo,
-            }, repo) : null,
+            }, t('detailTitle')) : null,
             // 复制按钮放最上面、浅灰隐蔽；报错正文不允许鼠标选择复制，只能点这里
             h('button', { className: styles.errorCopySoft, onClick: () => onCopy(copyText) }, t('errorCopy')),
           ),

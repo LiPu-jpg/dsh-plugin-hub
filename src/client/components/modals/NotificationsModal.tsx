@@ -204,12 +204,12 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         : shownRepo
                           ? h('a', {
                             className: styles.failRepo,
-                            // 跳转到官网详情页（含插件收录信息），不在通知弹窗直接跳 GitHub
+                            // 跳转到官网「插件详情」页（含插件收录信息）；链接文字用「插件详情」，仓库名放 tooltip
                             href: pluginSiteUrl(shownRepo),
                             target: '_blank',
                             rel: 'noopener noreferrer',
                             title: shownRepo,
-                          }, shownRepo)
+                          }, t('detailTitle'))
                           // 反查不到仓库身份（如命令行安装的裸 npm 包名）：回退显示记录里的原始值，
                           // 保证通知永不只剩一句「安装/更新成功」没有名字 —— 只是不给官网外链（查不到不敢乱跳）
                           : h('span', { className: styles.failRepo, title: r.repo }, r.repo))
