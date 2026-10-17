@@ -251,7 +251,9 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                   !r.ok && (() => {
                     const k = classifyFailure(r.message)
                     return h('div', null, [
-                      h('div', { className: styles.failKind }, t(`failKind_${k}`)),
+                      h('div', { className: styles.failKindTitle }, t(`failKind_${k}`, k === 'hostIncompatible'
+                        ? { version: /incompatible with dsh\s+([^\s:;,]+)/i.exec(r.message ?? '')?.[1] ?? '' }
+                        : undefined)),
                       k === 'hostIncompatible' ? null : h('div', { className: styles.failReason }, t(`failReason_${k}`)),
                     ])
                   })(),

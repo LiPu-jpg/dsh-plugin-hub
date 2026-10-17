@@ -1227,7 +1227,7 @@
 }
 
 /* 失败主因分三层：标题（报错类型）→ 一句话原因 → 操作指引，视觉上逐层递减 */
-.failKind {
+.failKindTitle {
   margin-top: 10px;
   font-size: 15px;
   font-weight: 700;

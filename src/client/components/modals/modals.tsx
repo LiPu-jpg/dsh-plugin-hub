@@ -402,7 +402,9 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
           // 报错信息完整展示（可滚动），比失败记录的预览看得更多
           h('pre', { className: styles.errorBox }, message),
           // 统一失败卡片头部：报错类型 + 一句话原因（各类型的具体指引仍在下面的分支里）
-          h('div', { className: styles.failKind }, t(`failKind_${failureKind}`)),
+          h('div', { className: styles.failKindTitle }, t(`failKind_${failureKind}`, failureKind === 'hostIncompatible'
+            ? { version: /incompatible with dsh\s+([^\s:;,]+)/i.exec(message)?.[1] ?? '' }
+            : undefined)),
           failureKind === 'hostIncompatible'
             ? null
             : h('div', { className: styles.failReason }, t(`failReason_${failureKind}`)),
