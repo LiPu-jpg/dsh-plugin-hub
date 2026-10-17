@@ -247,6 +247,14 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       onClick: (e: MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setConfirmRemoveId(r.id) },
                     }, h(CloseIcon)),
                   ),
+                  // 统一失败卡片头部：报错类型 + 一句话原因（具体指引在下面的分支里）
+                  !r.ok && (() => {
+                    const k = classifyFailure(r.message)
+                    return h('div', null, [
+                      h('div', { className: styles.failKind }, t(`failKind_${k}`)),
+                      k === 'hostIncompatible' ? null : h('div', { className: styles.failReason }, t(`failReason_${k}`)),
+                    ])
+                  })(),
                   // 每条失败记录是一个独立卡片：头部（状态/仓库/时间/复制完整日志）→ 修复或提 Issue 动作。
                   // 卡片不展示错误日志预览，完整日志靠「复制完整日志」按钮带走，避免每条卡片被日志撑高
                   !r.ok && (() => {
@@ -335,7 +343,6 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // 作者能修（把该版本加进兼容清单），故引导到作者仓库；同时说明本地可临时授权
                       const version = /incompatible with dsh\s+([^\s:;,]+)/i.exec(r.message ?? '')?.[1] ?? ''
                       return h('div', null, [
-                        h('div', { className: styles.failKind }, t('failHostIncompatibleKind')),
                         h('div', { className: styles.failReason }, t('failHostIncompatibleReason', { version })),
                         h('div', { className: styles.failPrepareHint }, t('failHostIncompatibleHint')),
                         r.repo && shownRepo ? h('a', {
