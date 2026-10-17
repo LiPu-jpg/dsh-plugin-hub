@@ -1226,6 +1226,16 @@
   box-shadow: 0 3px 10px rgba(209, 36, 47, 0.35);
 }
 
+/* 失败主因：加粗加大，放在操作指引上方，先让人看懂结论 */
+.failReason {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 21px;
+  white-space: pre-line;
+  color: var(--hub-danger-text);
+}
+
 /* 插件 prepare 构建脚本失败说明：位于提 Issue 按钮上方的补充说明，同琥珀警示样式 */
 .failPrepareHint {
   margin-top: 6px;

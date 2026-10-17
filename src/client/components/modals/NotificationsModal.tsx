@@ -335,7 +335,8 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // 作者能修（把该版本加进兼容清单），故引导到作者仓库；同时说明本地可临时授权
                       const version = /incompatible with dsh\s+([^\s:;,]+)/i.exec(r.message ?? '')?.[1] ?? ''
                       return h('div', null, [
-                        h('div', { className: styles.failPrepareHint }, t('failHostIncompatibleHint', { version })),
+                        h('div', { className: styles.failReason }, t('failHostIncompatibleReason', { version })),
+                        h('div', { className: styles.failPrepareHint }, t('failHostIncompatibleHint')),
                         r.repo && shownRepo ? h('a', {
                           className: styles.failBigIssue,
                           href: pluginIssueUrl(shownRepo, r.message, env, r.command, r.attempts, action),
