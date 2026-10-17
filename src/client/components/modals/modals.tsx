@@ -472,6 +472,7 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
                 (() => {
                   const version = /incompatible with dsh\s+([^\s:;,]+)/i.exec(message)?.[1] ?? ''
                   return h('div', null, [
+                    h('div', { className: styles.failKind }, t('failHostIncompatibleKind')),
                     h('div', { className: styles.failReason }, t('failHostIncompatibleReason', { version })),
                     h('div', { className: styles.failPrepareHint }, t('failHostIncompatibleHint')),
                   ])
