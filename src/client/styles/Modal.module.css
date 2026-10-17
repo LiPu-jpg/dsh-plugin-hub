@@ -1233,7 +1233,7 @@
   font-weight: 700;
   line-height: 22px;
   text-align: left;
-  color: var(--hub-text-primary);
+  color: var(--hub-danger-text);
 }
 
 .failReason {
