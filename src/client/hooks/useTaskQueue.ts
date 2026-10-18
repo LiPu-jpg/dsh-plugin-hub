@@ -502,8 +502,9 @@ export function useTaskQueue(opts: TaskQueueOptions) {
       // 网络异常：移除乐观条目 + 兜底错误弹窗（附上底层原因，避免只剩一句笼统的「安装失败」）
       applyQueue((prev) => prev.filter((x) => x.id !== tempId))
       const aborted = (err as { name?: string } | null)?.name === 'AbortError'
+      // [request-timeout]：给分类器一个与界面语言无关的超时标记
       const reason = aborted
-        ? t('requestTimeout')
+        ? `${t('requestTimeout')}\n[request-timeout]`
         : err instanceof Error && err.message ? err.message : String(err ?? '')
       // 自定义安装（带入口渠道）：错误正文顶部精准提示「从哪张卡片发起」
       const entry = entryLineOf(t, input.channel)
@@ -601,8 +602,9 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     } catch (err) {
       // 网络异常：附上底层原因，避免只剩一句笼统的「卸载失败」
       const aborted = (err as { name?: string } | null)?.name === 'AbortError'
+      // [request-timeout]：给分类器一个与界面语言无关的超时标记
       const reason = aborted
-        ? t('requestTimeout')
+        ? `${t('requestTimeout')}\n[request-timeout]`
         : err instanceof Error && err.message ? err.message : String(err ?? '')
       onError(reason ? `${t('uninstallFail')} — ${reason}` : t('uninstallFail'), repo, 'uninstall')
     } finally {

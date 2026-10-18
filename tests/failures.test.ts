@@ -644,6 +644,10 @@ test('summarizeError keeps the host version-gate line, not just the wrapper', ()
   assert.ok(out.includes('incompatible with dsh 0.2.0-rc.2'), 'issue body must carry the real rejection, not only the wrapper line')
 })
 
+test('classifyFailure: the client request-timeout marker is a network issue, not an unknown failure', () => {
+  assert.equal(classifyFailure('安装失败 — 请求超时：无法访问 GitHub 或网络不稳定，请稍后重试\n[request-timeout]'), 'network')
+})
+
 test('formatFailureMessage expands the minified peerDependencies JSON', () => {
   const msg = 'dsh: installation rejected: Plugin x@1.0.0 is incompatible with dsh 0.2.0-rc.2: peerDependencies {"@deepseek-ai/dsh-llm":"^0.2.1-rc.1","@deepseek-ai/dsh-tools":"^0.2.1-rc.1"}. Running it may cause crashes.'
   const out = formatFailureMessage(msg)

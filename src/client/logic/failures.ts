@@ -247,6 +247,8 @@ export function classifyFailure(message: string): FailureKind {
   // 网络/代理/源配置问题。必须在 prepare 之前判：git fetch 失败常被外层包成 "Command failed"
   // tarball 下载失败的括号里可能是数字码（pnpm 自己的）或符号码（undici 的 UND_ERR_*），两种都要认
   if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return 'network'
+  // 浏览器端请求超时（客户端 fetch 被 abort）：请求没到宿主，属于连不上网络，与插件无关
+  if (/\[request-timeout\]/i.test(message)) return 'network'
   // 装后校验发现入口文件缺失（[packaging]）= 分发物缺构建产物
   if (/\[packaging\]|entry file missing/i.test(message)) return 'pluginPrepare'
   // registry 上不存在的依赖（404），profile 任何安装都会卡在这条。必须在 pluginPrepare 之前判
