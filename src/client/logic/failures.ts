@@ -148,7 +148,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
 
 /** 失败动作口径：标题、上报正文与提示文案按安装/更新/卸载取词，不写死「安装」。 */
 export type FailureAction = 'install' | 'update' | 'uninstall'
@@ -259,6 +259,9 @@ export function classifyFailure(message: string): FailureKind {
   if (/\bERR_PNPM_NO_MATCHING_VERSION\b|\bETARGET\b|No matching version found/i.test(message)) return 'registryVersionStale'
   // profile 残留指向不存在目录的本地依赖（link:/file:）。必须在 pluginPrepare 之前判
   if (/\bERR_PNPM_LINKED_PKG_DIR_NOT_FOUND\b|Could not install from .+ as it does not exist/i.test(message)) return 'pnpmLinkedDirMissing'
+  // 原生模块需要本机编译，缺编译器/构建工具属于用户环境，不是插件的 prepare 失败。
+  // 必须排在 pluginPrepare 之前：这类日志同样带 ELIFECYCLE，否则会被推给作者。
+  if (/Unable to detect compiler type|gyp ERR!|Could not find any Visual Studio|No Xcode or CLT version detected|xcode-select|python(?:3)? is (?:not set|not found)|Could not find Python|\bmake: not found\b|\bgcc: not found\b|\bg\+\+: not found\b|\bMSB\d{4}\b/i.test(message)) return 'buildToolchainMissing'
   // 构建脚本真的跑挂了才算插件问题。Command failed 区分大小写：只匹配 pnpm 的包装，
   // 不匹配宿主那句小写 dsh: plugin command failed
   if (/ERR_PNPM_PREPARE_PACKAGE|ELIFECYCLE|prepare-guard/i.test(message) || /Command failed/.test(message)) return 'pluginPrepare'

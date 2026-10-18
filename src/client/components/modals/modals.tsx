@@ -431,6 +431,9 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
               : failureKind === 'npmMissing'
               // 本机缺 npm，不是插件问题
               ? h('div', { className: styles.failPrepareHint }, t('failNpmMissingHint'))
+              : failureKind === 'buildToolchainMissing'
+              // 原生模块要本机编译，缺编译器属于用户环境，不引导提 Issue
+              ? h('div', { className: styles.failPrepareHint }, t('failBuildToolchainHint'))
               : failureKind === 'pnpmWorkspace'
               // pnpm 拒绝把依赖装到 workspace 根目录（ERR_PNPM_ADDING_TO_ROOT）：宿主在 profile 目录
               // 调 pnpm add 时未声明在根操作，任何插件都会失败，不是插件问题 ——

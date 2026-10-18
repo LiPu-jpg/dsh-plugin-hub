@@ -296,6 +296,10 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // 给安装指引，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failNpmMissingHint'))
                     }
+                    if (kind === 'buildToolchainMissing') {
+                      // 原生模块要本机编译，缺编译器属于用户环境，不引导提 Issue
+                      return h('div', { className: styles.failPrepareHint }, t('failBuildToolchainHint'))
+                    }
                     if (kind === 'pnpmWorkspace') {
                       // pnpm 拒绝把依赖装到 workspace 根目录（ERR_PNPM_ADDING_TO_ROOT）：宿主在 profile
                       // 目录调 pnpm add 未声明在根操作，任何插件都会失败 ——

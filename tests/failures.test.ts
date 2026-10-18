@@ -644,6 +644,21 @@ test('summarizeError keeps the host version-gate line, not just the wrapper', ()
   assert.ok(out.includes('incompatible with dsh 0.2.0-rc.2'), 'issue body must carry the real rejection, not only the wrapper line')
 })
 
+test('classifyFailure: a missing native build toolchain is an environment issue, not a plugin prepare failure', () => {
+  const cpuFeatures = [
+    "node_modules/cpu-features install:     throw new Error('Unable to detect compiler type');",
+    'node_modules/cpu-features install: Error: Unable to detect compiler type',
+    ' ELIFECYCLE  Command failed with exit code 1.',
+  ].join('\n')
+  assert.equal(classifyFailure(cpuFeatures), 'buildToolchainMissing')
+  const gyp = [
+    'node_modules/pty install: gyp ERR! stack Error: Could not find any Visual Studio installation to use',
+    'node_modules/pty install: gyp ERR! stack python is not set',
+    ' ELIFECYCLE  Command failed',
+  ].join('\n')
+  assert.equal(classifyFailure(gyp), 'buildToolchainMissing')
+})
+
 test('classifyFailure: the client request-timeout marker is a network issue, not an unknown failure', () => {
   assert.equal(classifyFailure('安装失败 — 请求超时：无法访问 GitHub 或网络不稳定，请稍后重试\n[request-timeout]'), 'network')
 })

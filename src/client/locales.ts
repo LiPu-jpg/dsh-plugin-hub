@@ -342,6 +342,7 @@ export const zh = {
   failGitMissingHint: '系统找不到 git 命令（Git 未安装或未加入系统 PATH），无法从 GitHub 源安装插件。请先安装 Git（如 git-scm.com/downloads）或把 git 加入 PATH，重启 DSH 后重试。这不是插件本身的问题。',
   failPnpmMissingHint: '安装器找到了 dsh，但系统里没有 pnpm 命令（dsh 用它来管理 profile 插件）。请先安装 pnpm（如 npm install -g pnpm），确认 pnpm 已加入 PATH 后重试。这不是插件本身的问题。',
   failNpmMissingHint: '系统找不到 npm 命令（npm 未安装或未加入系统 PATH），无法执行全局安装。请先安装 Node.js（自带 npm），确认 npm 已加入 PATH 后重试。这不是插件本身的问题。',
+  failBuildToolchainHint: '这个插件依赖需要在本机编译的原生模块，但机器上缺少可用的编译工具链。请按系统安装后重试：Windows 安装 Visual Studio Build Tools（含「使用 C++ 的桌面开发」）；macOS 执行 xcode-select --install；Linux 安装 build-essential、python3 与 make。若装好工具链后仍然失败，再向插件作者反馈，请其提供预构建产物。',
   failPnpmStoreHint: '安装器调用 pnpm 时报「store 位置不匹配」（ERR_PNPM_UNEXPECTED_STORE）：你的 profile 目录里旧插件依赖是用另一个大版本的 pnpm 生成的，当前 pnpm 出于安全不认旧目录，导致任何插件装进该 profile 都会失败。请删除该 profile 目录下的 node_modules 与 pnpm-lock.yaml（可先到「系统日志」或 ~/.dsh/profiles/<profile>/hub.log 查看完整报错），再重新安装。这不是插件本身的问题。',
   failPnpmUnusedPatchHint: '安装器调用 pnpm 时报「有些补丁没有被使用」（ERR_PNPM_UNUSED_PATCH）：你的 profile 里留着一条指向旧版本 dsh-plugin 的补丁声明（例如 dsh-plugin@1.4.2），而本次安装解析到的版本已经不是它，pnpm 出于安全直接中止整次安装，因此任何插件都装不进来。这不是插件本身的问题——请在 profile 目录（~/.dsh/profiles/<profile>）的 pnpm-workspace.yaml（pnpm 11 及以上）或 package.json 的 pnpm.patchedDependencies（pnpm 10）里删除该 dsh-plugin 补丁条目后重试。',
   // 404 依赖：点名 registry 上不存在的那个包（取不到包名时跳过这行），再给删除条目的指引
@@ -364,6 +365,8 @@ export const zh = {
   failReason_pnpmMissing: '安装器通过 pnpm 安装插件，但机器上找不到 pnpm。',
   failKind_npmMissing: '本机缺少 npm',
   failReason_npmMissing: '安装流程需要 npm，但机器上找不到它。',
+  failKind_buildToolchainMissing: '本机缺少原生构建工具链',
+  failReason_buildToolchainMissing: '这个插件依赖需要在本机编译的原生模块，但找不到可用的编译器。',
   failKind_pnpmStore: 'pnpm store 版本不匹配',
   failReason_pnpmStore: 'profile 里的依赖由另一大版本的 pnpm 生成，当前 pnpm 不认。',
   failKind_pnpmWorkspace: 'workspace 根校验阻止了安装',
@@ -799,6 +802,7 @@ export const en = {
   failGitMissingHint: 'The git command could not be found (Git is not installed or not on the system PATH), so GitHub-source plugins cannot be installed. Please install Git (e.g. from git-scm.com/downloads) or add git to your PATH, restart DSH, then retry. This is not a problem with the plugin itself.',
   failPnpmMissingHint: 'The installer found dsh, but pnpm is missing on this machine (dsh uses it to manage profile plugins). Please install pnpm first (e.g. npm install -g pnpm), make sure it is on your PATH, then retry. This is not a problem with the plugin itself.',
   failNpmMissingHint: 'The npm command could not be found (npm is not installed or not on the system PATH), so a global install cannot run. Please install Node.js (which bundles npm), make sure npm is on your PATH, then retry. This is not a problem with the plugin itself.',
+  failBuildToolchainHint: 'This plugin depends on a native module that must be compiled on your machine, but no usable build toolchain is available. Install one and retry: on Windows install Visual Studio Build Tools with the "Desktop development with C++" workload; on macOS run xcode-select --install; on Linux install build-essential, python3 and make. If it still fails after the toolchain is installed, report it to the plugin author and ask for a prebuilt package.',
   failPnpmStoreHint: 'pnpm reported an unexpected store location (ERR_PNPM_UNEXPECTED_STORE): the profile directory was previously set up with a different major version of pnpm, and the current pnpm refuses to reuse it — no plugin can be installed into that profile. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall. This is not a problem with the plugin itself.',
   failPnpmUnusedPatchHint: 'pnpm reported that some patches were not used (ERR_PNPM_UNUSED_PATCH): your profile still holds a patch entry for an older dsh-plugin version (for example dsh-plugin@1.4.2), while this install resolved a different version, so pnpm aborts the whole install for safety — no plugin can be installed into that profile. This is not a problem with the plugin itself. Remove that dsh-plugin patch entry from pnpm-workspace.yaml (pnpm 11+) or from pnpm.patchedDependencies in package.json (pnpm 10) inside the profile directory (~/.dsh/profiles/<profile>), then retry.',
   // 缺失依赖：点名 404 的包（解析不出时跳过该行），再给删除指引
@@ -821,6 +825,8 @@ export const en = {
   failReason_pnpmMissing: 'The installer uses pnpm to add plugins, but pnpm cannot be found.',
   failKind_npmMissing: 'npm is not installed on this machine',
   failReason_npmMissing: 'The install flow needs npm, but it cannot be found.',
+  failKind_buildToolchainMissing: 'native build toolchain is missing',
+  failReason_buildToolchainMissing: 'A dependency of this plugin must be compiled locally, but no usable compiler was found.',
   failKind_pnpmStore: 'pnpm store version mismatch',
   failReason_pnpmStore: 'The profile dependencies were written by a different pnpm major, which the current pnpm does not accept.',
   failKind_pnpmWorkspace: 'workspace-root check blocked the install',
