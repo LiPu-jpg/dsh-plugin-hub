@@ -39,9 +39,11 @@ export interface InstallTask {
     /** 完成后是否仍需宿主重启才生效：仅「热挂载失败 / 非 dsh 插件 / 更新（ESM 缓存取不到新代码）/
      *  无 loader」等刷新解决不了的兜底场景为 true（弹窗给「立即重启」）；其余一律 false。 */
     needsRestart: boolean;
-    /** 完成后是否只需刷新页面即生效（插件已热挂进运行中 loader，仅剩客户端 UI 待页面重新加载，
+    /** 完成结果是否只需刷新页面即生效（插件已热挂进运行中 loader，仅剩客户端 UI 待页面重新加载，
      *  网页端与桌面端一致）：true 时关闭结果弹窗即自动刷新页面，不给手动刷新按钮。 */
     needsReload?: boolean;
+    /** 自更新成功、但该 profile 的 dsh.profile.bundles 已不含 dsh-plugin：重启后市场不会出现 */
+    bundleDeselected?: boolean;
     /** 卸载入队时该包是否带客户端 UI（`dsh.client`）：卸载后包已从磁盘删除，只能入队前快照，
      *  卸载成功且曾存活时据此决定是否需要刷新页面摘除插件面板。 */
     hadClientUi?: boolean;

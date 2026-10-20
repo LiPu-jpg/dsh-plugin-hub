@@ -185,6 +185,8 @@ dsh plugin --profile web add dsh-plugin
 
 > 更新后重启 `dsh web` 即可生效。
 
+> **更新/重装后市场不见了？** 如果你在「设置 → 插件」里取消勾选过 `dsh-plugin`，profile 的 `dsh.profile.bundles` 里就没有它了——依赖还在 `node_modules`，但不会被组合，重启后市场不会出现。到「设置 → 插件」重新勾选 `dsh-plugin`；也可以把 `"dsh-plugin"` 加回 `~/.dsh/profiles/<profile>/package.json` 的 `dsh.profile.bundles`，再重启宿主。
+
 ## 快速开始：在 DeepSeek Harness 中使用
 
 安装完成后重启 `dsh web`，打开 **设置 → 插件市场**，即可浏览并安装插件。插件市场与 [dsh-plugin.org](https://dsh-plugin.org) 官网数据同源、实时同步。

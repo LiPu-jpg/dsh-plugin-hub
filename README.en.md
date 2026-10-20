@@ -185,6 +185,8 @@ dsh plugin --profile web add dsh-plugin
 
 > Restart `dsh web` after updating for the changes to take effect.
 
+> **Marketplace missing after an update/reinstall?** If you unchecked `dsh-plugin` under Settings → Plugins, the profile's `dsh.profile.bundles` no longer lists it — the dependency stays in `node_modules` but is not composed, so the marketplace will not appear after a restart. Re-check `dsh-plugin` under Settings → Plugins, or add `"dsh-plugin"` back to `dsh.profile.bundles` in `~/.dsh/profiles/<profile>/package.json`, then restart the host.
+
 ## Getting Started: browse & install in DeepSeek Harness
 
 Restart `dsh web` after installing, then open **Settings → Plugin Hub** to browse and install plugins. The catalog is same-source and in sync with [dsh-plugin.org](https://dsh-plugin.org).

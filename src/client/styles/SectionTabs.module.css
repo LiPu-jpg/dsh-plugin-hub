@@ -12,6 +12,8 @@
   flex-shrink: 0;
   padding: 0 2px;
   border-bottom: 1px solid var(--hub-border-1);
+  /* 以自身宽度做容器查询基准：面板变窄时 tab 只剩图标 */
+  container-type: inline-size;
 }
 
 .tab,
@@ -46,6 +48,18 @@
 .tabActive {
   color: var(--hub-text-primary);
   font-weight: 600;
+}
+
+/* 容器够窄时只留图标：四个 tab 与通知入口保持单行、不横向溢出（名称仍由 aria-label 提供） */
+@container (max-width: 440px) {
+  .tabLabel {
+    display: none;
+  }
+
+  .tab,
+  .tabActive {
+    padding: 0 2px;
+  }
 }
 
 /* tab 图标：16px 随字号等宽对齐，SVG 继承 currentColor 自动跟随选中/悬浮色 */

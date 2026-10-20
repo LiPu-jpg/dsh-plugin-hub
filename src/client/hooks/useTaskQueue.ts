@@ -54,6 +54,8 @@ export interface QueueTask {
   /** 完成结果是否只需刷新页面即生效（插件已热挂进运行中 loader，或卸载后插件面板仍残留在当前页面）：
    *  true 时关闭结果弹窗 / Toast 消失后由上层自动刷新页面，不给手动刷新按钮。 */
   needsReload?: boolean
+  /** 市场自更新成功、但 profile 的 bundle 列表里已不含 dsh-plugin：重启后市场不会出现 */
+  bundleDeselected?: boolean
 }
 
 /** 客户端待重启项：镜像服务端内存列表 + 本地补齐的展示信息（简介/版本）。 */
@@ -76,7 +78,7 @@ export interface TaskQueueOptions {
    *  needsRestart 表示该任务完成后是否仍需宿主重启（结果视图据此给「重启 / 仅完成」）；
    *  needsReload 表示是否只需刷新页面即生效（热挂载成功、或卸载后插件面板仍残留）。
    *  update 表示实际执行的是更新（覆盖重装）而非首次安装：通知中心据此显示「更新成功」而非「安装成功」。 */
-  onInstallDone: (viaModal: boolean, repo: string | null, needsRestart: boolean, update?: boolean, needsReload?: boolean) => void
+  onInstallDone: (viaModal: boolean, repo: string | null, needsRestart: boolean, update?: boolean, needsReload?: boolean, bundleDeselected?: boolean) => void
   onUninstallDone: (viaModal: boolean, repo: string | null, needsRestart: boolean, needsReload?: boolean) => void
   /** 任务失败：完整输出或兜底文案 + 所属插件仓库 + 操作类型（安装/卸载）+ 实际执行的安装命令（issue 预填用，可缺省）+ 实际执行/重试过的安装命令（可缺省）+ 是否更新。 */
   onError: (message: string, repo: string | null, kind: 'install' | 'uninstall', command?: string, attempts?: string[], update?: boolean) => void
@@ -212,7 +214,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
         // 同时缓存展示信息，待重启列表（服务端已登记）合并时直接补齐简介/版本
         void syncInstalledVersion(q.repo, q.version, q.updatedAt)
         pendingInfoRef.current.set(q.target, { desc: q.desc, version: q.version })
-        onInstallDone(modalTaskRef.current === q.id, q.repo, q.needsRestart, q.action === 'update', q.needsReload ?? false)
+        onInstallDone(modalTaskRef.current === q.id, q.repo, q.needsRestart, q.action === 'update', q.needsReload ?? false, q.bundleDeselected === true)
       }
     } else {
       // 失败：完整展示全部输出行（最新在前，逆序为日志阅读顺序），不裁剪
@@ -257,20 +259,22 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     let status = 'failed'
     let lines: string[] = []
     let attempts: string[] | undefined
+    let bundleDeselected: boolean | undefined
     try {
       const res = await fetch(`/dsh-plugin-hub/status?task=${q.id}`, { cache: 'no-store' })
       if (res.ok) {
-        const data = await res.json() as { task?: { status?: string; lines?: string[]; attempts?: string[]; needsRestart?: unknown; needsReload?: unknown } }
+        const data = await res.json() as { task?: { status?: string; lines?: string[]; attempts?: string[]; needsRestart?: unknown; needsReload?: unknown; bundleDeselected?: unknown } }
         const task = data.task
         if (task !== undefined) {
           status = task.status ?? 'failed'
           lines = task.lines ?? []
           attempts = Array.isArray(task.attempts) ? task.attempts : undefined
+          bundleDeselected = task.bundleDeselected === true ? true : undefined
           // 终态带出的「是否需要重启 / 是否只需刷新」覆盖本地（服务端 done 时按 loader 热挂/即时移除情况设置）
           const needsRestart = typeof task.needsRestart === 'boolean' ? task.needsRestart : q.needsRestart
           const needsReload = typeof task.needsReload === 'boolean' ? task.needsReload : (q.needsReload ?? false)
           if (status === 'done') {
-            const settled = { ...q, needsRestart, needsReload }
+            const settled = { ...q, needsRestart, needsReload, bundleDeselected: bundleDeselected === true ? true : q.bundleDeselected }
             // 卸载成功走进度过渡动画；安装成功直接收尾
             if (q.kind === 'uninstall') settleDone(settled, lines)
             else finishQueueTask(true, settled, lines)
@@ -297,7 +301,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
         const res = await fetch('/dsh-plugin-hub/active', { cache: 'no-store' })
         if (!res.ok) throw new Error(`active ${res.status}`)
         const data = await res.json() as {
-          tasks?: { id?: unknown; action?: unknown; target?: unknown; status?: unknown; progress?: unknown; lines?: unknown; attempts?: unknown; needsRestart?: unknown; installChannel?: unknown }[]
+          tasks?: { id?: unknown; action?: unknown; target?: unknown; status?: unknown; progress?: unknown; lines?: unknown; attempts?: unknown; needsRestart?: unknown; installChannel?: unknown; bundleDeselected?: unknown }[]
           pendingRestarts?: unknown
         }
         const active = (data.tasks ?? []).filter((a) => typeof a.id === 'number')
@@ -327,6 +331,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
                 lines: Array.isArray(a.lines) ? (a.lines as string[]) : (prevTask?.lines ?? []),
                 attempts: Array.isArray(a.attempts) ? (a.attempts as string[]) : (prevTask?.attempts ?? []),
                 needsRestart: typeof a.needsRestart === 'boolean' ? a.needsRestart : (prevTask?.needsRestart ?? true),
+                bundleDeselected: a.bundleDeselected === true || prevTask?.bundleDeselected === true,
                 // 入口渠道：本地乐观入队已带；服务端 /active 也带回（刷新恢复用），服务端优先。
                 // 旧服务端可能回传已废弃的 'git'/'dsh' 渠道，忽略即可、回退本地值。
                 channel: a.installChannel === 'npm' ? 'npm' : prevTask?.channel,

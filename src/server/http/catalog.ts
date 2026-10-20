@@ -23,6 +23,24 @@ function catalogCacheFile(profile: string, key: string): string {
   return join(profileDirectory(profile), 'cache', `catalog-${key}.json`)
 }
 
+/** 目录拉取超时：目录 JSON 约 3.6MB，20s 在弱网/代理链路上不够用；
+ *  客户端会在超时后重试，重试必须共享同一次拉取（见 fetchCatalogOnce）。 */
+const CATALOG_FETCH_TIMEOUT_MS = 60_000
+
+/** 并发拉取去重：客户端超时重试会并发打进来，共享同一次 curl，
+ *  避免多份 3.6MB 下载互相抢带宽、越重试越慢。 */
+const inflightCatalog = new Map<string, ReturnType<typeof fetchViaCurl>>()
+
+function fetchCatalogOnce(target: string, proxy: string): ReturnType<typeof fetchViaCurl> {
+  const key = `${target}\n${proxy}`
+  const running = inflightCatalog.get(key)
+  if (running !== undefined) return running
+  const task = fetchViaCurl(target, proxy, CATALOG_FETCH_TIMEOUT_MS)
+    .finally(() => { inflightCatalog.delete(key) })
+  inflightCatalog.set(key, task)
+  return task
+}
+
 /** 读缓存：文件存在、JSON 合法、未超过 maxAgeMs → 返回原始响应字符串；否则 null（视为 miss）。
  *  maxAgeMs 传 Infinity 即「任意年龄的缓存」，供实时拉取失败时兜底使用。 */
 function readCatalogCache(file: string, maxAgeMs: number): string | null {
@@ -103,9 +121,12 @@ export function registerCatalogRoutes(webServer: WebServerService, profile: stri
         const target = isStats
           ? 'https://api.dsh-plugin.org/stats.json'
           : `https://api.dsh-plugin.org/plugins.${lang}.json`
-        // 1 小时本地缓存：命中直接返回（跨重启生效，插件市场秒开），未命中才走 curl 拉远程
+        // 1 小时本地缓存：命中直接返回（跨重启生效，插件市场秒开），未命中才走 curl 拉远程。
+        // refresh=1 跳过 TTL 缓存直接回源（「强制刷新」用）；成功后照样覆盖缓存，
+        // 失败仍回退旧缓存，所以强制刷新不会把可用的旧数据弄丢。
         const cacheFile = catalogCacheFile(profile, isStats ? 'stats' : `plugins-${lang}`)
-        const cached = readCatalogCache(cacheFile, CATALOG_CACHE_TTL_MS)
+        const forceRefresh = url.searchParams.get('refresh') === '1'
+        const cached = forceRefresh ? null : readCatalogCache(cacheFile, CATALOG_CACHE_TTL_MS)
         if (cached !== null) {
           try {
             sendJson(response, 200, JSON.parse(cached))
@@ -114,7 +135,7 @@ export function registerCatalogRoutes(webServer: WebServerService, profile: stri
             // 缓存正文损坏：忽略，走重新拉取并覆盖写盘
           }
         }
-        const r = await fetchViaCurl(target, proxy, 20000)
+        const r = await fetchCatalogOnce(target, proxy)
         if (!r.ok || r.body === '') {
           // 实时拉取失败：退回任意年龄的本地缓存（上次成功数据），
           // 避免证书吊销受阻 / 网络抖动时整个插件市场打不开 —— 数据可能过期，但好过空白。

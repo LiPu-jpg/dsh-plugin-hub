@@ -697,8 +697,9 @@ test('missing tarball integrity is a pnpm policy rejection with specific recover
   assert.equal(classifyFailure(message), 'pnpmPolicy')
   assert.equal(pnpmPolicyHintOf(message), 'failPnpmTarballIntegrityHint')
   assert.equal(pnpmPolicyHintOf('ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION'), 'failPnpmPolicyHint')
-  assert.equal(pnpmPolicyHintOf('ERR_PNPM_TARBALL_INTEGRITY checksum mismatch'), 'failPnpmPolicyHint')
-  assert.equal(classifyFailure('ERR_PNPM_TARBALL_INTEGRITY checksum mismatch'), 'hub')
+  // 有校验值但对不上（GitHub 分支 tarball 变了）：单独提示清理锁文件，仍归 pnpmPolicy
+  assert.equal(pnpmPolicyHintOf('ERR_PNPM_TARBALL_INTEGRITY checksum mismatch'), 'failPnpmTarballMismatchHint')
+  assert.equal(classifyFailure('ERR_PNPM_TARBALL_INTEGRITY checksum mismatch'), 'pnpmPolicy')
   assert.equal(classifyFailure('a plugin says its integrity is missing'), 'hub')
   assert.equal(classifyFailure('ERR_PNPM_MISSING_TARBALL_INTEGRITY_OTHER'), 'hub')
 })

@@ -109,6 +109,8 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
   /** 结果视图是否显示「关闭后自动刷新」说明：插件已热挂进运行中 loader（安装）、或卸载后
    *  插件面板仍残留在当前页面（卸载）。关闭弹窗即整页刷新，不给手动刷新按钮。 */
   const [installNeedsReload, setInstallNeedsReload] = useState(false)
+  /** 市场自更新成功、但 profile 的 bundle 列表里已不含 dsh-plugin：结果页提示重新勾选 */
+  const [installBundleDeselected, setInstallBundleDeselected] = useState(false)
   const [uninstallNeedsReload, setUninstallNeedsReload] = useState(false)
   /** 结果视图「立即重启」：请求宿主重启后进入等待，服务回来后整页刷新 */
   const [restarting, setRestarting] = useState(false)
@@ -143,10 +145,11 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
     // 界面语言带给服务端：安装前网络探测等错误消息按用户语言提示（中文界面给中文，英文界面给英文）
     langKey,
     refreshInstalled: catalog.refreshInstalled,
-    onInstallDone: (viaModal, repo, needsRestart, update, needsReload) => {
+    onInstallDone: (viaModal, repo, needsRestart, update, needsReload, bundleDeselected) => {
       const reload = needsReload === true
       setInstallNeedsRestart(needsRestart)
       setInstallNeedsReload(reload)
+      setInstallBundleDeselected(bundleDeselected === true)
       if (viaModal) setInstallDone(true)
       // 弹窗外的后台安装：给结果 toast；需要页面重载时（热挂载的客户端 UI）读完后自动刷新
       else setToast({
@@ -661,10 +664,12 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
       submitting: queue.submitting,
       needsRestart: installNeedsRestart,
       needsReload: installNeedsReload,
+      bundleDeselected: installBundleDeselected,
       // 结果弹窗关闭即生效：安装热挂载的插件要页面重载才渲染客户端 UI → 自动刷新，无需用户点按钮
       onClose: () => {
         const reload = installDone && installNeedsReload
         setConfirmPlugin(null)
+        setInstallBundleDeselected(false)
         if (reload) window.location.reload()
       },
       onCopy: () => copyCommand(confirmPlugin),

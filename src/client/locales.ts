@@ -26,9 +26,11 @@ export const zh = {
   loading: '正在加载插件数据…',
   failed: '插件数据加载失败',
   // 目录拉不出来时的精准提示：按「是否配置了代理」区分，引导排查网络 / 代理
-  failedDescNoProxy: '你的网络似乎不通，无法获取插件目录数据。请检查网络连接后重试；或点击右上角按钮在浏览器中打开插件市场。',
-  failedDescProxy: '你的网络似乎不通，或设置里的 HTTP 代理地址不可达，无法获取插件目录数据。请检查代理设置与网络连接后重试；或点击右上角按钮在浏览器中打开插件市场。',
+  failedDescNoProxy: '无法获取插件目录数据（有数 MB）。网络较慢时首次加载可能超时，可重试或点「强制刷新」跳过本地缓存重新下载；加载成功后会缓存 1 小时。若持续失败，请点「网络诊断」确认目录站点可达。',
+  failedDescProxy: '无法获取插件目录数据（有数 MB）。网络较慢，或设置里的 HTTP 代理不可达/链路抖动时，首次加载可能超时；可重试或点「强制刷新」跳过缓存重新下载。加载成功后会缓存 1 小时。',
   retry: '重试',
+  forceReload: '强制刷新',
+  forceReloadHint: '跳过本地缓存的插件目录，重新从服务器下载（缓存异常或弱网重试时用）',
   install: '安装',
   // 需在终端手动安装的插件（webInstallable=false）：两种情形共用一句 —— 命令网页端代执行不了
   //（npx 安装器 / 本地 link），或命令能跑但装机过程要在终端完成（仓库带 prepare 构建钩子、
@@ -343,6 +345,7 @@ export const zh = {
   failPnpmMissingHint: '安装器找到了 dsh，但系统里没有 pnpm 命令（dsh 用它来管理 profile 插件）。请先安装 pnpm（如 npm install -g pnpm），确认 pnpm 已加入 PATH 后重试。这不是插件本身的问题。',
   failNpmMissingHint: '系统找不到 npm 命令（npm 未安装或未加入系统 PATH），无法执行全局安装。请先安装 Node.js（自带 npm），确认 npm 已加入 PATH 后重试。这不是插件本身的问题。',
   failBuildToolchainHint: '这个插件依赖需要在本机编译的原生模块，但机器上缺少可用的编译工具链。请按系统安装后重试：Windows 安装 Visual Studio Build Tools（含「使用 C++ 的桌面开发」）；macOS 执行 xcode-select --install；Linux 安装 build-essential、python3 与 make。若装好工具链后仍然失败，再向插件作者反馈，请其提供预构建产物。',
+  bundleDeselectedHint: '注意：插件市场在当前 profile 的 bundle 列表中被取消勾选，重启宿主后它不会出现。请到「设置 → 插件」重新勾选 dsh-plugin。',
   failPnpmStoreHint: '安装器调用 pnpm 时报「store 位置不匹配」（ERR_PNPM_UNEXPECTED_STORE）：你的 profile 目录里旧插件依赖是用另一个大版本的 pnpm 生成的，当前 pnpm 出于安全不认旧目录，导致任何插件装进该 profile 都会失败。请删除该 profile 目录下的 node_modules 与 pnpm-lock.yaml（可先到「系统日志」或 ~/.dsh/profiles/<profile>/hub.log 查看完整报错），再重新安装。这不是插件本身的问题。',
   failPnpmUnusedPatchHint: '安装器调用 pnpm 时报「有些补丁没有被使用」（ERR_PNPM_UNUSED_PATCH）：你的 profile 里留着一条指向旧版本 dsh-plugin 的补丁声明（例如 dsh-plugin@1.4.2），而本次安装解析到的版本已经不是它，pnpm 出于安全直接中止整次安装，因此任何插件都装不进来。这不是插件本身的问题——请在 profile 目录（~/.dsh/profiles/<profile>）的 pnpm-workspace.yaml（pnpm 11 及以上）或 package.json 的 pnpm.patchedDependencies（pnpm 10）里删除该 dsh-plugin 补丁条目后重试。',
   // 404 依赖：点名 registry 上不存在的那个包（取不到包名时跳过这行），再给删除条目的指引
@@ -416,6 +419,7 @@ export const zh = {
   failFsUnavailableHint: '安装过程中 pnpm 无法把文件写进本机磁盘（这类报错与装哪个插件无关，任何插件装在同一目录都会失败，不是插件本身的问题）。请按报错对号入座：① 磁盘空间不足（ENOSPC / no space left on device，Windows 为 os error 112）——请清理 profile 所在磁盘的剩余空间后重试；② 磁盘或挂载点只读、带写保护（EROFS / read-only file system，Windows 为 os error 19）——请确认 profile 目录所在磁盘可写（外接盘/U 盘、带写保护的移动盘或只读挂载的分区都会触发），必要时把插件目录换到系统盘的可写位置；③ 进程可用的文件句柄被耗尽（EMFILE / ENFILE / too many open files）——请关闭占用大量文件的程序并重启 DeepSeek Harness 后重试。',
   failPnpmWorkspaceHint: '安装器调用 pnpm 时报「不能把依赖装到 workspace 根目录」（ERR_PNPM_ADDING_TO_ROOT）：你的 profile 目录被 pnpm 视为 workspace 根目录，而本次安装命令没有声明在根目录操作，pnpm 直接拒绝执行，因此任何插件装进来都会失败。这不是插件本身的问题——可在 profile 目录（~/.dsh/profiles/<profile>）的 .npmrc 里加一行 ignore-workspace-root-check=true 后重试，或把 DeepSeek Harness 升级到最新版再试。',
   failPnpmTarballIntegrityHint: 'pnpm 报 ERR_PNPM_MISSING_TARBALL_INTEGRITY：锁文件中的 tarball 条目没有校验值，无法验证下载的包。先查看完整日志，完全退出 DeepSeek Harness，并检查、备份当前 profile 的 package.json、pnpm-lock.yaml 和 pnpm-workspace.yaml。确认依赖来源后，将 pnpm-lock.yaml 改名保留，再通过同一 DSH 安装器安装适配当前宿主版本的插件，重新生成锁文件。重建会重新解析 profile 依赖，请核对新旧版本；保持完整性校验开启。',
+  failPnpmTarballMismatchHint: 'pnpm 报 ERR_PNPM_TARBALL_INTEGRITY：profile 里某个从 GitHub 分支安装的依赖（例如 github:owner/repo#main）在远端更新了，tarball 内容变了，但 pnpm-lock.yaml 里存的还是旧校验和，于是整个 profile 的依赖安装都会卡在它上面。处理：打开 ~/.dsh/profiles/<profile>/pnpm-lock.yaml，删掉该 GitHub 依赖对应的条目（不确定是哪个就把整份锁文件改名备份），再重新安装；长期做法是把依赖固定到具体 commit（github:owner/repo#<commit>），分支再更新也不会改变校验和。',
   failPnpmPolicyHint: '安装器调用 pnpm 时被其供应链安全策略拦截——装任何插件都会撞墙，不是插件本身的问题。分两种情况处理：① 提示「Minimum release age」（ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION）：包发布还不满 24 小时，pnpm 11 出于安全会拒收这种刚发布的新包。可在 pnpm 配置（pnpm-workspace.yaml）里加 minimumReleaseAge: 0 豁免，或等满 24 小时后重试。② 提示「untrusted origin」（ERR_PNPM_UNTRUSTED_ORIGIN）：依赖来源不被本机 pnpm 信任，通常是该 profile 里之前用 github: 或非官方 npm 源装过插件，锁文件记录了不受信任的来源。请删除该 profile 目录下的 node_modules 与 pnpm-lock.yaml 后重新安装（可先到「系统日志」或 ~/.dsh/profiles/<profile>/hub.log 查看完整报错）。',
   // minimumReleaseAge 专属：从报错里算出确切的可重试时刻（{time}），让用户知道「何时能再装」，
   // 而不是笼统地让等 24 小时
@@ -486,9 +490,11 @@ export const en = {
   loading: 'Loading plugin data…',
   failed: 'Failed to load plugin data',
   // 目录加载失败时的精准提示：按是否配置了代理区分
-  failedDescNoProxy: 'Your network seems unreachable, so the plugin catalog could not be loaded. Please check your connection and retry; or open the hub in your browser with the button above.',
-  failedDescProxy: 'Your network seems unreachable, or the HTTP proxy in Settings is unreachable, so the plugin catalog could not be loaded. Please check the proxy address and your connection, then retry; or open the hub in your browser with the button above.',
+  failedDescNoProxy: 'The plugin catalog could not be loaded (a few MB). The first load can time out on a slow connection — retry, or use "Force refresh" to skip the local cache and download it again. Once it succeeds the catalog is cached for an hour. If it keeps failing, run the network diagnostic.',
+  failedDescProxy: 'The plugin catalog could not be loaded (a few MB). A slow connection, or an unreachable/unstable HTTP proxy in Settings, can make the first load time out — retry, or use "Force refresh" to skip the cache. Once it succeeds the catalog is cached for an hour.',
   retry: 'Retry',
+  forceReload: 'Force refresh',
+  forceReloadHint: 'Skip the cached catalog and download it again from the server (use when the cache looks wrong or on a slow network)',
   install: 'Install',
   // 需在终端手动安装的插件（webInstallable=false）：两种情形共用一套措辞 ——
   // 网页端完全跑不了该命令（npx 安装器 / 本地 link），或能跑但装机过程要在终端完成
@@ -803,6 +809,7 @@ export const en = {
   failPnpmMissingHint: 'The installer found dsh, but pnpm is missing on this machine (dsh uses it to manage profile plugins). Please install pnpm first (e.g. npm install -g pnpm), make sure it is on your PATH, then retry. This is not a problem with the plugin itself.',
   failNpmMissingHint: 'The npm command could not be found (npm is not installed or not on the system PATH), so a global install cannot run. Please install Node.js (which bundles npm), make sure npm is on your PATH, then retry. This is not a problem with the plugin itself.',
   failBuildToolchainHint: 'This plugin depends on a native module that must be compiled on your machine, but no usable build toolchain is available. Install one and retry: on Windows install Visual Studio Build Tools with the "Desktop development with C++" workload; on macOS run xcode-select --install; on Linux install build-essential, python3 and make. If it still fails after the toolchain is installed, report it to the plugin author and ask for a prebuilt package.',
+  bundleDeselectedHint: 'Note: the marketplace is unchecked in this profile\'s bundle list, so it will not appear after the host restarts. Re-check dsh-plugin under Settings → Plugins.',
   failPnpmStoreHint: 'pnpm reported an unexpected store location (ERR_PNPM_UNEXPECTED_STORE): the profile directory was previously set up with a different major version of pnpm, and the current pnpm refuses to reuse it — no plugin can be installed into that profile. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall. This is not a problem with the plugin itself.',
   failPnpmUnusedPatchHint: 'pnpm reported that some patches were not used (ERR_PNPM_UNUSED_PATCH): your profile still holds a patch entry for an older dsh-plugin version (for example dsh-plugin@1.4.2), while this install resolved a different version, so pnpm aborts the whole install for safety — no plugin can be installed into that profile. This is not a problem with the plugin itself. Remove that dsh-plugin patch entry from pnpm-workspace.yaml (pnpm 11+) or from pnpm.patchedDependencies in package.json (pnpm 10) inside the profile directory (~/.dsh/profiles/<profile>), then retry.',
   // 缺失依赖：点名 404 的包（解析不出时跳过该行），再给删除指引
@@ -876,6 +883,7 @@ export const en = {
   failFsUnavailableHint: 'During install, pnpm could not write files to the local disk — this has nothing to do with which plugin you are installing: any plugin installed into the same directory would fail the same way, so it is not a problem with the plugin itself. Match the error you see: ① Out of space (ENOSPC / no space left on device, os error 112 on Windows) — free up space on the drive that holds the profile and retry. ② Read-only or write-protected volume (EROFS / read-only file system, os error 19 on Windows) — make sure the drive holding the profile directory is writable (external or USB drives, write-protected media, and read-only mounts all trigger this); move the plugin directory to a writable location on the system drive if needed. ③ File handles exhausted (EMFILE / ENFILE / too many open files) — close programs that hold many files open, restart DeepSeek Harness, then retry.',
   failPnpmWorkspaceHint: 'pnpm refused to add the dependency to the workspace root (ERR_PNPM_ADDING_TO_ROOT): the profile directory is treated as a pnpm workspace root, and this install command did not declare that it operates at the root, so pnpm rejected it outright — no plugin can be installed into that profile. This is not a problem with the plugin itself. Add `ignore-workspace-root-check=true` to the `.npmrc` inside the profile directory (~/.dsh/profiles/<profile>) and retry, or upgrade DeepSeek Harness and try again.',
   failPnpmTarballIntegrityHint: 'pnpm reported ERR_PNPM_MISSING_TARBALL_INTEGRITY: a tarball entry in the lockfile has no checksum to verify the downloaded package. Read the full log, fully quit DeepSeek Harness, and inspect and back up package.json, pnpm-lock.yaml and pnpm-workspace.yaml in the affected profile. Once the dependency sources are verified, rename pnpm-lock.yaml to preserve it, then use the same DSH installer to install a plugin version compatible with the host and regenerate the lockfile. This resolves profile dependencies again: compare the old and new versions, and keep integrity checks enabled.',
+  failPnpmTarballMismatchHint: 'pnpm reported ERR_PNPM_TARBALL_INTEGRITY: a dependency installed from a GitHub branch (for example github:owner/repo#main) changed upstream, so the tarball content no longer matches the checksum stored in pnpm-lock.yaml — and every install into that profile now stops on it. To fix: open ~/.dsh/profiles/<profile>/pnpm-lock.yaml, remove the entry for that GitHub dependency (or rename the whole lockfile as a backup if unsure which one it is), then reinstall. Long term, pin the dependency to a commit (github:owner/repo#<commit>) so branch updates no longer change its checksum.',
   failPnpmPolicyHint: 'The installer was blocked by pnpm supply-chain security policy — every plugin install would hit the same wall, so this is not a problem with the plugin itself. Two cases: ① "Minimum release age" (ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION): the package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety. Add minimumReleaseAge: 0 to your pnpm config (pnpm-workspace.yaml) to opt out, or wait until the 24 hours have passed and retry. ② "untrusted origin" (ERR_PNPM_UNTRUSTED_ORIGIN): a dependency source is not trusted by this machine, usually because plugins were previously installed via github: or a non-official npm registry, so the lockfile records an untrusted source. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall.',
   // 仅 minimumReleaseAge 场景：从报错算出确切的可重试时刻（{time}），让用户知道何时能装，
   // 而不是笼统的「等 24 小时」

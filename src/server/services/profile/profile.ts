@@ -49,6 +49,21 @@ export function profileDirectory(profile: string): string {
   return join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'profiles', profile)
 }
 
+/** profile 的 dsh.profile.bundles 是否仍包含指定包：取消勾选后 bundle patch 不再执行。
+ *  没有该清单或读取失败时返回 true —— 不归我们判断的情况不报警。 */
+export function bundleIncludes(profile: string, name: string): boolean {
+  try {
+    const pkg = JSON.parse(readFileSync(join(profileDirectory(profile), 'package.json'), 'utf8')) as {
+      dsh?: { profile?: { bundles?: unknown } }
+    }
+    const bundles = pkg.dsh?.profile?.bundles
+    if (!Array.isArray(bundles)) return true
+    return bundles.includes(name)
+  } catch {
+    return true
+  }
+}
+
 /** 把仓库身份转成规范的 GitHub 目标（git+https），仓库不合法时返回 null。
  *  带 ref 时按 Git ref（`#tag` / `#commit`）拼接；安装通道已不再使用 git 目标，此函数仅做身份规范化。 */
 export function githubTarget(repo: string, ref?: string | null): string | null {

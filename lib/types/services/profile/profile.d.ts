@@ -12,6 +12,9 @@ export declare function readProfileArg(fallback?: string): string;
 export declare function profileFromArgv(argv: readonly string[], fallback?: string): string;
 /** 解析 profile 目录（`DSH_HOME` 或 `~/.dsh`）。 */
 export declare function profileDirectory(profile: string): string;
+/** profile 的 dsh.profile.bundles 是否仍包含指定包：取消勾选后 bundle patch 不再执行。
+ *  没有该清单或读取失败时返回 true —— 不归我们判断的情况不报警。 */
+export declare function bundleIncludes(profile: string, name: string): boolean;
 /** 把仓库身份转成规范的 GitHub 目标（git+https），仓库不合法时返回 null。
  *  带 ref 时按 Git ref（`#tag` / `#commit`）拼接；安装通道已不再使用 git 目标，此函数仅做身份规范化。 */
 export declare function githubTarget(repo: string, ref?: string | null): string | null;

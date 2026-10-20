@@ -31,9 +31,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			fork: "Fork",
 			loading: "正在加载插件数据…",
 			failed: "插件数据加载失败",
-			failedDescNoProxy: "你的网络似乎不通，无法获取插件目录数据。请检查网络连接后重试；或点击右上角按钮在浏览器中打开插件市场。",
-			failedDescProxy: "你的网络似乎不通，或设置里的 HTTP 代理地址不可达，无法获取插件目录数据。请检查代理设置与网络连接后重试；或点击右上角按钮在浏览器中打开插件市场。",
+			failedDescNoProxy: "无法获取插件目录数据（有数 MB）。网络较慢时首次加载可能超时，可重试或点「强制刷新」跳过本地缓存重新下载；加载成功后会缓存 1 小时。若持续失败，请点「网络诊断」确认目录站点可达。",
+			failedDescProxy: "无法获取插件目录数据（有数 MB）。网络较慢，或设置里的 HTTP 代理不可达/链路抖动时，首次加载可能超时；可重试或点「强制刷新」跳过缓存重新下载。加载成功后会缓存 1 小时。",
 			retry: "重试",
+			forceReload: "强制刷新",
+			forceReloadHint: "跳过本地缓存的插件目录，重新从服务器下载（缓存异常或弱网重试时用）",
 			install: "安装",
 			cliOnlyHint: "此插件的安装需要在 dsh 终端里完成（网页端无法代跑它所需的构建或装配步骤），请复制上方命令到终端执行",
 			manualInstallOnlyHint: "此插件需要你在 dsh 终端手动安装：网页端的一键安装替代不了终端里的构建与装配步骤。请复制上方命令到终端执行（Windows 用 Git Bash 或 PowerShell，macOS/Linux 用终端），完整步骤见作者仓库的安装说明。",
@@ -302,6 +304,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failPnpmMissingHint: "安装器找到了 dsh，但系统里没有 pnpm 命令（dsh 用它来管理 profile 插件）。请先安装 pnpm（如 npm install -g pnpm），确认 pnpm 已加入 PATH 后重试。这不是插件本身的问题。",
 			failNpmMissingHint: "系统找不到 npm 命令（npm 未安装或未加入系统 PATH），无法执行全局安装。请先安装 Node.js（自带 npm），确认 npm 已加入 PATH 后重试。这不是插件本身的问题。",
 			failBuildToolchainHint: "这个插件依赖需要在本机编译的原生模块，但机器上缺少可用的编译工具链。请按系统安装后重试：Windows 安装 Visual Studio Build Tools（含「使用 C++ 的桌面开发」）；macOS 执行 xcode-select --install；Linux 安装 build-essential、python3 与 make。若装好工具链后仍然失败，再向插件作者反馈，请其提供预构建产物。",
+			bundleDeselectedHint: "注意：插件市场在当前 profile 的 bundle 列表中被取消勾选，重启宿主后它不会出现。请到「设置 → 插件」重新勾选 dsh-plugin。",
 			failPnpmStoreHint: "安装器调用 pnpm 时报「store 位置不匹配」（ERR_PNPM_UNEXPECTED_STORE）：你的 profile 目录里旧插件依赖是用另一个大版本的 pnpm 生成的，当前 pnpm 出于安全不认旧目录，导致任何插件装进该 profile 都会失败。请删除该 profile 目录下的 node_modules 与 pnpm-lock.yaml（可先到「系统日志」或 ~/.dsh/profiles/<profile>/hub.log 查看完整报错），再重新安装。这不是插件本身的问题。",
 			failPnpmUnusedPatchHint: "安装器调用 pnpm 时报「有些补丁没有被使用」（ERR_PNPM_UNUSED_PATCH）：你的 profile 里留着一条指向旧版本 dsh-plugin 的补丁声明（例如 dsh-plugin@1.4.2），而本次安装解析到的版本已经不是它，pnpm 出于安全直接中止整次安装，因此任何插件都装不进来。这不是插件本身的问题——请在 profile 目录（~/.dsh/profiles/<profile>）的 pnpm-workspace.yaml（pnpm 11 及以上）或 package.json 的 pnpm.patchedDependencies（pnpm 10）里删除该 dsh-plugin 补丁条目后重试。",
 			failPnpmMissingDepTarget: "{pkg} 在 npm registry 上不存在（404）",
@@ -373,6 +376,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failFsUnavailableHint: "安装过程中 pnpm 无法把文件写进本机磁盘（这类报错与装哪个插件无关，任何插件装在同一目录都会失败，不是插件本身的问题）。请按报错对号入座：① 磁盘空间不足（ENOSPC / no space left on device，Windows 为 os error 112）——请清理 profile 所在磁盘的剩余空间后重试；② 磁盘或挂载点只读、带写保护（EROFS / read-only file system，Windows 为 os error 19）——请确认 profile 目录所在磁盘可写（外接盘/U 盘、带写保护的移动盘或只读挂载的分区都会触发），必要时把插件目录换到系统盘的可写位置；③ 进程可用的文件句柄被耗尽（EMFILE / ENFILE / too many open files）——请关闭占用大量文件的程序并重启 DeepSeek Harness 后重试。",
 			failPnpmWorkspaceHint: "安装器调用 pnpm 时报「不能把依赖装到 workspace 根目录」（ERR_PNPM_ADDING_TO_ROOT）：你的 profile 目录被 pnpm 视为 workspace 根目录，而本次安装命令没有声明在根目录操作，pnpm 直接拒绝执行，因此任何插件装进来都会失败。这不是插件本身的问题——可在 profile 目录（~/.dsh/profiles/<profile>）的 .npmrc 里加一行 ignore-workspace-root-check=true 后重试，或把 DeepSeek Harness 升级到最新版再试。",
 			failPnpmTarballIntegrityHint: "pnpm 报 ERR_PNPM_MISSING_TARBALL_INTEGRITY：锁文件中的 tarball 条目没有校验值，无法验证下载的包。先查看完整日志，完全退出 DeepSeek Harness，并检查、备份当前 profile 的 package.json、pnpm-lock.yaml 和 pnpm-workspace.yaml。确认依赖来源后，将 pnpm-lock.yaml 改名保留，再通过同一 DSH 安装器安装适配当前宿主版本的插件，重新生成锁文件。重建会重新解析 profile 依赖，请核对新旧版本；保持完整性校验开启。",
+			failPnpmTarballMismatchHint: "pnpm 报 ERR_PNPM_TARBALL_INTEGRITY：profile 里某个从 GitHub 分支安装的依赖（例如 github:owner/repo#main）在远端更新了，tarball 内容变了，但 pnpm-lock.yaml 里存的还是旧校验和，于是整个 profile 的依赖安装都会卡在它上面。处理：打开 ~/.dsh/profiles/<profile>/pnpm-lock.yaml，删掉该 GitHub 依赖对应的条目（不确定是哪个就把整份锁文件改名备份），再重新安装；长期做法是把依赖固定到具体 commit（github:owner/repo#<commit>），分支再更新也不会改变校验和。",
 			failPnpmPolicyHint: "安装器调用 pnpm 时被其供应链安全策略拦截——装任何插件都会撞墙，不是插件本身的问题。分两种情况处理：① 提示「Minimum release age」（ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION）：包发布还不满 24 小时，pnpm 11 出于安全会拒收这种刚发布的新包。可在 pnpm 配置（pnpm-workspace.yaml）里加 minimumReleaseAge: 0 豁免，或等满 24 小时后重试。② 提示「untrusted origin」（ERR_PNPM_UNTRUSTED_ORIGIN）：依赖来源不被本机 pnpm 信任，通常是该 profile 里之前用 github: 或非官方 npm 源装过插件，锁文件记录了不受信任的来源。请删除该 profile 目录下的 node_modules 与 pnpm-lock.yaml 后重新安装（可先到「系统日志」或 ~/.dsh/profiles/<profile>/hub.log 查看完整报错）。",
 			failPnpmReleaseAgeHint: "安装器调用 pnpm 时被其供应链安全策略拦住了，任何插件装进这个 profile 都会先撞上它——与插件本身无关。原因是这个包发布还不满 24 小时，pnpm 11 出于安全会拒收刚发布的新包，这段时间内该 profile 的安装与卸载都会被拦下。可重试时间：{time}（即该包发布满 24 小时后）。如确需立刻安装，可在 profile 目录（~/.dsh/profiles/<profile>）的 pnpm-workspace.yaml 里加 minimumReleaseAge: 0 豁免，但这会放宽整个 profile 的供应链保护。",
 			installChannelNpm: "NPM 包",
@@ -432,9 +436,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			fork: "Fork",
 			loading: "Loading plugin data…",
 			failed: "Failed to load plugin data",
-			failedDescNoProxy: "Your network seems unreachable, so the plugin catalog could not be loaded. Please check your connection and retry; or open the hub in your browser with the button above.",
-			failedDescProxy: "Your network seems unreachable, or the HTTP proxy in Settings is unreachable, so the plugin catalog could not be loaded. Please check the proxy address and your connection, then retry; or open the hub in your browser with the button above.",
+			failedDescNoProxy: "The plugin catalog could not be loaded (a few MB). The first load can time out on a slow connection — retry, or use \"Force refresh\" to skip the local cache and download it again. Once it succeeds the catalog is cached for an hour. If it keeps failing, run the network diagnostic.",
+			failedDescProxy: "The plugin catalog could not be loaded (a few MB). A slow connection, or an unreachable/unstable HTTP proxy in Settings, can make the first load time out — retry, or use \"Force refresh\" to skip the cache. Once it succeeds the catalog is cached for an hour.",
 			retry: "Retry",
+			forceReload: "Force refresh",
+			forceReloadHint: "Skip the cached catalog and download it again from the server (use when the cache looks wrong or on a slow network)",
 			install: "Install",
 			cliOnlyHint: "This plugin has to be installed in your dsh terminal (the web UI cannot run the build or assembly steps it needs) — copy the command above and run it there",
 			manualInstallOnlyHint: "This plugin has to be installed by hand in your dsh terminal — one-click install from the web UI cannot run the build and assembly steps it needs. Copy the command above and run it there (Git Bash or PowerShell on Windows, Terminal on macOS/Linux); the author's repo has the full steps.",
@@ -706,6 +712,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failPnpmMissingHint: "The installer found dsh, but pnpm is missing on this machine (dsh uses it to manage profile plugins). Please install pnpm first (e.g. npm install -g pnpm), make sure it is on your PATH, then retry. This is not a problem with the plugin itself.",
 			failNpmMissingHint: "The npm command could not be found (npm is not installed or not on the system PATH), so a global install cannot run. Please install Node.js (which bundles npm), make sure npm is on your PATH, then retry. This is not a problem with the plugin itself.",
 			failBuildToolchainHint: "This plugin depends on a native module that must be compiled on your machine, but no usable build toolchain is available. Install one and retry: on Windows install Visual Studio Build Tools with the \"Desktop development with C++\" workload; on macOS run xcode-select --install; on Linux install build-essential, python3 and make. If it still fails after the toolchain is installed, report it to the plugin author and ask for a prebuilt package.",
+			bundleDeselectedHint: "Note: the marketplace is unchecked in this profile's bundle list, so it will not appear after the host restarts. Re-check dsh-plugin under Settings → Plugins.",
 			failPnpmStoreHint: "pnpm reported an unexpected store location (ERR_PNPM_UNEXPECTED_STORE): the profile directory was previously set up with a different major version of pnpm, and the current pnpm refuses to reuse it — no plugin can be installed into that profile. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall. This is not a problem with the plugin itself.",
 			failPnpmUnusedPatchHint: "pnpm reported that some patches were not used (ERR_PNPM_UNUSED_PATCH): your profile still holds a patch entry for an older dsh-plugin version (for example dsh-plugin@1.4.2), while this install resolved a different version, so pnpm aborts the whole install for safety — no plugin can be installed into that profile. This is not a problem with the plugin itself. Remove that dsh-plugin patch entry from pnpm-workspace.yaml (pnpm 11+) or from pnpm.patchedDependencies in package.json (pnpm 10) inside the profile directory (~/.dsh/profiles/<profile>), then retry.",
 			failPnpmMissingDepTarget: "{pkg} was not found on the npm registry (404)",
@@ -777,6 +784,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failFsUnavailableHint: "During install, pnpm could not write files to the local disk — this has nothing to do with which plugin you are installing: any plugin installed into the same directory would fail the same way, so it is not a problem with the plugin itself. Match the error you see: ① Out of space (ENOSPC / no space left on device, os error 112 on Windows) — free up space on the drive that holds the profile and retry. ② Read-only or write-protected volume (EROFS / read-only file system, os error 19 on Windows) — make sure the drive holding the profile directory is writable (external or USB drives, write-protected media, and read-only mounts all trigger this); move the plugin directory to a writable location on the system drive if needed. ③ File handles exhausted (EMFILE / ENFILE / too many open files) — close programs that hold many files open, restart DeepSeek Harness, then retry.",
 			failPnpmWorkspaceHint: "pnpm refused to add the dependency to the workspace root (ERR_PNPM_ADDING_TO_ROOT): the profile directory is treated as a pnpm workspace root, and this install command did not declare that it operates at the root, so pnpm rejected it outright — no plugin can be installed into that profile. This is not a problem with the plugin itself. Add `ignore-workspace-root-check=true` to the `.npmrc` inside the profile directory (~/.dsh/profiles/<profile>) and retry, or upgrade DeepSeek Harness and try again.",
 			failPnpmTarballIntegrityHint: "pnpm reported ERR_PNPM_MISSING_TARBALL_INTEGRITY: a tarball entry in the lockfile has no checksum to verify the downloaded package. Read the full log, fully quit DeepSeek Harness, and inspect and back up package.json, pnpm-lock.yaml and pnpm-workspace.yaml in the affected profile. Once the dependency sources are verified, rename pnpm-lock.yaml to preserve it, then use the same DSH installer to install a plugin version compatible with the host and regenerate the lockfile. This resolves profile dependencies again: compare the old and new versions, and keep integrity checks enabled.",
+			failPnpmTarballMismatchHint: "pnpm reported ERR_PNPM_TARBALL_INTEGRITY: a dependency installed from a GitHub branch (for example github:owner/repo#main) changed upstream, so the tarball content no longer matches the checksum stored in pnpm-lock.yaml — and every install into that profile now stops on it. To fix: open ~/.dsh/profiles/<profile>/pnpm-lock.yaml, remove the entry for that GitHub dependency (or rename the whole lockfile as a backup if unsure which one it is), then reinstall. Long term, pin the dependency to a commit (github:owner/repo#<commit>) so branch updates no longer change its checksum.",
 			failPnpmPolicyHint: "The installer was blocked by pnpm supply-chain security policy — every plugin install would hit the same wall, so this is not a problem with the plugin itself. Two cases: ① \"Minimum release age\" (ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION): the package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety. Add minimumReleaseAge: 0 to your pnpm config (pnpm-workspace.yaml) to opt out, or wait until the 24 hours have passed and retry. ② \"untrusted origin\" (ERR_PNPM_UNTRUSTED_ORIGIN): a dependency source is not trusted by this machine, usually because plugins were previously installed via github: or a non-official npm registry, so the lockfile records an untrusted source. Delete node_modules and pnpm-lock.yaml under the profile directory (see System Logs or ~/.dsh/profiles/<profile>/hub.log for the full output), then reinstall.",
 			failPnpmReleaseAgeHint: "The installer was blocked by pnpm supply-chain security policy, and every plugin installed into this profile would hit the same wall — this is not a problem with the plugin itself. The package was published less than 24 hours ago, and pnpm 11 refuses freshly-published packages for safety, so both installs and removals are blocked for this profile in the meantime. Retry after: {time} (i.e. 24 hours after the package was published). If you must install right now, add minimumReleaseAge: 0 to pnpm-workspace.yaml inside the profile directory (~/.dsh/profiles/<profile>) to opt out, but that loosens supply-chain protection for the whole profile.",
 			installChannelNpm: "NPM package",
@@ -834,46 +842,46 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$11
 		});
 		var Header_module_css_default = {
-			"version": "qikqja_version",
-			"adText": "qikqja_adText",
-			"githubLink": "qikqja_githubLink",
-			"versionBtn": "qikqja_versionBtn",
-			"adBanner": "qikqja_adBanner",
-			"header": "qikqja_header",
-			"headerRight": "qikqja_headerRight",
-			"tabs": "qikqja_tabs",
-			"segLabel": "qikqja_segLabel",
-			"segBtnActive": "qikqja_segBtnActive",
-			"resultSeg": "qikqja_resultSeg",
-			"sortGroup": "qikqja_sortGroup",
-			"headerTitleRow": "qikqja_headerTitleRow",
-			"segGroup": "qikqja_segGroup",
-			"adBadge": "qikqja_adBadge",
 			"langBtn": "qikqja_langBtn",
-			"aboutBtn": "qikqja_aboutBtn",
-			"tabCount": "qikqja_tabCount",
-			"tabActive": "qikqja_tabActive",
-			"taglineLink": "qikqja_taglineLink",
-			"copyIcon": "qikqja_copyIcon",
-			"tabsRow": "qikqja_tabsRow",
-			"segBtn": "qikqja_segBtn",
-			"root": "qikqja_root",
-			"githubIcon": "qikqja_githubIcon",
-			"logoIcon": "qikqja_logoIcon",
-			"search": "qikqja_search",
 			"adArrow": "qikqja_adArrow",
-			"controls": "qikqja_controls",
-			"brandTitle": "qikqja_brandTitle",
-			"title": "qikqja_title",
 			"tagline": "qikqja_tagline",
-			"hubUpdateBadge": "qikqja_hubUpdateBadge",
-			"searchRow": "qikqja_searchRow",
+			"tabsRow": "qikqja_tabsRow",
+			"adText": "qikqja_adText",
+			"headerTitleRow": "qikqja_headerTitleRow",
+			"root": "qikqja_root",
+			"aboutBtn": "qikqja_aboutBtn",
+			"copyIcon": "qikqja_copyIcon",
+			"versionBtn": "qikqja_versionBtn",
+			"adBadge": "qikqja_adBadge",
 			"tab": "qikqja_tab",
-			"resultCount": "qikqja_resultCount"
+			"version": "qikqja_version",
+			"controls": "qikqja_controls",
+			"title": "qikqja_title",
+			"segGroup": "qikqja_segGroup",
+			"segLabel": "qikqja_segLabel",
+			"logoIcon": "qikqja_logoIcon",
+			"searchRow": "qikqja_searchRow",
+			"search": "qikqja_search",
+			"hubUpdateBadge": "qikqja_hubUpdateBadge",
+			"headerRight": "qikqja_headerRight",
+			"tabActive": "qikqja_tabActive",
+			"resultSeg": "qikqja_resultSeg",
+			"segBtnActive": "qikqja_segBtnActive",
+			"segBtn": "qikqja_segBtn",
+			"resultCount": "qikqja_resultCount",
+			"tabs": "qikqja_tabs",
+			"tabCount": "qikqja_tabCount",
+			"taglineLink": "qikqja_taglineLink",
+			"githubLink": "qikqja_githubLink",
+			"githubIcon": "qikqja_githubIcon",
+			"header": "qikqja_header",
+			"brandTitle": "qikqja_brandTitle",
+			"sortGroup": "qikqja_sortGroup",
+			"adBanner": "qikqja_adBanner"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Modal.module.css.mjs
-		const css$10 = ".BiQ1zG_overlay{z-index:998;-webkit-user-select:none;user-select:none;background:#00000061;justify-content:center;align-items:center;animation:.16s ease-out BiQ1zG_overlayIn;display:flex;position:fixed;top:0;bottom:0;left:0;right:0}.BiQ1zG_modal,.BiQ1zG_errorModal{background:var(--hub-bg-1);border:1px solid var(--hub-border-2);border-radius:10px;flex-direction:column;gap:10px;width:540px;max-width:calc(100vw - 32px);max-height:calc(100vh - 64px);padding:14px 16px;animation:.18s ease-out BiQ1zG_modalIn;display:flex;box-shadow:0 12px 40px #0000003d}.BiQ1zG_errorModal{width:720px;max-width:calc(100vw - 48px)}.BiQ1zG_modalWide{width:640px;max-width:calc(100vw - 48px)}.BiQ1zG_helpModal{width:760px;max-width:calc(100vw - 48px)}.BiQ1zG_logModal{width:820px;max-width:calc(100vw - 48px);height:min(540px,100vh - 64px)}.BiQ1zG_modalHead{flex-shrink:0;justify-content:space-between;align-items:center;gap:8px;display:flex}.BiQ1zG_modalTitle{color:var(--hub-text-primary);font-size:14px;font-weight:600;line-height:20px}.BiQ1zG_modalTitleBusy{color:var(--hub-brand)}.BiQ1zG_modalTitleQueued{color:var(--hub-warning)}.BiQ1zG_modalClose{width:24px;height:24px;color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;flex-shrink:0;justify-content:center;align-items:center;font-size:16px;line-height:1;display:inline-flex}.BiQ1zG_modalClose:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover)}.BiQ1zG_modalCloseIcon{flex-shrink:0;width:14px;height:14px}.BiQ1zG_confirmIconWrap{justify-content:center;padding:2px 0 6px;display:flex}.BiQ1zG_confirmIcon{background:var(--hub-brand);border-radius:50%;flex:none;justify-content:center;align-items:center;width:48px;height:48px;display:inline-flex;box-shadow:0 4px 12px #4f6ef747}.BiQ1zG_confirmIconDanger{background:var(--hub-danger);box-shadow:0 4px 12px #d1242f4d}.BiQ1zG_dangerConfirm{color:#fff;background:var(--hub-danger);border:1px solid var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;flex:none;height:28px;padding:0 14px;font-size:12px;font-weight:600;transition:background-color .12s,border-color .12s}.BiQ1zG_dangerConfirm:hover:not(:disabled){background:var(--hub-danger-hover);border-color:var(--hub-danger-hover)}.BiQ1zG_dangerConfirm:disabled{opacity:.55;cursor:default}.BiQ1zG_confirmPrimary{color:#fff;background:var(--hub-brand);border:1px solid var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;flex:none;height:28px;padding:0 14px;font-size:12px;font-weight:600;transition:filter .12s}.BiQ1zG_confirmPrimary:hover:not(:disabled){filter:brightness(1.08)}.BiQ1zG_confirmPrimary:disabled{opacity:.55;cursor:default}.BiQ1zG_modalDesc{color:var(--hub-text-secondary);font-size:12px;line-height:18px}.BiQ1zG_trustHint{color:var(--hub-danger-text);background:var(--hub-danger-tint);border:1px solid var(--hub-danger-border-soft);border-radius:6px;padding:6px 10px;font-size:12px;font-weight:500;line-height:18px}.BiQ1zG_cliOnlyHint{color:var(--hub-text-secondary);background:var(--hub-bg-hover);border-radius:6px;padding:6px 10px;font-size:12px;line-height:18px}.BiQ1zG_failedCopyHint{color:var(--hub-danger-text);background:var(--hub-danger-tint);border:1px solid var(--hub-danger-border-soft);border-radius:6px;padding:6px 10px;font-size:12px;font-weight:500;line-height:18px}.BiQ1zG_modalRow{align-items:baseline;gap:8px;min-width:0;font-size:12px;line-height:18px;display:flex}.BiQ1zG_modalLabel{min-width:64px;color:var(--hub-text-tertiary);flex-shrink:0}.BiQ1zG_modalValue{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-text-primary);font-weight:500;overflow:hidden}.BiQ1zG_modalLink{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;align-items:center;gap:4px;font-weight:500;text-decoration:none;transition:color .12s;display:inline-flex;overflow:hidden}.BiQ1zG_modalLink:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_linkIcon{flex-shrink:0}.BiQ1zG_modalCmd{color:var(--hub-text-primary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 6px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:18px;transition:border-color .12s,background .12s;display:flex}.BiQ1zG_modalCmd:hover{border-color:var(--hub-border-ghost);background:var(--hub-bg-3)}.BiQ1zG_modalCmdText{text-overflow:ellipsis;white-space:nowrap;min-width:0;overflow:hidden}.BiQ1zG_modalCmdCopy{color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:4px;flex-shrink:0;align-items:center;gap:3px;padding:1px 7px;font-family:inherit;font-size:11px;line-height:16px;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_modalCmdCopy:hover{color:var(--hub-brand-hover);background:var(--hub-bg-2)}.BiQ1zG_modalActions{justify-content:flex-end;align-items:center;gap:8px;margin-top:2px;display:flex}.BiQ1zG_modalBody{flex-direction:column;flex:auto;gap:10px;min-height:0;display:flex;overflow-y:auto}.BiQ1zG_toast{z-index:1000;background:var(--hub-btn-fill);color:var(--hub-text-on-fill);pointer-events:none;white-space:nowrap;border:none;border-radius:8px;padding:10px 16px;font-size:12px;font-weight:500;line-height:18px;animation:.22s ease-out BiQ1zG_toastIn;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 6px 24px #00000047}@keyframes BiQ1zG_toastIn{0%{opacity:0;transform:translate(-50%,-44%)}to{opacity:1;transform:translate(-50%,-50%)}}.BiQ1zG_toastFail{background:var(--hub-danger);color:#fff;border-color:#ffffff3d}.BiQ1zG_queueSection{flex-direction:column;gap:6px;display:flex}.BiQ1zG_queueSectionTitle{color:var(--hub-text-secondary);padding:4px 2px 0;font-size:12px;font-weight:600;line-height:18px}.BiQ1zG_pendingRowStatus{color:var(--hub-warn);flex-shrink:0;font-weight:500}.BiQ1zG_pendingRowActions{flex-shrink:0;gap:8px;margin-left:auto;display:flex}.BiQ1zG_queueRow{border:1px solid var(--hub-border-2);background:var(--hub-bg-2);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:8px;flex-direction:column;gap:5px;padding:8px 10px;font-size:12px;line-height:18px;transition:background .12s;display:flex}.BiQ1zG_queueRow:hover{background:var(--hub-brand-tint)}.BiQ1zG_queueRowHead{align-items:center;gap:10px;display:flex}.BiQ1zG_queueRowTarget{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-text-primary);flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow:hidden}.BiQ1zG_queueRowDesc{color:var(--hub-text-tertiary);-webkit-line-clamp:2;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden}.BiQ1zG_queueRowBody{align-items:center;gap:8px;display:flex}.BiQ1zG_queueRowStatus{color:var(--hub-brand);flex-shrink:0;font-weight:500}.BiQ1zG_queueRowTrack{flex:1;min-width:0}.BiQ1zG_queueRowPct{color:var(--hub-text-tertiary);font-variant-numeric:tabular-nums;flex-shrink:0}.BiQ1zG_stripCancel{color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;flex-shrink:0;padding:2px 10px;font-size:12px;line-height:18px;transition:background .12s,color .12s}.BiQ1zG_stripCancel:hover{background:var(--hub-danger-tint);color:var(--hub-danger-text)}.BiQ1zG_stripCancel:disabled{opacity:.45;cursor:default}.BiQ1zG_queuedHint{color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border-soft);border-radius:6px;padding:5px 10px;font-size:12px;line-height:18px}.BiQ1zG_errorTitle{color:var(--hub-danger-text);font-size:14px;font-weight:600;line-height:20px}.BiQ1zG_errorBox{border:1px solid var(--hub-danger-border);background:var(--hub-danger-tint-weak);max-height:72px;color:var(--hub-text-primary);white-space:pre-wrap;word-break:break-word;-webkit-user-select:none;user-select:none;border-radius:6px;margin:0;padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:17px;overflow:auto}.BiQ1zG_errorCopySoft{color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:4px;flex-shrink:0;align-items:center;padding:2px 8px;font-size:11px;line-height:16px;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_errorCopySoft:hover{color:var(--hub-text-secondary);background:var(--hub-bg-2)}.BiQ1zG_errorHint{color:var(--hub-text-tertiary);font-size:12px;line-height:18px}.BiQ1zG_modalCancel,.BiQ1zG_modalCopy{color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;padding:5px 14px;font-size:12px;line-height:18px;transition:color .12s,background .12s}.BiQ1zG_modalCancel:hover,.BiQ1zG_modalCopy:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover)}.BiQ1zG_modalInstall{color:var(--hub-text-on-fill);background:var(--hub-btn-fill);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_modalInstall:hover{background:var(--hub-btn-hover)}.BiQ1zG_modalCopy:disabled,.BiQ1zG_modalInstall:disabled,.BiQ1zG_modalCancel:disabled,.BiQ1zG_modalClose:disabled,.BiQ1zG_uninstallConfirm:disabled{opacity:.55;cursor:not-allowed;pointer-events:none}.BiQ1zG_uninstallConfirm{color:#fff;background:var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_uninstallConfirm:hover{background:var(--hub-danger-hover)}.BiQ1zG_result{text-align:center;flex-direction:column;align-items:center;gap:5px;padding:10px 0 2px;display:flex}.BiQ1zG_resultCheck{background:var(--hub-success-tint);width:40px;height:40px;color:var(--hub-success);border-radius:50%;justify-content:center;align-items:center;margin-bottom:3px;display:inline-flex}.BiQ1zG_resultCheckIcon{flex-shrink:0;width:20px;height:20px}.BiQ1zG_resultTitle{color:var(--hub-text-primary);font-size:13px;font-weight:600;line-height:20px}.BiQ1zG_resultDesc{color:var(--hub-text-secondary);font-size:12px;line-height:18px}.BiQ1zG_resultRestarting{color:var(--hub-text-tertiary);padding:12px 0 6px;font-size:12px;line-height:18px}.BiQ1zG_restartLater{color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;padding:5px 14px;font-size:12px;line-height:18px;transition:color .12s,background .12s}.BiQ1zG_restartLater:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover)}.BiQ1zG_restartNow{color:var(--hub-text-on-fill);background:var(--hub-btn-fill);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_restartNow:hover{background:var(--hub-btn-hover)}.BiQ1zG_restartNow:disabled{opacity:.55;cursor:not-allowed;pointer-events:none}.BiQ1zG_restartNowWarning{color:#fff;background:var(--hub-warning);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_restartNowWarning:hover{background:var(--hub-warning-hover)}.BiQ1zG_restartNowWarning:disabled{opacity:.55;cursor:not-allowed;pointer-events:none}.BiQ1zG_result .BiQ1zG_modalActions{justify-content:center;gap:10px;margin-top:0;padding:6px 0 2px}.BiQ1zG_result .BiQ1zG_modalActions .BiQ1zG_restartLater,.BiQ1zG_result .BiQ1zG_modalActions .BiQ1zG_restartNow,.BiQ1zG_result .BiQ1zG_modalActions .BiQ1zG_restartNowWarning{min-width:100px}.BiQ1zG_progress{margin:10px 0 2px}.BiQ1zG_progressHead{justify-content:flex-end;align-items:center;margin-bottom:3px;display:flex}.BiQ1zG_progressText{color:var(--hub-text-secondary);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:14px}.BiQ1zG_progressTrack{background:var(--hub-border-2);border-radius:2px;height:4px;overflow:hidden}.BiQ1zG_progressFill{background:var(--hub-brand);border-radius:2px;height:100%;transition:width .32s}.BiQ1zG_progressFillFail{background:var(--hub-danger)}@keyframes BiQ1zG_overlayIn{0%{opacity:0}to{opacity:1}}@keyframes BiQ1zG_modalIn{0%{opacity:0;transform:translateY(6px)scale(.98)}to{opacity:1;transform:translateY(0)scale(1)}}.BiQ1zG_failList{flex-direction:column;gap:12px;padding-right:2px;display:flex}.BiQ1zG_failRow{border:1px solid var(--hub-border-2);background:var(--hub-bg-2);border-radius:8px;flex-direction:column;gap:8px;padding:10px 12px;display:flex}.BiQ1zG_failHead{align-items:center;gap:8px;min-width:0;display:flex}.BiQ1zG_noticeList{flex-direction:column;gap:10px;padding-right:2px;display:flex}.BiQ1zG_noticeRow{border:1px solid var(--hub-border-2);background:var(--hub-bg-2);border-radius:8px;flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px;display:flex}.BiQ1zG_noticeRowMain{align-items:center;gap:10px;width:100%;min-width:0;display:flex}.BiQ1zG_noticeBadgeOk,.BiQ1zG_noticeBadgeFail{border-radius:50%;flex-shrink:0;justify-content:center;align-items:center;width:28px;height:28px;display:inline-flex;box-shadow:0 2px 6px #0000002e}.BiQ1zG_noticeBadgeOk{background:var(--hub-success)}.BiQ1zG_noticeBadgeFail{background:var(--hub-danger)}.BiQ1zG_noticeBadgeIcon{flex-shrink:0;width:12px;height:12px}.BiQ1zG_noticeMain{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.BiQ1zG_noticeHead{align-items:center;gap:8px;min-width:0;display:flex}.BiQ1zG_noticeTextOk{color:var(--hub-success);flex-shrink:0;font-size:12px;font-weight:600;line-height:18px}.BiQ1zG_noticeTextFail{color:var(--hub-danger-text);flex-shrink:0;font-size:12px;font-weight:600;line-height:18px}.BiQ1zG_noticeFoot{justify-content:flex-end;align-items:center;display:flex}.BiQ1zG_noticeTime{color:var(--hub-text-tertiary);font-variant-numeric:tabular-nums;flex-shrink:0;font-size:11px;line-height:16px}.BiQ1zG_noticeRemove{width:22px;height:22px;color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:5px;flex-shrink:0;justify-content:center;align-items:center;margin-left:auto;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_noticeRemove:hover{color:var(--hub-danger-text);background:var(--hub-danger-tint)}.BiQ1zG_noticeRowOk .BiQ1zG_noticeRemove{margin-left:0}.BiQ1zG_noticeRowOk .BiQ1zG_noticeTime{margin-left:auto}.BiQ1zG_noticeRowUpdate{cursor:pointer;transition:border-color .12s,background .12s}.BiQ1zG_noticeRowUpdate:hover{border-color:var(--hub-brand);background:var(--hub-brand-tint)}.BiQ1zG_noticeVersion{color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border);font-variant-numeric:tabular-nums;border-radius:5px;flex-shrink:0;padding:0 6px;font-size:11px;font-weight:600;line-height:18px}.BiQ1zG_noticeUpdateGo{color:#fff;background:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:5px;flex-shrink:0;margin-left:2px;padding:2px 8px;font-size:11px;font-weight:600;line-height:16px;transition:background .12s}.BiQ1zG_noticeUpdateGo:hover{background:var(--hub-brand-hover)}.BiQ1zG_noticeIgnore{color:var(--hub-text-secondary);border:1px solid var(--hub-border-2);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border-radius:5px;flex-shrink:0;margin-left:2px;padding:1px 8px;font-size:11px;font-weight:500;line-height:16px;transition:color .12s,border-color .12s,background .12s}.BiQ1zG_noticeIgnore:hover{color:var(--hub-danger-text);border-color:var(--hub-danger-border);background:var(--hub-danger-tint)}.BiQ1zG_failKind{border:1px solid #0000;border-radius:4px;flex-shrink:0;padding:0 6px;font-size:10px;font-weight:500;line-height:16px}.BiQ1zG_failKindInstall{color:var(--hub-danger-text);border-color:var(--hub-danger-border);background:var(--hub-danger-tint)}.BiQ1zG_failKindUninstall{color:var(--hub-warn);border-color:var(--hub-warn-border);background:var(--hub-warn-tint)}.BiQ1zG_failRepo{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:18px;text-decoration:none;overflow:hidden}.BiQ1zG_failRepo:hover{text-decoration:none}a.BiQ1zG_failRepo{color:#2f6feb}.BiQ1zG_failRepoLabel{color:var(--hub-text-secondary)}a.BiQ1zG_failRepo:hover .BiQ1zG_failRepoUrl{text-decoration:underline}.BiQ1zG_failCopy{color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:4px;flex-shrink:0;align-items:center;padding:2px 8px;font-size:11px;line-height:16px;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_failCopy:hover{color:var(--hub-text-secondary);background:var(--hub-bg-2)}.BiQ1zG_failEmpty{text-align:center;color:var(--hub-text-tertiary);padding:24px 0;font-size:12px;line-height:18px}.BiQ1zG_failClear{color:var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;padding:5px 14px;font-size:12px;line-height:18px;transition:color .12s,background .12s}.BiQ1zG_failClear:hover{color:#fff;background:var(--hub-danger)}.BiQ1zG_failBigIssue{box-sizing:border-box;text-align:center;color:#fff;background:var(--hub-danger);border:1px solid var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:8px;width:100%;margin-top:4px;padding:3px 16px;font-size:13px;font-weight:600;line-height:18px;text-decoration:none;transition:background .12s,border-color .12s,box-shadow .12s;display:block}.BiQ1zG_failBigIssue:hover{background:var(--hub-danger-hover);border-color:var(--hub-danger-hover);box-shadow:0 3px 10px #d1242f59}.BiQ1zG_failKindTitle{text-align:left;color:var(--hub-danger-text);margin-top:10px;font-size:15px;font-weight:700;line-height:22px}.BiQ1zG_failReason{white-space:pre-line;text-align:left;color:var(--hub-text-secondary);margin-top:2px;font-size:12.5px;font-weight:400;line-height:19px}.BiQ1zG_failPrepareHint{white-space:pre-line;text-align:left;color:var(--hub-warning);background:var(--hub-warning-tint);border:1px solid var(--hub-warning-border);border-radius:6px;margin-top:6px;margin-bottom:12px;padding:8px 12px;font-size:12px;line-height:18px}.BiQ1zG_failDiagBtn{box-sizing:border-box;text-align:center;width:100%;color:var(--hub-text-on-fill);background:var(--hub-btn-fill);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:8px;margin-top:8px;padding:5px 16px;font-size:13px;font-weight:600;line-height:18px;transition:background .12s,box-shadow .12s;display:block}.BiQ1zG_failDiagBtn:hover{background:var(--hub-btn-hover);box-shadow:0 3px 10px #0000001f}.BiQ1zG_failMisjudgeLink{color:var(--hub-text-tertiary);cursor:pointer;margin-top:6px;font-size:12px;line-height:18px;text-decoration:underline;display:inline-block}.BiQ1zG_failMisjudgeLink:hover{color:var(--hub-text-secondary)}.BiQ1zG_failNetworkTarget{word-break:break-all;color:var(--hub-danger);background:var(--hub-danger-tint);border:1px solid var(--hub-danger-border);border-radius:6px;margin-top:6px;padding:8px 12px;font-size:13px;font-weight:700;line-height:20px}.BiQ1zG_aboutModal{width:560px;max-width:calc(100vw - 48px)}.BiQ1zG_aboutContent{min-height:0;max-height:340px;color:var(--hub-text-secondary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);border-radius:8px;flex:auto;padding:10px 12px;font-size:12px;line-height:18px;overflow-y:auto}.BiQ1zG_aboutContent>:first-child{margin-top:0}.BiQ1zG_aboutContent>:last-child{margin-bottom:0}.BiQ1zG_aboutContent h2,.BiQ1zG_aboutContent h3,.BiQ1zG_aboutContent h4,.BiQ1zG_aboutContent h5{color:var(--hub-text-primary);margin:10px 0 4px;font-size:13px;font-weight:600;line-height:20px}.BiQ1zG_aboutContent h2{font-size:14px}.BiQ1zG_aboutContent p{margin:4px 0}.BiQ1zG_aboutContent ul,.BiQ1zG_aboutContent ol{margin:4px 0;padding-left:18px}.BiQ1zG_aboutContent li{margin:2px 0}.BiQ1zG_aboutContent code{background:var(--hub-bg-hover);color:var(--hub-text-primary);border-radius:4px;padding:1px 4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}.BiQ1zG_aboutContent pre{background:var(--hub-bg-1);border:1px solid var(--hub-border-2);border-radius:6px;margin:6px 0;padding:8px 10px;overflow-x:auto}.BiQ1zG_aboutContent pre code{background:0 0;border-radius:0;padding:0}.BiQ1zG_aboutContent blockquote{border-left:3px solid var(--hub-brand);background:var(--hub-bg-hover);color:var(--hub-text-tertiary);border-radius:0 6px 6px 0;margin:6px 0;padding:2px 10px}.BiQ1zG_aboutContent a{color:var(--hub-brand);text-decoration:none}.BiQ1zG_aboutContent a:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_aboutContent img{border-radius:8px;max-width:100%;max-height:220px;margin:8px auto;display:block;box-shadow:0 2px 8px #0000001f}.BiQ1zG_aboutContent img[width=\"100\"]{object-fit:contain;width:100px;height:100px;max-height:100px}.BiQ1zG_aboutMeta{color:var(--hub-text-tertiary);font-size:11px;line-height:16px}.BiQ1zG_hubUpdateModal{width:620px;max-width:calc(100vw - 48px)}.BiQ1zG_hubUpdateMeta{flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:12px;line-height:18px;display:flex}.BiQ1zG_hubUpdateMetaItem{color:var(--hub-text-tertiary)}.BiQ1zG_hubUpdateNotes{min-height:0;max-height:300px;color:var(--hub-text-secondary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);border-radius:8px;flex:auto;padding:10px 12px;font-size:12px;line-height:18px;overflow-y:auto}.BiQ1zG_hubUpdateNotes>:first-child{margin-top:0}.BiQ1zG_hubUpdateNotes>:last-child{margin-bottom:0}.BiQ1zG_hubUpdateNotes h2,.BiQ1zG_hubUpdateNotes h3,.BiQ1zG_hubUpdateNotes h4,.BiQ1zG_hubUpdateNotes h5{color:var(--hub-text-primary);margin:10px 0 4px;font-size:13px;font-weight:600;line-height:20px}.BiQ1zG_hubUpdateNotes h2{font-size:14px}.BiQ1zG_hubUpdateNotes p{margin:4px 0}.BiQ1zG_hubUpdateNotes ul,.BiQ1zG_hubUpdateNotes ol{margin:4px 0;padding-left:18px}.BiQ1zG_hubUpdateNotes li{margin:2px 0}.BiQ1zG_hubUpdateNotes code{background:var(--hub-bg-hover);color:var(--hub-text-primary);border-radius:4px;padding:1px 4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}.BiQ1zG_hubUpdateNotes pre{background:var(--hub-bg-1);border:1px solid var(--hub-border-2);border-radius:6px;margin:6px 0;padding:8px 10px;overflow-x:auto}.BiQ1zG_hubUpdateNotes pre code{background:0 0;border-radius:0;padding:0}.BiQ1zG_hubUpdateNotes blockquote{border-left:3px solid var(--hub-brand);background:var(--hub-bg-hover);color:var(--hub-text-tertiary);border-radius:0 6px 6px 0;margin:6px 0;padding:2px 10px}.BiQ1zG_hubUpdateNotes a{color:var(--hub-brand);text-decoration:none}.BiQ1zG_hubUpdateNotes a:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_detailModal{width:580px;max-width:calc(100vw - 48px)}.BiQ1zG_detailUpdateHint{color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border-soft);border-radius:6px;padding:6px 10px;font-size:12px;line-height:18px}.BiQ1zG_detailGrid{flex-direction:column;gap:6px;display:flex}.BiQ1zG_detailRow{align-items:baseline;gap:10px;min-width:0;font-size:12px;line-height:20px;display:flex}.BiQ1zG_detailLabel{text-align:right;width:76px;color:var(--hub-text-tertiary);flex-shrink:0}.BiQ1zG_detailValue{min-width:0;color:var(--hub-text-primary);flex-wrap:wrap;flex:auto;align-items:baseline;gap:4px 6px;font-weight:500;display:flex}.BiQ1zG_detailMono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:500}.BiQ1zG_detailArrow{color:var(--hub-text-tertiary);align-items:baseline;gap:4px;display:inline-flex}.BiQ1zG_detailDim{color:var(--hub-text-tertiary);font-size:11px;font-weight:400}.BiQ1zG_detailLink{min-width:0;color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;align-items:center;gap:4px;font-weight:500;text-decoration:none;transition:color .12s;display:inline-flex}.BiQ1zG_detailLink:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_detailStars{color:#b45309;font-weight:600}.BiQ1zG_detailPath{min-width:0;color:var(--hub-text-primary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);border-radius:6px;flex:auto;justify-content:space-between;align-items:center;gap:6px;padding:3px 3px 3px 8px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:18px;transition:border-color .12s,background .12s;display:flex}.BiQ1zG_detailPath:hover{border-color:var(--hub-border-ghost);background:var(--hub-bg-3)}.BiQ1zG_detailPathText{text-overflow:ellipsis;white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;min-width:0;overflow:hidden}.BiQ1zG_detailPathActions{flex-shrink:0;align-items:center;gap:4px;display:inline-flex}.BiQ1zG_detailPathBtn{width:28px;height:28px;color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border-soft);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;justify-content:center;align-items:center;transition:color .12s,background .12s,border-color .12s;display:inline-flex}.BiQ1zG_detailPathBtn svg{width:15px;height:15px}.BiQ1zG_detailPathBtn:hover{color:#fff;background:var(--hub-brand);border-color:var(--hub-brand)}.BiQ1zG_detailStatusRunning,.BiQ1zG_detailStatusPending{border-radius:50%;flex-shrink:0;align-self:center;width:8px;height:8px}.BiQ1zG_detailStatusRunning{background:var(--hub-success)}.BiQ1zG_detailStatusPending{background:var(--hub-warning)}.BiQ1zG_detailStatusText{font-weight:500}";
+		const css$10 = ".BiQ1zG_overlay{z-index:998;-webkit-user-select:none;user-select:none;background:#00000061;justify-content:center;align-items:center;animation:.16s ease-out BiQ1zG_overlayIn;display:flex;position:fixed;top:0;bottom:0;left:0;right:0}.BiQ1zG_modal,.BiQ1zG_errorModal{background:var(--hub-bg-1);border:1px solid var(--hub-border-2);border-radius:10px;flex-direction:column;gap:10px;width:540px;max-width:calc(100vw - 32px);max-height:calc(100vh - 64px);padding:14px 16px;animation:.18s ease-out BiQ1zG_modalIn;display:flex;box-shadow:0 12px 40px #0000003d}.BiQ1zG_errorModal{width:720px;max-width:calc(100vw - 48px)}.BiQ1zG_modalWide{width:640px;max-width:calc(100vw - 48px)}.BiQ1zG_helpModal{width:760px;max-width:calc(100vw - 48px)}.BiQ1zG_logModal{width:820px;max-width:calc(100vw - 48px);height:min(540px,100vh - 64px)}.BiQ1zG_modalHead{flex-shrink:0;justify-content:space-between;align-items:center;gap:8px;display:flex}.BiQ1zG_modalTitle{color:var(--hub-text-primary);font-size:14px;font-weight:600;line-height:20px}.BiQ1zG_modalTitleBusy{color:var(--hub-brand)}.BiQ1zG_modalTitleQueued{color:var(--hub-warning)}.BiQ1zG_modalClose{width:24px;height:24px;color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;flex-shrink:0;justify-content:center;align-items:center;font-size:16px;line-height:1;display:inline-flex}.BiQ1zG_modalClose:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover)}.BiQ1zG_modalCloseIcon{flex-shrink:0;width:14px;height:14px}.BiQ1zG_confirmIconWrap{justify-content:center;padding:2px 0 6px;display:flex}.BiQ1zG_confirmIcon{background:var(--hub-brand);border-radius:50%;flex:none;justify-content:center;align-items:center;width:48px;height:48px;display:inline-flex;box-shadow:0 4px 12px #4f6ef747}.BiQ1zG_confirmIconDanger{background:var(--hub-danger);box-shadow:0 4px 12px #d1242f4d}.BiQ1zG_dangerConfirm{color:#fff;background:var(--hub-danger);border:1px solid var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;flex:none;height:28px;padding:0 14px;font-size:12px;font-weight:600;transition:background-color .12s,border-color .12s}.BiQ1zG_dangerConfirm:hover:not(:disabled){background:var(--hub-danger-hover);border-color:var(--hub-danger-hover)}.BiQ1zG_dangerConfirm:disabled{opacity:.55;cursor:default}.BiQ1zG_confirmPrimary{color:#fff;background:var(--hub-brand);border:1px solid var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;flex:none;height:28px;padding:0 14px;font-size:12px;font-weight:600;transition:filter .12s}.BiQ1zG_confirmPrimary:hover:not(:disabled){filter:brightness(1.08)}.BiQ1zG_confirmPrimary:disabled{opacity:.55;cursor:default}.BiQ1zG_modalDesc{color:var(--hub-text-secondary);font-size:12px;line-height:18px}.BiQ1zG_trustHint{color:var(--hub-danger-text);background:var(--hub-danger-tint);border:1px solid var(--hub-danger-border-soft);border-radius:6px;padding:6px 10px;font-size:12px;font-weight:500;line-height:18px}.BiQ1zG_cliOnlyHint{color:var(--hub-text-secondary);background:var(--hub-bg-hover);border-radius:6px;padding:6px 10px;font-size:12px;line-height:18px}.BiQ1zG_failedCopyHint{color:var(--hub-danger-text);background:var(--hub-danger-tint);border:1px solid var(--hub-danger-border-soft);border-radius:6px;padding:6px 10px;font-size:12px;font-weight:500;line-height:18px}.BiQ1zG_modalRow{align-items:baseline;gap:8px;min-width:0;font-size:12px;line-height:18px;display:flex}.BiQ1zG_modalLabel{min-width:64px;color:var(--hub-text-tertiary);flex-shrink:0}.BiQ1zG_modalValue{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-text-primary);font-weight:500;overflow:hidden}.BiQ1zG_modalLink{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;align-items:center;gap:4px;font-weight:500;text-decoration:none;transition:color .12s;display:inline-flex;overflow:hidden}.BiQ1zG_modalLink:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_linkIcon{flex-shrink:0}.BiQ1zG_modalCmd{color:var(--hub-text-primary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 6px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:18px;transition:border-color .12s,background .12s;display:flex}.BiQ1zG_modalCmd:hover{border-color:var(--hub-border-ghost);background:var(--hub-bg-3)}.BiQ1zG_modalCmdText{text-overflow:ellipsis;white-space:nowrap;min-width:0;overflow:hidden}.BiQ1zG_modalCmdCopy{color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:4px;flex-shrink:0;align-items:center;gap:3px;padding:1px 7px;font-family:inherit;font-size:11px;line-height:16px;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_modalCmdCopy:hover{color:var(--hub-brand-hover);background:var(--hub-bg-2)}.BiQ1zG_modalActions{justify-content:flex-end;align-items:center;gap:8px;margin-top:2px;display:flex}.BiQ1zG_modalBody{flex-direction:column;flex:auto;gap:10px;min-height:0;display:flex;overflow-y:auto}.BiQ1zG_toast{z-index:1000;background:var(--hub-btn-fill);color:var(--hub-text-on-fill);pointer-events:none;white-space:nowrap;border:none;border-radius:8px;padding:10px 16px;font-size:12px;font-weight:500;line-height:18px;animation:.22s ease-out BiQ1zG_toastIn;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 6px 24px #00000047}@keyframes BiQ1zG_toastIn{0%{opacity:0;transform:translate(-50%,-44%)}to{opacity:1;transform:translate(-50%,-50%)}}.BiQ1zG_toastFail{background:var(--hub-danger);color:#fff;border-color:#ffffff3d}.BiQ1zG_queueSection{flex-direction:column;gap:6px;display:flex}.BiQ1zG_queueSectionTitle{color:var(--hub-text-secondary);padding:4px 2px 0;font-size:12px;font-weight:600;line-height:18px}.BiQ1zG_pendingRowStatus{color:var(--hub-warn);flex-shrink:0;font-weight:500}.BiQ1zG_pendingRowActions{flex-shrink:0;gap:8px;margin-left:auto;display:flex}.BiQ1zG_queueRow{border:1px solid var(--hub-border-2);background:var(--hub-bg-2);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:8px;flex-direction:column;gap:5px;padding:8px 10px;font-size:12px;line-height:18px;transition:background .12s;display:flex}.BiQ1zG_queueRow:hover{background:var(--hub-brand-tint)}.BiQ1zG_queueRowHead{align-items:center;gap:10px;display:flex}.BiQ1zG_queueRowTarget{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-text-primary);flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow:hidden}.BiQ1zG_queueRowDesc{color:var(--hub-text-tertiary);-webkit-line-clamp:2;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden}.BiQ1zG_queueRowBody{align-items:center;gap:8px;display:flex}.BiQ1zG_queueRowStatus{color:var(--hub-brand);flex-shrink:0;font-weight:500}.BiQ1zG_queueRowTrack{flex:1;min-width:0}.BiQ1zG_queueRowPct{color:var(--hub-text-tertiary);font-variant-numeric:tabular-nums;flex-shrink:0}.BiQ1zG_stripCancel{color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;flex-shrink:0;padding:2px 10px;font-size:12px;line-height:18px;transition:background .12s,color .12s}.BiQ1zG_stripCancel:hover{background:var(--hub-danger-tint);color:var(--hub-danger-text)}.BiQ1zG_stripCancel:disabled{opacity:.45;cursor:default}.BiQ1zG_queuedHint{color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border-soft);border-radius:6px;padding:5px 10px;font-size:12px;line-height:18px}.BiQ1zG_errorTitle{color:var(--hub-danger-text);font-size:14px;font-weight:600;line-height:20px}.BiQ1zG_errorBox{border:1px solid var(--hub-danger-border);background:var(--hub-danger-tint-weak);max-height:72px;color:var(--hub-text-primary);white-space:pre-wrap;word-break:break-word;-webkit-user-select:none;user-select:none;border-radius:6px;margin:0;padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:17px;overflow:auto}.BiQ1zG_errorCopySoft{color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:4px;flex-shrink:0;align-items:center;padding:2px 8px;font-size:11px;line-height:16px;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_errorCopySoft:hover{color:var(--hub-text-secondary);background:var(--hub-bg-2)}.BiQ1zG_errorHint{color:var(--hub-text-tertiary);font-size:12px;line-height:18px}.BiQ1zG_modalCancel,.BiQ1zG_modalCopy{color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;padding:5px 14px;font-size:12px;line-height:18px;transition:color .12s,background .12s}.BiQ1zG_modalCancel:hover,.BiQ1zG_modalCopy:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover)}.BiQ1zG_modalInstall{color:var(--hub-text-on-fill);background:var(--hub-btn-fill);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_modalInstall:hover{background:var(--hub-btn-hover)}.BiQ1zG_modalCopy:disabled,.BiQ1zG_modalInstall:disabled,.BiQ1zG_modalCancel:disabled,.BiQ1zG_modalClose:disabled,.BiQ1zG_uninstallConfirm:disabled{opacity:.55;cursor:not-allowed;pointer-events:none}.BiQ1zG_uninstallConfirm{color:#fff;background:var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_uninstallConfirm:hover{background:var(--hub-danger-hover)}.BiQ1zG_result{text-align:center;flex-direction:column;align-items:center;gap:5px;padding:10px 0 2px;display:flex}.BiQ1zG_resultCheck{background:var(--hub-success-tint);width:40px;height:40px;color:var(--hub-success);border-radius:50%;justify-content:center;align-items:center;margin-bottom:3px;display:inline-flex}.BiQ1zG_resultCheckIcon{flex-shrink:0;width:20px;height:20px}.BiQ1zG_resultTitle{color:var(--hub-text-primary);font-size:13px;font-weight:600;line-height:20px}.BiQ1zG_resultDesc{color:var(--hub-text-secondary);font-size:12px;line-height:18px}.BiQ1zG_resultRestarting{color:var(--hub-text-tertiary);padding:12px 0 6px;font-size:12px;line-height:18px}.BiQ1zG_bundleDeselectedHint{text-align:left;color:var(--hub-warning);padding:12px 0 6px;font-size:12px;line-height:18px}.BiQ1zG_restartLater{color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;padding:5px 14px;font-size:12px;line-height:18px;transition:color .12s,background .12s}.BiQ1zG_restartLater:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover)}.BiQ1zG_restartNow{color:var(--hub-text-on-fill);background:var(--hub-btn-fill);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_restartNow:hover{background:var(--hub-btn-hover)}.BiQ1zG_restartNow:disabled{opacity:.55;cursor:not-allowed;pointer-events:none}.BiQ1zG_restartNowWarning{color:#fff;background:var(--hub-warning);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;line-height:18px;transition:background .12s}.BiQ1zG_restartNowWarning:hover{background:var(--hub-warning-hover)}.BiQ1zG_restartNowWarning:disabled{opacity:.55;cursor:not-allowed;pointer-events:none}.BiQ1zG_result .BiQ1zG_modalActions{justify-content:center;gap:10px;margin-top:0;padding:6px 0 2px}.BiQ1zG_result .BiQ1zG_modalActions .BiQ1zG_restartLater,.BiQ1zG_result .BiQ1zG_modalActions .BiQ1zG_restartNow,.BiQ1zG_result .BiQ1zG_modalActions .BiQ1zG_restartNowWarning{min-width:100px}.BiQ1zG_progress{margin:10px 0 2px}.BiQ1zG_progressHead{justify-content:flex-end;align-items:center;margin-bottom:3px;display:flex}.BiQ1zG_progressText{color:var(--hub-text-secondary);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:14px}.BiQ1zG_progressTrack{background:var(--hub-border-2);border-radius:2px;height:4px;overflow:hidden}.BiQ1zG_progressFill{background:var(--hub-brand);border-radius:2px;height:100%;transition:width .32s}.BiQ1zG_progressFillFail{background:var(--hub-danger)}@keyframes BiQ1zG_overlayIn{0%{opacity:0}to{opacity:1}}@keyframes BiQ1zG_modalIn{0%{opacity:0;transform:translateY(6px)scale(.98)}to{opacity:1;transform:translateY(0)scale(1)}}.BiQ1zG_failList{flex-direction:column;gap:12px;padding-right:2px;display:flex}.BiQ1zG_failRow{border:1px solid var(--hub-border-2);background:var(--hub-bg-2);border-radius:8px;flex-direction:column;gap:8px;padding:10px 12px;display:flex}.BiQ1zG_failHead{align-items:center;gap:8px;min-width:0;display:flex}.BiQ1zG_noticeList{flex-direction:column;gap:10px;padding-right:2px;display:flex}.BiQ1zG_noticeRow{border:1px solid var(--hub-border-2);background:var(--hub-bg-2);border-radius:8px;flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px;display:flex}.BiQ1zG_noticeRowMain{align-items:center;gap:10px;width:100%;min-width:0;display:flex}.BiQ1zG_noticeBadgeOk,.BiQ1zG_noticeBadgeFail{border-radius:50%;flex-shrink:0;justify-content:center;align-items:center;width:28px;height:28px;display:inline-flex;box-shadow:0 2px 6px #0000002e}.BiQ1zG_noticeBadgeOk{background:var(--hub-success)}.BiQ1zG_noticeBadgeFail{background:var(--hub-danger)}.BiQ1zG_noticeBadgeIcon{flex-shrink:0;width:12px;height:12px}.BiQ1zG_noticeMain{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.BiQ1zG_noticeHead{align-items:center;gap:8px;min-width:0;display:flex}.BiQ1zG_noticeTextOk{color:var(--hub-success);flex-shrink:0;font-size:12px;font-weight:600;line-height:18px}.BiQ1zG_noticeTextFail{color:var(--hub-danger-text);flex-shrink:0;font-size:12px;font-weight:600;line-height:18px}.BiQ1zG_noticeFoot{justify-content:flex-end;align-items:center;display:flex}.BiQ1zG_noticeTime{color:var(--hub-text-tertiary);font-variant-numeric:tabular-nums;flex-shrink:0;font-size:11px;line-height:16px}.BiQ1zG_noticeRemove{width:22px;height:22px;color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:5px;flex-shrink:0;justify-content:center;align-items:center;margin-left:auto;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_noticeRemove:hover{color:var(--hub-danger-text);background:var(--hub-danger-tint)}.BiQ1zG_noticeRowOk .BiQ1zG_noticeRemove{margin-left:0}.BiQ1zG_noticeRowOk .BiQ1zG_noticeTime{margin-left:auto}.BiQ1zG_noticeRowUpdate{cursor:pointer;transition:border-color .12s,background .12s}.BiQ1zG_noticeRowUpdate:hover{border-color:var(--hub-brand);background:var(--hub-brand-tint)}.BiQ1zG_noticeVersion{color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border);font-variant-numeric:tabular-nums;border-radius:5px;flex-shrink:0;padding:0 6px;font-size:11px;font-weight:600;line-height:18px}.BiQ1zG_noticeUpdateGo{color:#fff;background:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:5px;flex-shrink:0;margin-left:2px;padding:2px 8px;font-size:11px;font-weight:600;line-height:16px;transition:background .12s}.BiQ1zG_noticeUpdateGo:hover{background:var(--hub-brand-hover)}.BiQ1zG_noticeIgnore{color:var(--hub-text-secondary);border:1px solid var(--hub-border-2);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border-radius:5px;flex-shrink:0;margin-left:2px;padding:1px 8px;font-size:11px;font-weight:500;line-height:16px;transition:color .12s,border-color .12s,background .12s}.BiQ1zG_noticeIgnore:hover{color:var(--hub-danger-text);border-color:var(--hub-danger-border);background:var(--hub-danger-tint)}.BiQ1zG_failKind{border:1px solid #0000;border-radius:4px;flex-shrink:0;padding:0 6px;font-size:10px;font-weight:500;line-height:16px}.BiQ1zG_failKindInstall{color:var(--hub-danger-text);border-color:var(--hub-danger-border);background:var(--hub-danger-tint)}.BiQ1zG_failKindUninstall{color:var(--hub-warn);border-color:var(--hub-warn-border);background:var(--hub-warn-tint)}.BiQ1zG_failRepo{text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:18px;text-decoration:none;overflow:hidden}.BiQ1zG_failRepo:hover{text-decoration:none}a.BiQ1zG_failRepo{color:#2f6feb}.BiQ1zG_failRepoLabel{color:var(--hub-text-secondary)}a.BiQ1zG_failRepo:hover .BiQ1zG_failRepoUrl{text-decoration:underline}.BiQ1zG_failCopy{color:var(--hub-text-tertiary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:4px;flex-shrink:0;align-items:center;padding:2px 8px;font-size:11px;line-height:16px;transition:color .12s,background .12s;display:inline-flex}.BiQ1zG_failCopy:hover{color:var(--hub-text-secondary);background:var(--hub-bg-2)}.BiQ1zG_failEmpty{text-align:center;color:var(--hub-text-tertiary);padding:24px 0;font-size:12px;line-height:18px}.BiQ1zG_failClear{color:var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;border-radius:6px;padding:5px 14px;font-size:12px;line-height:18px;transition:color .12s,background .12s}.BiQ1zG_failClear:hover{color:#fff;background:var(--hub-danger)}.BiQ1zG_failBigIssue{box-sizing:border-box;text-align:center;color:#fff;background:var(--hub-danger);border:1px solid var(--hub-danger);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:8px;width:100%;margin-top:4px;padding:3px 16px;font-size:13px;font-weight:600;line-height:18px;text-decoration:none;transition:background .12s,border-color .12s,box-shadow .12s;display:block}.BiQ1zG_failBigIssue:hover{background:var(--hub-danger-hover);border-color:var(--hub-danger-hover);box-shadow:0 3px 10px #d1242f59}.BiQ1zG_failKindTitle{text-align:left;color:var(--hub-danger-text);margin-top:10px;font-size:15px;font-weight:700;line-height:22px}.BiQ1zG_failReason{white-space:pre-line;text-align:left;color:var(--hub-text-secondary);margin-top:2px;font-size:12.5px;font-weight:400;line-height:19px}.BiQ1zG_failPrepareHint{white-space:pre-line;text-align:left;color:var(--hub-warning);background:var(--hub-warning-tint);border:1px solid var(--hub-warning-border);border-radius:6px;margin-top:6px;margin-bottom:12px;padding:8px 12px;font-size:12px;line-height:18px}.BiQ1zG_failDiagBtn{box-sizing:border-box;text-align:center;width:100%;color:var(--hub-text-on-fill);background:var(--hub-btn-fill);cursor:pointer;-webkit-user-select:none;user-select:none;border:none;border-radius:8px;margin-top:8px;padding:5px 16px;font-size:13px;font-weight:600;line-height:18px;transition:background .12s,box-shadow .12s;display:block}.BiQ1zG_failDiagBtn:hover{background:var(--hub-btn-hover);box-shadow:0 3px 10px #0000001f}.BiQ1zG_failMisjudgeLink{color:var(--hub-text-tertiary);cursor:pointer;margin-top:6px;font-size:12px;line-height:18px;text-decoration:underline;display:inline-block}.BiQ1zG_failMisjudgeLink:hover{color:var(--hub-text-secondary)}.BiQ1zG_failNetworkTarget{word-break:break-all;color:var(--hub-danger);background:var(--hub-danger-tint);border:1px solid var(--hub-danger-border);border-radius:6px;margin-top:6px;padding:8px 12px;font-size:13px;font-weight:700;line-height:20px}.BiQ1zG_aboutModal{width:560px;max-width:calc(100vw - 48px)}.BiQ1zG_aboutContent{min-height:0;max-height:340px;color:var(--hub-text-secondary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);border-radius:8px;flex:auto;padding:10px 12px;font-size:12px;line-height:18px;overflow-y:auto}.BiQ1zG_aboutContent>:first-child{margin-top:0}.BiQ1zG_aboutContent>:last-child{margin-bottom:0}.BiQ1zG_aboutContent h2,.BiQ1zG_aboutContent h3,.BiQ1zG_aboutContent h4,.BiQ1zG_aboutContent h5{color:var(--hub-text-primary);margin:10px 0 4px;font-size:13px;font-weight:600;line-height:20px}.BiQ1zG_aboutContent h2{font-size:14px}.BiQ1zG_aboutContent p{margin:4px 0}.BiQ1zG_aboutContent ul,.BiQ1zG_aboutContent ol{margin:4px 0;padding-left:18px}.BiQ1zG_aboutContent li{margin:2px 0}.BiQ1zG_aboutContent code{background:var(--hub-bg-hover);color:var(--hub-text-primary);border-radius:4px;padding:1px 4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}.BiQ1zG_aboutContent pre{background:var(--hub-bg-1);border:1px solid var(--hub-border-2);border-radius:6px;margin:6px 0;padding:8px 10px;overflow-x:auto}.BiQ1zG_aboutContent pre code{background:0 0;border-radius:0;padding:0}.BiQ1zG_aboutContent blockquote{border-left:3px solid var(--hub-brand);background:var(--hub-bg-hover);color:var(--hub-text-tertiary);border-radius:0 6px 6px 0;margin:6px 0;padding:2px 10px}.BiQ1zG_aboutContent a{color:var(--hub-brand);text-decoration:none}.BiQ1zG_aboutContent a:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_aboutContent img{border-radius:8px;max-width:100%;max-height:220px;margin:8px auto;display:block;box-shadow:0 2px 8px #0000001f}.BiQ1zG_aboutContent img[width=\"100\"]{object-fit:contain;width:100px;height:100px;max-height:100px}.BiQ1zG_aboutMeta{color:var(--hub-text-tertiary);font-size:11px;line-height:16px}.BiQ1zG_hubUpdateModal{width:620px;max-width:calc(100vw - 48px)}.BiQ1zG_hubUpdateMeta{flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:12px;line-height:18px;display:flex}.BiQ1zG_hubUpdateMetaItem{color:var(--hub-text-tertiary)}.BiQ1zG_hubUpdateNotes{min-height:0;max-height:300px;color:var(--hub-text-secondary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);border-radius:8px;flex:auto;padding:10px 12px;font-size:12px;line-height:18px;overflow-y:auto}.BiQ1zG_hubUpdateNotes>:first-child{margin-top:0}.BiQ1zG_hubUpdateNotes>:last-child{margin-bottom:0}.BiQ1zG_hubUpdateNotes h2,.BiQ1zG_hubUpdateNotes h3,.BiQ1zG_hubUpdateNotes h4,.BiQ1zG_hubUpdateNotes h5{color:var(--hub-text-primary);margin:10px 0 4px;font-size:13px;font-weight:600;line-height:20px}.BiQ1zG_hubUpdateNotes h2{font-size:14px}.BiQ1zG_hubUpdateNotes p{margin:4px 0}.BiQ1zG_hubUpdateNotes ul,.BiQ1zG_hubUpdateNotes ol{margin:4px 0;padding-left:18px}.BiQ1zG_hubUpdateNotes li{margin:2px 0}.BiQ1zG_hubUpdateNotes code{background:var(--hub-bg-hover);color:var(--hub-text-primary);border-radius:4px;padding:1px 4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}.BiQ1zG_hubUpdateNotes pre{background:var(--hub-bg-1);border:1px solid var(--hub-border-2);border-radius:6px;margin:6px 0;padding:8px 10px;overflow-x:auto}.BiQ1zG_hubUpdateNotes pre code{background:0 0;border-radius:0;padding:0}.BiQ1zG_hubUpdateNotes blockquote{border-left:3px solid var(--hub-brand);background:var(--hub-bg-hover);color:var(--hub-text-tertiary);border-radius:0 6px 6px 0;margin:6px 0;padding:2px 10px}.BiQ1zG_hubUpdateNotes a{color:var(--hub-brand);text-decoration:none}.BiQ1zG_hubUpdateNotes a:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_detailModal{width:580px;max-width:calc(100vw - 48px)}.BiQ1zG_detailUpdateHint{color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border-soft);border-radius:6px;padding:6px 10px;font-size:12px;line-height:18px}.BiQ1zG_detailGrid{flex-direction:column;gap:6px;display:flex}.BiQ1zG_detailRow{align-items:baseline;gap:10px;min-width:0;font-size:12px;line-height:20px;display:flex}.BiQ1zG_detailLabel{text-align:right;width:76px;color:var(--hub-text-tertiary);flex-shrink:0}.BiQ1zG_detailValue{min-width:0;color:var(--hub-text-primary);flex-wrap:wrap;flex:auto;align-items:baseline;gap:4px 6px;font-weight:500;display:flex}.BiQ1zG_detailMono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:500}.BiQ1zG_detailArrow{color:var(--hub-text-tertiary);align-items:baseline;gap:4px;display:inline-flex}.BiQ1zG_detailDim{color:var(--hub-text-tertiary);font-size:11px;font-weight:400}.BiQ1zG_detailLink{min-width:0;color:var(--hub-brand);cursor:pointer;-webkit-user-select:none;user-select:none;align-items:center;gap:4px;font-weight:500;text-decoration:none;transition:color .12s;display:inline-flex}.BiQ1zG_detailLink:hover{color:var(--hub-brand-hover);text-decoration:underline}.BiQ1zG_detailStars{color:#b45309;font-weight:600}.BiQ1zG_detailPath{min-width:0;color:var(--hub-text-primary);background:var(--hub-bg-2);border:1px solid var(--hub-border-2);border-radius:6px;flex:auto;justify-content:space-between;align-items:center;gap:6px;padding:3px 3px 3px 8px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:18px;transition:border-color .12s,background .12s;display:flex}.BiQ1zG_detailPath:hover{border-color:var(--hub-border-ghost);background:var(--hub-bg-3)}.BiQ1zG_detailPathText{text-overflow:ellipsis;white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;min-width:0;overflow:hidden}.BiQ1zG_detailPathActions{flex-shrink:0;align-items:center;gap:4px;display:inline-flex}.BiQ1zG_detailPathBtn{width:28px;height:28px;color:var(--hub-brand);background:var(--hub-brand-tint);border:1px solid var(--hub-brand-border-soft);cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:6px;justify-content:center;align-items:center;transition:color .12s,background .12s,border-color .12s;display:inline-flex}.BiQ1zG_detailPathBtn svg{width:15px;height:15px}.BiQ1zG_detailPathBtn:hover{color:#fff;background:var(--hub-brand);border-color:var(--hub-brand)}.BiQ1zG_detailStatusRunning,.BiQ1zG_detailStatusPending{border-radius:50%;flex-shrink:0;align-self:center;width:8px;height:8px}.BiQ1zG_detailStatusRunning{background:var(--hub-success)}.BiQ1zG_detailStatusPending{background:var(--hub-warning)}.BiQ1zG_detailStatusText{font-weight:500}";
 		const tagId$10 = "dsh-plugin/Modal.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$10) + "]") === null) {
 			const tag = document.createElement("style");
@@ -888,141 +896,142 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$10
 		});
 		var Modal_module_css_default = {
-			"failedCopyHint": "BiQ1zG_failedCopyHint",
-			"dangerConfirm": "BiQ1zG_dangerConfirm",
-			"resultRestarting": "BiQ1zG_resultRestarting",
-			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
-			"modalLink": "BiQ1zG_modalLink",
-			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
-			"noticeFoot": "BiQ1zG_noticeFoot",
-			"failRow": "BiQ1zG_failRow",
-			"errorBox": "BiQ1zG_errorBox",
-			"queueRowTarget": "BiQ1zG_queueRowTarget",
-			"noticeMain": "BiQ1zG_noticeMain",
-			"detailStatusText": "BiQ1zG_detailStatusText",
-			"restartNow": "BiQ1zG_restartNow",
-			"toastIn": "BiQ1zG_toastIn",
-			"errorTitle": "BiQ1zG_errorTitle",
-			"noticeVersion": "BiQ1zG_noticeVersion",
-			"noticeRowMain": "BiQ1zG_noticeRowMain",
-			"detailRow": "BiQ1zG_detailRow",
-			"trustHint": "BiQ1zG_trustHint",
-			"resultDesc": "BiQ1zG_resultDesc",
-			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
-			"failCopy": "BiQ1zG_failCopy",
-			"detailLabel": "BiQ1zG_detailLabel",
-			"failList": "BiQ1zG_failList",
-			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
-			"failPrepareHint": "BiQ1zG_failPrepareHint",
-			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
-			"modalWide": "BiQ1zG_modalWide",
-			"modalTitle": "BiQ1zG_modalTitle",
-			"modalBody": "BiQ1zG_modalBody",
-			"noticeIgnore": "BiQ1zG_noticeIgnore",
-			"detailDim": "BiQ1zG_detailDim",
-			"errorCopySoft": "BiQ1zG_errorCopySoft",
-			"progressTrack": "BiQ1zG_progressTrack",
-			"modalCmdText": "BiQ1zG_modalCmdText",
-			"queueRowStatus": "BiQ1zG_queueRowStatus",
-			"modalCmd": "BiQ1zG_modalCmd",
-			"confirmIcon": "BiQ1zG_confirmIcon",
-			"confirmPrimary": "BiQ1zG_confirmPrimary",
-			"result": "BiQ1zG_result",
-			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
-			"resultTitle": "BiQ1zG_resultTitle",
-			"progressFillFail": "BiQ1zG_progressFillFail",
-			"detailStatusPending": "BiQ1zG_detailStatusPending",
-			"aboutMeta": "BiQ1zG_aboutMeta",
-			"queueRow": "BiQ1zG_queueRow",
-			"queuedHint": "BiQ1zG_queuedHint",
-			"noticeRow": "BiQ1zG_noticeRow",
-			"noticeTextFail": "BiQ1zG_noticeTextFail",
-			"errorHint": "BiQ1zG_errorHint",
-			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
-			"failKindUninstall": "BiQ1zG_failKindUninstall",
-			"queueRowPct": "BiQ1zG_queueRowPct",
-			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
-			"noticeList": "BiQ1zG_noticeList",
-			"restartNowWarning": "BiQ1zG_restartNowWarning",
-			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
-			"modalDesc": "BiQ1zG_modalDesc",
-			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
-			"noticeTime": "BiQ1zG_noticeTime",
-			"queueRowDesc": "BiQ1zG_queueRowDesc",
-			"failKindTitle": "BiQ1zG_failKindTitle",
-			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
-			"detailPathActions": "BiQ1zG_detailPathActions",
-			"resultCheck": "BiQ1zG_resultCheck",
-			"progress": "BiQ1zG_progress",
-			"failHead": "BiQ1zG_failHead",
-			"failRepoLabel": "BiQ1zG_failRepoLabel",
-			"restartLater": "BiQ1zG_restartLater",
-			"detailValue": "BiQ1zG_detailValue",
-			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
-			"failEmpty": "BiQ1zG_failEmpty",
-			"noticeRowOk": "BiQ1zG_noticeRowOk",
-			"toastFail": "BiQ1zG_toastFail",
-			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
-			"queueRowHead": "BiQ1zG_queueRowHead",
-			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
-			"queueSection": "BiQ1zG_queueSection",
-			"stripCancel": "BiQ1zG_stripCancel",
-			"progressHead": "BiQ1zG_progressHead",
-			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
-			"failKindInstall": "BiQ1zG_failKindInstall",
-			"detailArrow": "BiQ1zG_detailArrow",
-			"detailLink": "BiQ1zG_detailLink",
-			"aboutContent": "BiQ1zG_aboutContent",
-			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
-			"detailPath": "BiQ1zG_detailPath",
-			"noticeRemove": "BiQ1zG_noticeRemove",
-			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
-			"modalActions": "BiQ1zG_modalActions",
-			"detailModal": "BiQ1zG_detailModal",
 			"logModal": "BiQ1zG_logModal",
-			"failRepoUrl": "BiQ1zG_failRepoUrl",
-			"detailGrid": "BiQ1zG_detailGrid",
-			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
-			"modal": "BiQ1zG_modal",
-			"progressFill": "BiQ1zG_progressFill",
-			"helpModal": "BiQ1zG_helpModal",
-			"modalClose": "BiQ1zG_modalClose",
+			"noticeRow": "BiQ1zG_noticeRow",
+			"failKindInstall": "BiQ1zG_failKindInstall",
+			"failHead": "BiQ1zG_failHead",
+			"resultDesc": "BiQ1zG_resultDesc",
+			"result": "BiQ1zG_result",
+			"noticeMain": "BiQ1zG_noticeMain",
+			"aboutMeta": "BiQ1zG_aboutMeta",
 			"pendingRowActions": "BiQ1zG_pendingRowActions",
-			"failDiagBtn": "BiQ1zG_failDiagBtn",
-			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
-			"modalCancel": "BiQ1zG_modalCancel",
-			"detailPathText": "BiQ1zG_detailPathText",
+			"detailModal": "BiQ1zG_detailModal",
+			"confirmIcon": "BiQ1zG_confirmIcon",
+			"detailDim": "BiQ1zG_detailDim",
+			"detailPath": "BiQ1zG_detailPath",
+			"queueRowPct": "BiQ1zG_queueRowPct",
+			"dangerConfirm": "BiQ1zG_dangerConfirm",
 			"noticeTextOk": "BiQ1zG_noticeTextOk",
-			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
-			"failReason": "BiQ1zG_failReason",
-			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
-			"queueRowTrack": "BiQ1zG_queueRowTrack",
-			"modalCopy": "BiQ1zG_modalCopy",
-			"errorModal": "BiQ1zG_errorModal",
-			"failBigIssue": "BiQ1zG_failBigIssue",
-			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
-			"failRepo": "BiQ1zG_failRepo",
-			"linkIcon": "BiQ1zG_linkIcon",
-			"modalIn": "BiQ1zG_modalIn",
-			"overlay": "BiQ1zG_overlay",
-			"aboutModal": "BiQ1zG_aboutModal",
-			"detailPathBtn": "BiQ1zG_detailPathBtn",
-			"failClear": "BiQ1zG_failClear",
-			"detailStars": "BiQ1zG_detailStars",
-			"modalLabel": "BiQ1zG_modalLabel",
-			"queueRowBody": "BiQ1zG_queueRowBody",
-			"progressText": "BiQ1zG_progressText",
-			"detailMono": "BiQ1zG_detailMono",
-			"overlayIn": "BiQ1zG_overlayIn",
-			"noticeHead": "BiQ1zG_noticeHead",
-			"toast": "BiQ1zG_toast",
+			"modalWide": "BiQ1zG_modalWide",
 			"modalInstall": "BiQ1zG_modalInstall",
+			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
+			"modalCmdText": "BiQ1zG_modalCmdText",
+			"modalLink": "BiQ1zG_modalLink",
+			"detailStars": "BiQ1zG_detailStars",
+			"failPrepareHint": "BiQ1zG_failPrepareHint",
+			"failList": "BiQ1zG_failList",
+			"noticeTextFail": "BiQ1zG_noticeTextFail",
+			"modalCancel": "BiQ1zG_modalCancel",
+			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
+			"queueRowBody": "BiQ1zG_queueRowBody",
+			"overlayIn": "BiQ1zG_overlayIn",
 			"modalValue": "BiQ1zG_modalValue",
+			"queueRowTarget": "BiQ1zG_queueRowTarget",
+			"progressFill": "BiQ1zG_progressFill",
+			"failBigIssue": "BiQ1zG_failBigIssue",
+			"detailLink": "BiQ1zG_detailLink",
+			"modalClose": "BiQ1zG_modalClose",
+			"failedCopyHint": "BiQ1zG_failedCopyHint",
+			"queueRowStatus": "BiQ1zG_queueRowStatus",
+			"progressFillFail": "BiQ1zG_progressFillFail",
+			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
+			"failKindTitle": "BiQ1zG_failKindTitle",
+			"noticeTime": "BiQ1zG_noticeTime",
 			"failKind": "BiQ1zG_failKind",
+			"detailMono": "BiQ1zG_detailMono",
+			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
+			"toastIn": "BiQ1zG_toastIn",
+			"modalBody": "BiQ1zG_modalBody",
+			"restartNow": "BiQ1zG_restartNow",
+			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
+			"restartNowWarning": "BiQ1zG_restartNowWarning",
+			"modalRow": "BiQ1zG_modalRow",
+			"queueRowHead": "BiQ1zG_queueRowHead",
+			"noticeRowOk": "BiQ1zG_noticeRowOk",
+			"detailPathActions": "BiQ1zG_detailPathActions",
+			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
+			"detailArrow": "BiQ1zG_detailArrow",
+			"noticeVersion": "BiQ1zG_noticeVersion",
+			"errorHint": "BiQ1zG_errorHint",
+			"toast": "BiQ1zG_toast",
+			"resultTitle": "BiQ1zG_resultTitle",
+			"modalLabel": "BiQ1zG_modalLabel",
+			"modalDesc": "BiQ1zG_modalDesc",
+			"errorTitle": "BiQ1zG_errorTitle",
+			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
+			"trustHint": "BiQ1zG_trustHint",
+			"failReason": "BiQ1zG_failReason",
+			"errorCopySoft": "BiQ1zG_errorCopySoft",
+			"progressHead": "BiQ1zG_progressHead",
+			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
+			"detailRow": "BiQ1zG_detailRow",
+			"toastFail": "BiQ1zG_toastFail",
+			"confirmPrimary": "BiQ1zG_confirmPrimary",
 			"modalHead": "BiQ1zG_modalHead",
+			"noticeHead": "BiQ1zG_noticeHead",
+			"aboutModal": "BiQ1zG_aboutModal",
+			"failRepoLabel": "BiQ1zG_failRepoLabel",
+			"detailStatusPending": "BiQ1zG_detailStatusPending",
+			"linkIcon": "BiQ1zG_linkIcon",
+			"failRepoUrl": "BiQ1zG_failRepoUrl",
+			"helpModal": "BiQ1zG_helpModal",
+			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
+			"resultRestarting": "BiQ1zG_resultRestarting",
+			"progressText": "BiQ1zG_progressText",
+			"noticeRowMain": "BiQ1zG_noticeRowMain",
+			"resultCheck": "BiQ1zG_resultCheck",
+			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
+			"modalCmd": "BiQ1zG_modalCmd",
+			"bundleDeselectedHint": "BiQ1zG_bundleDeselectedHint",
+			"noticeIgnore": "BiQ1zG_noticeIgnore",
+			"noticeRemove": "BiQ1zG_noticeRemove",
+			"detailGrid": "BiQ1zG_detailGrid",
+			"failRepo": "BiQ1zG_failRepo",
+			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
+			"errorBox": "BiQ1zG_errorBox",
+			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
+			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
+			"queuedHint": "BiQ1zG_queuedHint",
+			"detailValue": "BiQ1zG_detailValue",
+			"modalActions": "BiQ1zG_modalActions",
+			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
+			"modalIn": "BiQ1zG_modalIn",
+			"detailStatusText": "BiQ1zG_detailStatusText",
+			"failKindUninstall": "BiQ1zG_failKindUninstall",
+			"modal": "BiQ1zG_modal",
+			"failCopy": "BiQ1zG_failCopy",
 			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
-			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
-			"modalRow": "BiQ1zG_modalRow"
+			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
+			"queueRowTrack": "BiQ1zG_queueRowTrack",
+			"errorModal": "BiQ1zG_errorModal",
+			"failRow": "BiQ1zG_failRow",
+			"queueRow": "BiQ1zG_queueRow",
+			"noticeFoot": "BiQ1zG_noticeFoot",
+			"detailPathText": "BiQ1zG_detailPathText",
+			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
+			"failEmpty": "BiQ1zG_failEmpty",
+			"failClear": "BiQ1zG_failClear",
+			"overlay": "BiQ1zG_overlay",
+			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
+			"queueSection": "BiQ1zG_queueSection",
+			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
+			"progressTrack": "BiQ1zG_progressTrack",
+			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
+			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
+			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
+			"progress": "BiQ1zG_progress",
+			"stripCancel": "BiQ1zG_stripCancel",
+			"detailPathBtn": "BiQ1zG_detailPathBtn",
+			"modalCopy": "BiQ1zG_modalCopy",
+			"restartLater": "BiQ1zG_restartLater",
+			"detailLabel": "BiQ1zG_detailLabel",
+			"queueRowDesc": "BiQ1zG_queueRowDesc",
+			"noticeList": "BiQ1zG_noticeList",
+			"failDiagBtn": "BiQ1zG_failDiagBtn",
+			"modalTitle": "BiQ1zG_modalTitle",
+			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
+			"aboutContent": "BiQ1zG_aboutContent",
+			"detailUpdateHint": "BiQ1zG_detailUpdateHint"
 		};
 		//#endregion
 		//#region src/server/services/install/release-target.ts
@@ -1370,8 +1379,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		//#endregion
 		//#region src/client/data/catalog.ts
 		const PROXY_BASE = "/dsh-plugin-hub/catalog";
-		const PLUGINS_URL = (lang) => `${PROXY_BASE}?lang=${lang}`;
-		const STATS_URL = `${PROXY_BASE}?stats=1`;
+		const PLUGINS_URL = (lang, refresh) => `${PROXY_BASE}?lang=${lang}${refresh ? "&refresh=1" : ""}`;
+		const STATS_URL = (refresh) => `${PROXY_BASE}?stats=1${refresh ? "&refresh=1" : ""}`;
 		async function fetchJson(url, signal) {
 			const res = await fetch(url, {
 				cache: "no-store",
@@ -1381,14 +1390,15 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			return res.json();
 		}
 		/** 目录插件列表（在线 API 已只返回 verified；过滤与排序由上层负责）。
-		*  signal 可选：宿主重启/代理抖动导致请求挂起时，上层可中止旧请求释放连接。 */
-		async function fetchCatalog(lang, signal) {
-			const data = await fetchJson(PLUGINS_URL(lang), signal);
+		*  signal 可选：宿主重启/代理抖动导致请求挂起时，上层可中止旧请求释放连接。
+		*  refresh=true 跳过服务端缓存，强制回源。 */
+		async function fetchCatalog(lang, signal, refresh = false) {
+			const data = await fetchJson(PLUGINS_URL(lang, refresh), signal);
 			return (Array.isArray(data) ? data : []).map((item) => normalize(item));
 		}
 		/** 收录/精选统计（/api/stats.json）；字段不完整返回 null。 */
-		async function fetchStats(signal) {
-			const s = await fetchJson(STATS_URL, signal);
+		async function fetchStats(signal, refresh = false) {
+			const s = await fetchJson(STATS_URL(refresh), signal);
 			if (s && typeof s.total === "number" && typeof s.verified === "number") return {
 				total: s.total,
 				verified: s.verified
@@ -1652,10 +1662,12 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			*  界面停在「正在加载插件数据…」假死 —— 超时自动重拉，最多自动重试 2 次后转失败态；
 			*  用户手动刷新（reload）时清零重新计数。 */
 			const loadRetriesRef = (0, react.useRef)(0);
-			/** 目录加载超时阈值：超过即判定挂起，强制刷新一次（服务端代理 curl 上限 20s，客户端 12s 先兜底） */
-			const LOAD_TIMEOUT_MS = 12e3;
-			/** 挂起后最多自动重试次数：避免代理持续不通时无限循环刷新（每次重试仍 12s，2 次后转失败界面可手动重试） */
+			/** 目录加载超时阈值：超过即判定挂起，强制刷新一次（服务端代理 curl 上限 60s，客户端 30s 先兜底） */
+			const LOAD_TIMEOUT_MS = 3e4;
+			/** 挂起后最多自动重试次数：避免代理持续不通时无限循环刷新（每次重试仍 30s，2 次后转失败界面可手动重试） */
 			const MAX_LOAD_RETRIES = 2;
+			/** 本次 reload 是否强制回源（跳过服务端 1 小时缓存）：由「强制刷新」置位，读取后立即复位 */
+			const forceRefreshRef = (0, react.useRef)(false);
 			/** 点击排序按钮：同一按钮切换正/倒序，新按钮用默认方向 */
 			function toggleSort(key) {
 				if (key === sort) setSortDir((d) => d === "asc" ? "desc" : "asc");
@@ -1694,11 +1706,13 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				let cancelled = false;
 				let settled = false;
 				const controller = new AbortController();
+				const refresh = forceRefreshRef.current;
+				forceRefreshRef.current = false;
 				setPlugins(null);
 				setHubPlugin(null);
 				setStats(null);
 				setFailed(false);
-				const load = () => Promise.all([fetchCatalog(lang, controller.signal), fetchStats(controller.signal)]);
+				const load = () => Promise.all([fetchCatalog(lang, controller.signal, refresh), fetchStats(controller.signal, refresh)]);
 				load().then(([list, stats]) => {
 					if (cancelled) return;
 					settled = true;
@@ -1912,6 +1926,12 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					loadRetriesRef.current = 0;
 					setReloadKey((k) => k + 1);
 				},
+				/** 强制刷新：跳过服务端 1 小时缓存直接回源，成功后覆盖缓存（失败仍回退旧缓存） */
+				forceReload: () => {
+					loadRetriesRef.current = 0;
+					forceRefreshRef.current = true;
+					setReloadKey((k) => k + 1);
+				},
 				installed,
 				installedItems,
 				installedName,
@@ -2065,6 +2085,12 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		function missingTarballIntegrity(message) {
 			return /\bERR_PNPM_MISSING_TARBALL_INTEGRITY\b/.test(message);
 		}
+		/** GitHub 分支 tarball 内容变了、锁文件里还是旧校验和（ERR_PNPM_TARBALL_INTEGRITY）。
+		*  \b 保证不会命中 ERR_PNPM_MISSING_TARBALL_INTEGRITY：前者是有校验值但对不上，
+		*  后者是锁文件里压根没有校验值。 */
+		function mismatchedTarballIntegrity(message) {
+			return /\bERR_PNPM_TARBALL_INTEGRITY\b/.test(message);
+		}
 		/** pnpm 拒收「刚发布」包时，报错里带着发布时间；这里从报错文本算出「发布满 24h」的可重试时刻（UTC，分钟精度）。 */
 		function releaseAgeRetryAfter(message) {
 			const match = /published at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)/.exec(message);
@@ -2079,6 +2105,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* 避免出现「预计可重试时间：」后接空值的残缺句子。
 		*/
 		function pnpmPolicyHintOf(message) {
+			if (mismatchedTarballIntegrity(message)) return "failPnpmTarballMismatchHint";
 			if (missingTarballIntegrity(message)) return "failPnpmTarballIntegrityHint";
 			if (/ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge/i.test(message) && releaseAgeRetryAfter(message) !== null) return "failPnpmReleaseAgeHint";
 			return "failPnpmPolicyHint";
@@ -2102,7 +2129,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			if (/ERR_PNPM_UNEXPECTED_(VIRTUAL_)?STORE|Unexpected (virtual )?store location/i.test(message)) return "pnpmStore";
 			if (/ERR_PNPM_ADDING_TO_ROOT|add the dependency to the workspace root/i.test(message)) return "pnpmWorkspace";
 			if (/(^|\n)untrusted origin\s*$/.test(message)) return "originRejected";
-			if (missingTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge|untrusted origin/i.test(message)) return "pnpmPolicy";
+			if (missingTarballIntegrity(message) || mismatchedTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge|untrusted origin/i.test(message)) return "pnpmPolicy";
 			if (/ERR_PNPM_UNUSED_PATCH|patches were not used/i.test(message)) return "pnpmUnusedPatch";
 			if (/os error 32|EBUSY|resource busy or locked|being used by another process/i.test(message)) return "fileLocked";
 			if (/os error 5\b|ERROR_ACCESS_DENIED|\bEPERM\b|\bEACCES\b|access is denied/i.test(message)) return "accessDenied";
@@ -2676,7 +2703,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 							desc: q.desc,
 							version: q.version
 						});
-						onInstallDone(modalTaskRef.current === q.id, q.repo, q.needsRestart, q.action === "update", q.needsReload ?? false);
+						onInstallDone(modalTaskRef.current === q.id, q.repo, q.needsRestart, q.action === "update", q.needsReload ?? false, q.bundleDeselected === true);
 					}
 				} else {
 					const rawDetail = lines.length > 0 ? [...lines].reverse().join("\n") : q.kind === "uninstall" ? t("uninstallFail") : t("installFail");
@@ -2717,6 +2744,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				let status = "failed";
 				let lines = [];
 				let attempts;
+				let bundleDeselected;
 				try {
 					const res = await fetch(`/dsh-plugin-hub/status?task=${q.id}`, { cache: "no-store" });
 					if (res.ok) {
@@ -2725,13 +2753,15 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 							status = task.status ?? "failed";
 							lines = task.lines ?? [];
 							attempts = Array.isArray(task.attempts) ? task.attempts : void 0;
+							bundleDeselected = task.bundleDeselected === true ? true : void 0;
 							const needsRestart = typeof task.needsRestart === "boolean" ? task.needsRestart : q.needsRestart;
 							const needsReload = typeof task.needsReload === "boolean" ? task.needsReload : q.needsReload ?? false;
 							if (status === "done") {
 								const settled = {
 									...q,
 									needsRestart,
-									needsReload
+									needsReload,
+									bundleDeselected: bundleDeselected === true ? true : q.bundleDeselected
 								};
 								if (q.kind === "uninstall") settleDone(settled, lines);
 								else finishQueueTask(true, settled, lines);
@@ -2782,6 +2812,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 									lines: Array.isArray(a.lines) ? a.lines : prevTask?.lines ?? [],
 									attempts: Array.isArray(a.attempts) ? a.attempts : prevTask?.attempts ?? [],
 									needsRestart: typeof a.needsRestart === "boolean" ? a.needsRestart : prevTask?.needsRestart ?? true,
+									bundleDeselected: a.bundleDeselected === true || prevTask?.bundleDeselected === true,
 									channel: a.installChannel === "npm" ? "npm" : prevTask?.channel
 								});
 							}
@@ -3590,7 +3621,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		*    按钮（重启会中断进行中的任务，故仍需用户确认），关闭即放弃；
 		*  - 其余（含 needsReload=true 的「已热挂载、仅剩客户端 UI」）→ 仅「完成」按钮：关闭结果弹窗时
 		*    上层自动刷新页面让插件生效，不再给「稍后/立即刷新」手动选择。 */
-		function ResultView({ title, desc, t, restarting, needsRestart, needsReload, onRestart, onClose }) {
+		function ResultView({ title, desc, t, restarting, needsRestart, needsReload, bundleDeselected, onRestart, onClose }) {
 			return (0, react.createElement)("div", { className: Modal_module_css_default.result }, (0, react.createElement)("div", { className: Modal_module_css_default.resultCheck }, (0, react.createElement)("svg", {
 				className: Modal_module_css_default.resultCheckIcon,
 				viewBox: "0 0 16 16",
@@ -3604,7 +3635,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				strokeWidth: 2,
 				strokeLinecap: "round",
 				strokeLinejoin: "round"
-			}))), (0, react.createElement)("div", { className: Modal_module_css_default.resultTitle }, title), desc ? (0, react.createElement)("div", { className: Modal_module_css_default.resultDesc }, desc) : null, needsRestart ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.resultRestarting }, restarting ? t("restarting") : t("restartHint")), (0, react.createElement)("div", { className: Modal_module_css_default.modalActions }, (0, react.createElement)("button", {
+			}))), (0, react.createElement)("div", { className: Modal_module_css_default.resultTitle }, title), desc ? (0, react.createElement)("div", { className: Modal_module_css_default.resultDesc }, desc) : null, bundleDeselected ? (0, react.createElement)("div", { className: Modal_module_css_default.bundleDeselectedHint }, t("bundleDeselectedHint")) : null, needsRestart ? (0, react.createElement)("div", null, [(0, react.createElement)("div", { className: Modal_module_css_default.resultRestarting }, restarting ? t("restarting") : t("restartHint")), (0, react.createElement)("div", { className: Modal_module_css_default.modalActions }, (0, react.createElement)("button", {
 				className: Modal_module_css_default.restartNowWarning,
 				onClick: onRestart,
 				disabled: restarting
@@ -3619,7 +3650,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* 目录插件与命令行安装（customTarget 模式）共用同一套确认/进度/结果流程。
 		*/
 		function InstallModal(props) {
-			const { plugin, customTarget, globalNpm, done, task, t, langPath, restarting, submitting, update, cliOnly, needsRestart, needsReload, onClose, onCopy, onInstall, onRestart } = props;
+			const { plugin, customTarget, globalNpm, done, task, t, langPath, restarting, submitting, update, cliOnly, needsRestart, needsReload, bundleDeselected, onClose, onCopy, onInstall, onRestart } = props;
 			const busy = submitting || task !== null && (task.status === "pending" || task.status === "running");
 			const name = customTarget ?? (globalNpm !== void 0 && globalNpm.length > 0 ? globalNpm.join(" ") : void 0) ?? plugin?.displayName ?? plugin?.slug ?? "";
 			const busyTitle = (label) => langPath === "zh/" ? `${name} 插件${label}` : `${label} ${name}`;
@@ -3644,6 +3675,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				restarting,
 				needsRestart,
 				needsReload,
+				bundleDeselected,
 				onRestart,
 				onClose
 			}) : (0, react.createElement)("div", { className: Modal_module_css_default.modalBody }, !busy ? (0, react.createElement)("div", { className: Modal_module_css_default.confirmIconWrap }, (0, react.createElement)(ConfirmIcon, { type: "question" })) : null, (0, react.createElement)("div", { className: Modal_module_css_default.trustHint }, t("confirmDesc")), (0, react.createElement)("div", { className: Modal_module_css_default.modalRow }, (0, react.createElement)("span", { className: Modal_module_css_default.modalLabel }, t("confirmPlugin")), (0, react.createElement)("span", {
@@ -4654,39 +4686,39 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$9
 		});
 		var List_module_css_default = {
-			"cardHead": "_3XaZHa_cardHead",
-			"date": "_3XaZHa_date",
-			"versionBadge": "_3XaZHa_versionBadge",
-			"desc": "_3XaZHa_desc",
-			"diagBtn": "_3XaZHa_diagBtn",
-			"fork": "_3XaZHa_fork",
-			"cardTitle": "_3XaZHa_cardTitle",
-			"moreSentinel": "_3XaZHa_moreSentinel",
-			"topic": "_3XaZHa_topic",
-			"stateDesc": "_3XaZHa_stateDesc",
-			"verified": "_3XaZHa_verified",
+			"installBtn": "_3XaZHa_installBtn",
 			"footer": "_3XaZHa_footer",
+			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
+			"topic": "_3XaZHa_topic",
+			"stats": "_3XaZHa_stats",
+			"desc": "_3XaZHa_desc",
+			"updateBadge": "_3XaZHa_updateBadge",
 			"detailBtn": "_3XaZHa_detailBtn",
 			"body": "_3XaZHa_body",
-			"updateBadge": "_3XaZHa_updateBadge",
-			"star": "_3XaZHa_star",
-			"installBtn": "_3XaZHa_installBtn",
-			"actions": "_3XaZHa_actions",
-			"stateTitle": "_3XaZHa_stateTitle",
-			"installBtnCopied": "_3XaZHa_installBtnCopied",
 			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
-			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
-			"card": "_3XaZHa_card",
 			"categoryBadge": "_3XaZHa_categoryBadge",
-			"stateActions": "_3XaZHa_stateActions",
-			"cardSide": "_3XaZHa_cardSide",
-			"footLink": "_3XaZHa_footLink",
-			"cardMain": "_3XaZHa_cardMain",
-			"topics": "_3XaZHa_topics",
-			"retryBtn": "_3XaZHa_retryBtn",
-			"stats": "_3XaZHa_stats",
+			"star": "_3XaZHa_star",
 			"list": "_3XaZHa_list",
+			"installBtnCopied": "_3XaZHa_installBtnCopied",
+			"cardMain": "_3XaZHa_cardMain",
+			"stateActions": "_3XaZHa_stateActions",
+			"fork": "_3XaZHa_fork",
+			"retryBtn": "_3XaZHa_retryBtn",
+			"diagBtn": "_3XaZHa_diagBtn",
+			"stateDesc": "_3XaZHa_stateDesc",
+			"actions": "_3XaZHa_actions",
+			"topics": "_3XaZHa_topics",
 			"state": "_3XaZHa_state",
+			"moreSentinel": "_3XaZHa_moreSentinel",
+			"cardHead": "_3XaZHa_cardHead",
+			"verified": "_3XaZHa_verified",
+			"versionBadge": "_3XaZHa_versionBadge",
+			"date": "_3XaZHa_date",
+			"stateTitle": "_3XaZHa_stateTitle",
+			"footLink": "_3XaZHa_footLink",
+			"card": "_3XaZHa_card",
+			"cardTitle": "_3XaZHa_cardTitle",
+			"cardSide": "_3XaZHa_cardSide",
 			"uninstallBtn": "_3XaZHa_uninstallBtn"
 		};
 		//#endregion
@@ -4785,7 +4817,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		* 目录列表：承载加载/失败/空三态、插件卡片与计数页脚的滚动容器。分类或安装状态
 		* 筛选变化时重置滚动位置，避免替换后的内容被误当成「没变化」。
 		*/
-		function CatalogList({ plugins, failed, visible, total, t, langPath, reload, category, copied, installedName, installedVersion, hasUpdate, langKey, onInstall, onUninstall, hasProxy, onOpenDiagnostics }) {
+		function CatalogList({ plugins, failed, visible, total, t, langPath, reload, forceReload, category, copied, installedName, installedVersion, hasUpdate, langKey, onInstall, onUninstall, hasProxy, onOpenDiagnostics }) {
 			/** 列表滚动容器：分类/搜索切换后列表内容替换但 scrollTop 保留，会让用户误以为列表没更新，需重置回顶部 */
 			const listRef = (0, react.useRef)(null);
 			/** 增量渲染：全量目录太大（4400+），只渲染首批，滚动接近底部时自动追加下一批 */
@@ -4800,6 +4832,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				className: List_module_css_default.retryBtn,
 				onClick: () => reload()
 			}, t("retry")), (0, react.createElement)("button", {
+				className: List_module_css_default.retryBtn,
+				onClick: () => forceReload(),
+				title: t("forceReloadHint")
+			}, t("forceReload")), (0, react.createElement)("button", {
 				className: List_module_css_default.diagBtn,
 				onClick: onOpenDiagnostics
 			}, t("failNetworkRunDiag")))), plugins !== null && !failed && visible.length === 0 && (0, react.createElement)("div", { className: List_module_css_default.state }, (0, react.createElement)("div", { className: List_module_css_default.stateTitle }, t("noResult")), (0, react.createElement)("div", { className: List_module_css_default.stateDesc }, t("noResultDesc"))), plugins !== null && !failed && shown.map((p) => (0, react.createElement)(PluginCard, {
@@ -4858,6 +4894,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				t,
 				langPath,
 				reload: catalog.reload,
+				forceReload: catalog.forceReload,
 				category: catalog.category,
 				copied,
 				installedName: catalog.installedName,
@@ -4872,7 +4909,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		}
 		//#endregion
 		//#region \0dsh-css:src/client/styles/SectionTabs.module.css.mjs
-		const css$8 = "._7tvizq_root{border-bottom:1px solid var(--hub-border-1);flex-shrink:0;align-items:stretch;gap:28px;padding:0 2px;display:flex}._7tvizq_tab,._7tvizq_tabActive{cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;align-items:center;gap:7px;height:38px;padding:0 4px;font-size:14px;line-height:38px;transition:color .12s;display:inline-flex;position:relative}._7tvizq_tab{color:var(--hub-text-secondary)}._7tvizq_tab:hover{color:var(--hub-text-primary)}._7tvizq_tabActive{color:var(--hub-text-primary);font-weight:600}._7tvizq_tabIcon{flex-shrink:0;align-items:center;line-height:1;display:inline-flex}._7tvizq_tabActive:after{content:\"\";background:var(--hub-brand);border-radius:1px;height:2px;position:absolute;bottom:-1px;left:0;right:0}._7tvizq_tabCount,._7tvizq_tabCountActive{text-align:center;border-radius:999px;min-width:18px;padding:0 6px;font-size:11px;line-height:16px}._7tvizq_tabCount{color:var(--hub-text-tertiary);background:var(--hub-bg-btn)}._7tvizq_tabActive ._7tvizq_tabCountActive{color:var(--hub-text-on-fill);background:var(--hub-btn-fill)}._7tvizq_noticeBtn{box-sizing:border-box;height:26px;color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:1px solid #0000;border-radius:6px;flex-shrink:0;align-self:center;align-items:center;gap:5px;margin-left:auto;padding:0 8px;font-size:12px;line-height:24px;transition:color .12s,background .12s;display:inline-flex;position:relative}._7tvizq_noticeBtn:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover);border-color:var(--hub-border-2)}._7tvizq_noticeIcon{align-items:center;line-height:1;display:inline-flex}._7tvizq_noticeCount{text-align:center;color:#fff;background:var(--hub-danger);border-radius:999px;min-width:17px;height:17px;padding:0 5px;font-size:11px;font-weight:600;line-height:17px;box-shadow:0 1px 3px #d1242f59}";
+		const css$8 = "._7tvizq_root{border-bottom:1px solid var(--hub-border-1);flex-shrink:0;align-items:stretch;gap:28px;padding:0 2px;display:flex;container-type:inline-size}._7tvizq_tab,._7tvizq_tabActive{white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:none;flex-shrink:0;align-items:center;gap:7px;height:38px;padding:0 4px;font-size:14px;line-height:38px;transition:color .12s;display:inline-flex;position:relative}._7tvizq_tab{color:var(--hub-text-secondary)}._7tvizq_tab:hover{color:var(--hub-text-primary)}._7tvizq_tabActive{color:var(--hub-text-primary);font-weight:600}@container (width<=440px){._7tvizq_tabLabel{display:none}._7tvizq_tab,._7tvizq_tabActive{padding:0 2px}}._7tvizq_tabIcon{flex-shrink:0;align-items:center;line-height:1;display:inline-flex}._7tvizq_tabActive:after{content:\"\";background:var(--hub-brand);border-radius:1px;height:2px;position:absolute;bottom:-1px;left:0;right:0}._7tvizq_tabCount,._7tvizq_tabCountActive{text-align:center;border-radius:999px;min-width:18px;padding:0 6px;font-size:11px;line-height:16px}._7tvizq_tabCount{color:var(--hub-text-tertiary);background:var(--hub-bg-btn)}._7tvizq_tabActive ._7tvizq_tabCountActive{color:var(--hub-text-on-fill);background:var(--hub-btn-fill)}._7tvizq_noticeBtn{box-sizing:border-box;height:26px;color:var(--hub-text-secondary);cursor:pointer;-webkit-user-select:none;user-select:none;background:0 0;border:1px solid #0000;border-radius:6px;flex-shrink:0;align-self:center;align-items:center;gap:5px;margin-left:auto;padding:0 8px;font-size:12px;line-height:24px;transition:color .12s,background .12s;display:inline-flex;position:relative}._7tvizq_noticeBtn:hover{color:var(--hub-text-primary);background:var(--hub-bg-hover);border-color:var(--hub-border-2)}._7tvizq_noticeIcon{align-items:center;line-height:1;display:inline-flex}._7tvizq_noticeCount{text-align:center;color:#fff;background:var(--hub-danger);border-radius:999px;min-width:17px;height:17px;padding:0 5px;font-size:11px;font-weight:600;line-height:17px;box-shadow:0 1px 3px #d1242f59}";
 		const tagId$8 = "dsh-plugin/SectionTabs.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$8) + "]") === null) {
 			const tag = document.createElement("style");
@@ -4887,15 +4924,16 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$8
 		});
 		var SectionTabs_module_css_default = {
-			"noticeBtn": "_7tvizq_noticeBtn",
 			"tabCountActive": "_7tvizq_tabCountActive",
-			"tabIcon": "_7tvizq_tabIcon",
-			"tabActive": "_7tvizq_tabActive",
-			"noticeIcon": "_7tvizq_noticeIcon",
-			"tab": "_7tvizq_tab",
 			"tabCount": "_7tvizq_tabCount",
 			"root": "_7tvizq_root",
-			"noticeCount": "_7tvizq_noticeCount"
+			"tabActive": "_7tvizq_tabActive",
+			"tab": "_7tvizq_tab",
+			"tabLabel": "_7tvizq_tabLabel",
+			"tabIcon": "_7tvizq_tabIcon",
+			"noticeBtn": "_7tvizq_noticeBtn",
+			"noticeCount": "_7tvizq_noticeCount",
+			"noticeIcon": "_7tvizq_noticeIcon"
 		};
 		//#endregion
 		//#region src/client/components/layout/SectionTabs.tsx
@@ -4943,9 +4981,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				role: "tab",
 				"aria-selected": view === id,
 				title: t(hintKey),
+				"aria-label": t(labelKey),
 				className: view === id ? SectionTabs_module_css_default.tabActive : SectionTabs_module_css_default.tab,
 				onClick: () => setView(id)
-			}, (0, react.createElement)("span", { className: SectionTabs_module_css_default.tabIcon }, (0, react.createElement)(Icon)), t(labelKey), id === "installed" && installedCount > 0 ? (0, react.createElement)("span", { className: view === id ? SectionTabs_module_css_default.tabCountActive : SectionTabs_module_css_default.tabCount }, installedCount) : null)), (0, react.createElement)("button", {
+			}, (0, react.createElement)("span", { className: SectionTabs_module_css_default.tabIcon }, (0, react.createElement)(Icon)), (0, react.createElement)("span", { className: SectionTabs_module_css_default.tabLabel }, t(labelKey)), id === "installed" && installedCount > 0 ? (0, react.createElement)("span", { className: view === id ? SectionTabs_module_css_default.tabCountActive : SectionTabs_module_css_default.tabCount }, installedCount) : null)), (0, react.createElement)("button", {
 				type: "button",
 				className: SectionTabs_module_css_default.noticeBtn,
 				onClick: onOpenNotifications,
@@ -4970,42 +5009,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$7
 		});
 		var InstalledView_module_css_default = {
-			"segBtnActive": "_1nXeGW_segBtnActive",
-			"rowUpdate": "_1nXeGW_rowUpdate",
-			"rowDetail": "_1nXeGW_rowDetail",
-			"searchInput": "_1nXeGW_searchInput",
-			"statusInactive": "_1nXeGW_statusInactive",
-			"rowSourceTag": "_1nXeGW_rowSourceTag",
-			"exampleRow": "_1nXeGW_exampleRow",
-			"rowUninstall": "_1nXeGW_rowUninstall",
 			"rowRepo": "_1nXeGW_rowRepo",
-			"exampleBadge": "_1nXeGW_exampleBadge",
-			"rowRestart": "_1nXeGW_rowRestart",
-			"segGroup": "_1nXeGW_segGroup",
-			"statusPending": "_1nXeGW_statusPending",
 			"toolbar": "_1nXeGW_toolbar",
-			"rowCategory": "_1nXeGW_rowCategory",
-			"segRow": "_1nXeGW_segRow",
-			"list": "_1nXeGW_list",
-			"segBtn": "_1nXeGW_segBtn",
-			"row": "_1nXeGW_row",
-			"rowTitle": "_1nXeGW_rowTitle",
-			"rowActions": "_1nXeGW_rowActions",
-			"rowTitleLine": "_1nXeGW_rowTitleLine",
 			"versionBadge": "_1nXeGW_versionBadge",
-			"empty": "_1nXeGW_empty",
-			"rowDesc": "_1nXeGW_rowDesc",
-			"emptyDesc": "_1nXeGW_emptyDesc",
-			"segLabel": "_1nXeGW_segLabel",
+			"segBtn": "_1nXeGW_segBtn",
+			"rowUninstall": "_1nXeGW_rowUninstall",
+			"statusPending": "_1nXeGW_statusPending",
 			"root": "_1nXeGW_root",
-			"updateBadge": "_1nXeGW_updateBadge",
-			"statusDot": "_1nXeGW_statusDot",
-			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
-			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"rowDetail": "_1nXeGW_rowDetail",
+			"statusInactive": "_1nXeGW_statusInactive",
+			"rowRestart": "_1nXeGW_rowRestart",
 			"emptyTitle": "_1nXeGW_emptyTitle",
+			"rowSourceTag": "_1nXeGW_rowSourceTag",
+			"rowActions": "_1nXeGW_rowActions",
+			"segGroup": "_1nXeGW_segGroup",
+			"segRow": "_1nXeGW_segRow",
+			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
+			"statusDot": "_1nXeGW_statusDot",
+			"searchInput": "_1nXeGW_searchInput",
+			"row": "_1nXeGW_row",
+			"rowDesc": "_1nXeGW_rowDesc",
+			"list": "_1nXeGW_list",
 			"rowMeta": "_1nXeGW_rowMeta",
+			"exampleRow": "_1nXeGW_exampleRow",
+			"rowCategory": "_1nXeGW_rowCategory",
+			"emptyDesc": "_1nXeGW_emptyDesc",
+			"rowUpdate": "_1nXeGW_rowUpdate",
 			"searchWrap": "_1nXeGW_searchWrap",
-			"rowMain": "_1nXeGW_rowMain"
+			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"segBtnActive": "_1nXeGW_segBtnActive",
+			"rowMain": "_1nXeGW_rowMain",
+			"empty": "_1nXeGW_empty",
+			"updateBadge": "_1nXeGW_updateBadge",
+			"rowTitle": "_1nXeGW_rowTitle",
+			"segLabel": "_1nXeGW_segLabel",
+			"exampleBadge": "_1nXeGW_exampleBadge",
+			"rowTitleLine": "_1nXeGW_rowTitleLine"
 		};
 		//#endregion
 		//#region src/client/components/views/InstalledView.tsx
@@ -5249,27 +5288,27 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$6
 		});
 		var CustomInstallView_module_css_default = {
-			"installBtn": "zISxCG_installBtn",
-			"installError": "zISxCG_installError",
-			"helpLine": "zISxCG_helpLine",
-			"installCardHead": "zISxCG_installCardHead",
-			"installInput": "zISxCG_installInput",
-			"helpBody": "zISxCG_helpBody",
-			"installExample": "zISxCG_installExample",
-			"installInputError": "zISxCG_installInputError",
-			"helpCmd": "zISxCG_helpCmd",
-			"channelOff": "zISxCG_channelOff",
-			"root": "zISxCG_root",
 			"desc": "zISxCG_desc",
-			"installLabel": "zISxCG_installLabel",
-			"installCards": "zISxCG_installCards",
-			"installRow": "zISxCG_installRow",
-			"installCardDisabled": "zISxCG_installCardDisabled",
-			"channelOffText": "zISxCG_channelOffText",
-			"channelOffBtn": "zISxCG_channelOffBtn",
+			"installError": "zISxCG_installError",
+			"installInputError": "zISxCG_installInputError",
+			"installInput": "zISxCG_installInput",
 			"installCard": "zISxCG_installCard",
+			"installBtn": "zISxCG_installBtn",
+			"installHelpBtn": "zISxCG_installHelpBtn",
+			"installCardDisabled": "zISxCG_installCardDisabled",
+			"installCardHead": "zISxCG_installCardHead",
+			"channelOff": "zISxCG_channelOff",
+			"channelOffBtn": "zISxCG_channelOffBtn",
+			"helpLine": "zISxCG_helpLine",
+			"installExample": "zISxCG_installExample",
+			"installRow": "zISxCG_installRow",
+			"installCards": "zISxCG_installCards",
+			"helpCmd": "zISxCG_helpCmd",
+			"installLabel": "zISxCG_installLabel",
+			"root": "zISxCG_root",
 			"helpNote": "zISxCG_helpNote",
-			"installHelpBtn": "zISxCG_installHelpBtn"
+			"channelOffText": "zISxCG_channelOffText",
+			"helpBody": "zISxCG_helpBody"
 		};
 		//#endregion
 		//#region src/client/components/views/CustomInstallView.tsx
@@ -5425,30 +5464,30 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$5
 		});
 		var SettingsView_module_css_default = {
-			"controlDropdown": "_506LLG_controlDropdown",
-			"settingLabel": "_506LLG_settingLabel",
-			"settingRow": "_506LLG_settingRow",
-			"proxyHintFail": "_506LLG_proxyHintFail",
-			"settingControlStack": "_506LLG_settingControlStack",
-			"navItem": "_506LLG_navItem",
-			"settingControl": "_506LLG_settingControl",
 			"proxyHintOk": "_506LLG_proxyHintOk",
-			"root": "_506LLG_root",
-			"content": "_506LLG_content",
-			"pageHeader": "_506LLG_pageHeader",
-			"navIcon": "_506LLG_navIcon",
-			"settingTitle": "_506LLG_settingTitle",
-			"proxyControl": "_506LLG_proxyControl",
-			"navItemActive": "_506LLG_navItemActive",
-			"sidebar": "_506LLG_sidebar",
-			"resetBtn": "_506LLG_resetBtn",
-			"proxyHint": "_506LLG_proxyHint",
+			"settingRow": "_506LLG_settingRow",
+			"settingControl": "_506LLG_settingControl",
+			"settingRowStack": "_506LLG_settingRowStack",
 			"pageTitle": "_506LLG_pageTitle",
-			"card": "_506LLG_card",
-			"settingDesc": "_506LLG_settingDesc",
-			"textInput": "_506LLG_textInput",
+			"navItemActive": "_506LLG_navItemActive",
+			"settingLabel": "_506LLG_settingLabel",
 			"pageDesc": "_506LLG_pageDesc",
-			"settingRowStack": "_506LLG_settingRowStack"
+			"navIcon": "_506LLG_navIcon",
+			"content": "_506LLG_content",
+			"card": "_506LLG_card",
+			"settingTitle": "_506LLG_settingTitle",
+			"root": "_506LLG_root",
+			"pageHeader": "_506LLG_pageHeader",
+			"navItem": "_506LLG_navItem",
+			"settingControlStack": "_506LLG_settingControlStack",
+			"textInput": "_506LLG_textInput",
+			"proxyHint": "_506LLG_proxyHint",
+			"proxyHintFail": "_506LLG_proxyHintFail",
+			"settingDesc": "_506LLG_settingDesc",
+			"sidebar": "_506LLG_sidebar",
+			"controlDropdown": "_506LLG_controlDropdown",
+			"resetBtn": "_506LLG_resetBtn",
+			"proxyControl": "_506LLG_proxyControl"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Dropdown.module.css.mjs
@@ -5467,18 +5506,18 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$4
 		});
 		var Dropdown_module_css_default = {
-			"dropdownCount": "B_Gxsq_dropdownCount",
-			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
 			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
-			"dropdownArrow": "B_Gxsq_dropdownArrow",
-			"dropdown": "B_Gxsq_dropdown",
-			"dropdownPanel": "B_Gxsq_dropdownPanel",
 			"dropdownFill": "B_Gxsq_dropdownFill",
+			"dropdownCount": "B_Gxsq_dropdownCount",
+			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen",
+			"dropdownPanel": "B_Gxsq_dropdownPanel",
 			"dropdownBtn": "B_Gxsq_dropdownBtn",
-			"dropdownItem": "B_Gxsq_dropdownItem",
 			"dropdownLabel": "B_Gxsq_dropdownLabel",
+			"dropdown": "B_Gxsq_dropdown",
+			"dropdownItem": "B_Gxsq_dropdownItem",
 			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
-			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen"
+			"dropdownArrow": "B_Gxsq_dropdownArrow",
+			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Toggle.module.css.mjs
@@ -5497,9 +5536,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$3
 		});
 		var Toggle_module_css_default = {
+			"toggleOn": "k-cD4G_toggleOn",
 			"knob": "k-cD4G_knob",
-			"toggle": "k-cD4G_toggle",
-			"toggleOn": "k-cD4G_toggleOn"
+			"toggle": "k-cD4G_toggle"
 		};
 		//#endregion
 		//#region src/client/components/ui/Toggle.tsx
@@ -5596,28 +5635,28 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$2
 		});
 		var DiagnosticsView_module_css_default = {
-			"badgeIdle": "k9eRya_badgeIdle",
 			"envRow": "k9eRya_envRow",
 			"name": "k9eRya_name",
-			"envCopyBtn": "k9eRya_envCopyBtn",
-			"display": "k9eRya_display",
-			"panel": "k9eRya_panel",
-			"diagPulse": "k9eRya_diagPulse",
 			"badge": "k9eRya_badge",
-			"row": "k9eRya_row",
-			"summary": "k9eRya_summary",
-			"head": "k9eRya_head",
-			"envLabel": "k9eRya_envLabel",
-			"envDesc": "k9eRya_envDesc",
-			"headHint": "k9eRya_headHint",
-			"summaryOk": "k9eRya_summaryOk",
-			"envTitle": "k9eRya_envTitle",
-			"badgeOk": "k9eRya_badgeOk",
-			"badgeFail": "k9eRya_badgeFail",
+			"display": "k9eRya_display",
 			"meta": "k9eRya_meta",
+			"summaryOk": "k9eRya_summaryOk",
+			"diagPulse": "k9eRya_diagPulse",
+			"badgeFail": "k9eRya_badgeFail",
+			"badgeOk": "k9eRya_badgeOk",
+			"envCopyBtn": "k9eRya_envCopyBtn",
+			"row": "k9eRya_row",
+			"head": "k9eRya_head",
+			"envDesc": "k9eRya_envDesc",
+			"envTitle": "k9eRya_envTitle",
+			"headHint": "k9eRya_headHint",
 			"badgeRunning": "k9eRya_badgeRunning",
+			"summary": "k9eRya_summary",
 			"summaryFail": "k9eRya_summaryFail",
 			"summaryRunning": "k9eRya_summaryRunning",
+			"badgeIdle": "k9eRya_badgeIdle",
+			"panel": "k9eRya_panel",
+			"envLabel": "k9eRya_envLabel",
 			"runBtn": "k9eRya_runBtn"
 		};
 		//#endregion
@@ -5793,57 +5832,57 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$1
 		});
 		var LogsView_module_css_default = {
-			"catSettings": "_3j77BW_catSettings",
-			"clearBtn": "_3j77BW_clearBtn",
-			"pathDialog": "_3j77BW_pathDialog",
-			"panel": "_3j77BW_panel",
-			"pathDialogReset": "_3j77BW_pathDialogReset",
-			"previewRow": "_3j77BW_previewRow",
-			"footCount": "_3j77BW_footCount",
-			"headActions": "_3j77BW_headActions",
-			"badge": "_3j77BW_badge",
 			"badgeInfo": "_3j77BW_badgeInfo",
+			"catUninstall": "_3j77BW_catUninstall",
 			"catDiagnostics": "_3j77BW_catDiagnostics",
+			"footCount": "_3j77BW_footCount",
+			"empty": "_3j77BW_empty",
 			"pathRow": "_3j77BW_pathRow",
-			"headHint": "_3j77BW_headHint",
-			"logList": "_3j77BW_logList",
-			"actions": "_3j77BW_actions",
-			"catBadge": "_3j77BW_catBadge",
-			"filterBar": "_3j77BW_filterBar",
-			"badgeWarn": "_3j77BW_badgeWarn",
-			"linkBtn": "_3j77BW_linkBtn",
-			"list": "_3j77BW_list",
-			"message": "_3j77BW_message",
 			"pathLabel": "_3j77BW_pathLabel",
-			"searchInput": "_3j77BW_searchInput",
-			"moreEnd": "_3j77BW_moreEnd",
-			"footPath": "_3j77BW_footPath",
-			"catUpdate": "_3j77BW_catUpdate",
-			"filterChipActive": "_3j77BW_filterChipActive",
-			"event": "_3j77BW_event",
+			"badgeError": "_3j77BW_badgeError",
 			"search": "_3j77BW_search",
 			"catSystem": "_3j77BW_catSystem",
-			"badgeDebug": "_3j77BW_badgeDebug",
-			"entry": "_3j77BW_entry",
-			"catUninstall": "_3j77BW_catUninstall",
-			"pathDialogHint": "_3j77BW_pathDialogHint",
-			"more": "_3j77BW_more",
-			"pathDraft": "_3j77BW_pathDraft",
-			"footActions": "_3j77BW_footActions",
-			"empty": "_3j77BW_empty",
-			"pathDialogFoot": "_3j77BW_pathDialogFoot",
-			"time": "_3j77BW_time",
-			"filterChip": "_3j77BW_filterChip",
-			"head": "_3j77BW_head",
 			"pathText": "_3j77BW_pathText",
-			"footFail": "_3j77BW_footFail",
-			"badgeSuccess": "_3j77BW_badgeSuccess",
-			"catInstall": "_3j77BW_catInstall",
-			"pathDialogDesc": "_3j77BW_pathDialogDesc",
+			"panel": "_3j77BW_panel",
+			"event": "_3j77BW_event",
 			"pathDialogRow": "_3j77BW_pathDialogRow",
 			"foot": "_3j77BW_foot",
-			"badgeError": "_3j77BW_badgeError",
-			"btn": "_3j77BW_btn"
+			"headHint": "_3j77BW_headHint",
+			"footPath": "_3j77BW_footPath",
+			"linkBtn": "_3j77BW_linkBtn",
+			"badge": "_3j77BW_badge",
+			"badgeWarn": "_3j77BW_badgeWarn",
+			"catBadge": "_3j77BW_catBadge",
+			"catUpdate": "_3j77BW_catUpdate",
+			"pathDialogReset": "_3j77BW_pathDialogReset",
+			"badgeDebug": "_3j77BW_badgeDebug",
+			"actions": "_3j77BW_actions",
+			"catSettings": "_3j77BW_catSettings",
+			"filterChipActive": "_3j77BW_filterChipActive",
+			"list": "_3j77BW_list",
+			"moreEnd": "_3j77BW_moreEnd",
+			"catInstall": "_3j77BW_catInstall",
+			"time": "_3j77BW_time",
+			"filterChip": "_3j77BW_filterChip",
+			"pathDialogDesc": "_3j77BW_pathDialogDesc",
+			"searchInput": "_3j77BW_searchInput",
+			"pathDialogFoot": "_3j77BW_pathDialogFoot",
+			"headActions": "_3j77BW_headActions",
+			"btn": "_3j77BW_btn",
+			"pathDialog": "_3j77BW_pathDialog",
+			"logList": "_3j77BW_logList",
+			"more": "_3j77BW_more",
+			"pathDraft": "_3j77BW_pathDraft",
+			"clearBtn": "_3j77BW_clearBtn",
+			"filterBar": "_3j77BW_filterBar",
+			"head": "_3j77BW_head",
+			"footActions": "_3j77BW_footActions",
+			"message": "_3j77BW_message",
+			"pathDialogHint": "_3j77BW_pathDialogHint",
+			"previewRow": "_3j77BW_previewRow",
+			"entry": "_3j77BW_entry",
+			"footFail": "_3j77BW_footFail",
+			"badgeSuccess": "_3j77BW_badgeSuccess"
 		};
 		//#endregion
 		//#region src/client/components/modals/LogsModal.tsx
@@ -6707,6 +6746,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			/** 结果视图是否显示「关闭后自动刷新」说明：插件已热挂进运行中 loader（安装）、或卸载后
 			*  插件面板仍残留在当前页面（卸载）。关闭弹窗即整页刷新，不给手动刷新按钮。 */
 			const [installNeedsReload, setInstallNeedsReload] = (0, react.useState)(false);
+			/** 市场自更新成功、但 profile 的 bundle 列表里已不含 dsh-plugin：结果页提示重新勾选 */
+			const [installBundleDeselected, setInstallBundleDeselected] = (0, react.useState)(false);
 			const [uninstallNeedsReload, setUninstallNeedsReload] = (0, react.useState)(false);
 			/** 结果视图「立即重启」：请求宿主重启后进入等待，服务回来后整页刷新 */
 			const [restarting, setRestarting] = (0, react.useState)(false);
@@ -6741,10 +6782,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				t,
 				langKey,
 				refreshInstalled: catalog.refreshInstalled,
-				onInstallDone: (viaModal, repo, needsRestart, update, needsReload) => {
+				onInstallDone: (viaModal, repo, needsRestart, update, needsReload, bundleDeselected) => {
 					const reload = needsReload === true;
 					setInstallNeedsRestart(needsRestart);
 					setInstallNeedsReload(reload);
+					setInstallBundleDeselected(bundleDeselected === true);
 					if (viaModal) setInstallDone(true);
 					else setToast({
 						id: Date.now(),
@@ -7193,9 +7235,11 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				submitting: queue.submitting,
 				needsRestart: installNeedsRestart,
 				needsReload: installNeedsReload,
+				bundleDeselected: installBundleDeselected,
 				onClose: () => {
 					const reload = installDone && installNeedsReload;
 					setConfirmPlugin(null);
+					setInstallBundleDeselected(false);
 					if (reload) window.location.reload();
 				},
 				onCopy: () => copyCommand(confirmPlugin),

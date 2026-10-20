@@ -46,8 +46,9 @@ export declare function systemProxy(): string | null;
 /**
  * 探测一个 HTTPS 目标：proxy 非空注入给 curl 子进程走代理，否则直连。
  * 供系统诊断 /diagnostics 使用；目标 URL 非法返回不可达。
+ * range（如 '0-1023'）只取前 N 字节，用于探大文件端点而不下载全量。
  */
-export declare function probeUrl(url: string, proxy: string, timeoutMs: number): Promise<ProbeResult>;
+export declare function probeUrl(url: string, proxy: string, timeoutMs: number, range?: string): Promise<ProbeResult>;
 /**
  * git 真实克隆握手探测：spawn git ls-remote（https 传输，与 pnpm 克隆前的
  * ref 握手一致），注入代理 env，GIT_TERMINAL_PROMPT=0 防凭据提示挂起。

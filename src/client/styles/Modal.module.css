@@ -722,6 +722,15 @@
   padding: 12px 0 6px;
 }
 
+/* 市场自更新后 bundle 被取消勾选：重启后市场不会出现，用警示色提示重新勾选 */
+.bundleDeselectedHint {
+  padding: 12px 0 6px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: left;
+  color: var(--hub-warning);
+}
+
 /* 重启选择按钮对：稍后（次级文字）+ 立即重启（主按钮） */
 .restartLater {
   font-size: 12px;

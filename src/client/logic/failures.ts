@@ -174,6 +174,13 @@ function missingTarballIntegrity(message: string): boolean {
   return /\bERR_PNPM_MISSING_TARBALL_INTEGRITY\b/.test(message)
 }
 
+/** GitHub 分支 tarball 内容变了、锁文件里还是旧校验和（ERR_PNPM_TARBALL_INTEGRITY）。
+ *  \b 保证不会命中 ERR_PNPM_MISSING_TARBALL_INTEGRITY：前者是有校验值但对不上，
+ *  后者是锁文件里压根没有校验值。 */
+function mismatchedTarballIntegrity(message: string): boolean {
+  return /\bERR_PNPM_TARBALL_INTEGRITY\b/.test(message)
+}
+
 /** pnpm 拒收「刚发布」包时，报错里带着发布时间；这里从报错文本算出「发布满 24h」的可重试时刻（UTC，分钟精度）。 */
 export function releaseAgeRetryAfter(message: string): string | null {
   const match = /published at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)/.exec(message)
@@ -188,7 +195,9 @@ export function releaseAgeRetryAfter(message: string): string | null {
  * 可重试时刻时才走专属文案（给出确切的「何时可再试」），算不出时退回通用文案，
  * 避免出现「预计可重试时间：」后接空值的残缺句子。
  */
-export function pnpmPolicyHintOf(message: string): 'failPnpmTarballIntegrityHint' | 'failPnpmReleaseAgeHint' | 'failPnpmPolicyHint' {
+export function pnpmPolicyHintOf(message: string): 'failPnpmTarballIntegrityHint' | 'failPnpmTarballMismatchHint' | 'failPnpmReleaseAgeHint' | 'failPnpmPolicyHint' {
+  // 校验和对不上（分支 tarball 变了）：先于「缺校验值」，两者报错前缀不同但都叫 tarball integrity
+  if (mismatchedTarballIntegrity(message)) return 'failPnpmTarballMismatchHint'
   if (missingTarballIntegrity(message)) return 'failPnpmTarballIntegrityHint'
   if (/ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge/i.test(message)
       && releaseAgeRetryAfter(message) !== null) {
@@ -230,9 +239,9 @@ export function classifyFailure(message: string): FailureKind {
   // 本地服务来源校验拒绝（403 untrusted origin），请求没进安装流程。必须在 pnpmPolicy 之前
   // —— 后者同名裸文本会把这条误判成供应链策略。用「整行以它结尾」区隔 pnpm 真实报错
   if (/(^|\n)untrusted origin\s*$/.test(message)) return 'originRejected'
-  // pnpm 供应链策略拦截（缺 tarball integrity / minimumReleaseAge / untrusted origin）。
+  // pnpm 供应链策略拦截（缺 tarball integrity / 校验和不匹配 / minimumReleaseAge / untrusted origin）。
   // 必须在 pnpmIgnoredBuild 之前
-  if (missingTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge|untrusted origin/i.test(message)) return 'pnpmPolicy'
+  if (missingTarballIntegrity(message) || mismatchedTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge|untrusted origin/i.test(message)) return 'pnpmPolicy'
   // profile 残留旧版本 patch 声明，pnpm 中止安装。必须在兜底之前
   if (/ERR_PNPM_UNUSED_PATCH|patches were not used/i.test(message)) return 'pnpmUnusedPatch'
   // profile 文件被其他进程占用（os error 32 / EBUSY）。ASCII 特征免疫乱码

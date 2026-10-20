@@ -36,11 +36,12 @@ export function SectionTabs({ view, setView, installedCount, t, noticeCount, onO
       role: 'tab',
       'aria-selected': view === id,
       title: t(hintKey),
+      'aria-label': t(labelKey),
       className: view === id ? styles.tabActive : styles.tab,
       onClick: () => setView(id),
     },
       h('span', { className: styles.tabIcon }, h(Icon)),
-      t(labelKey),
+      h('span', { className: styles.tabLabel }, t(labelKey)),
       id === 'installed' && installedCount > 0
         ? h('span', { className: view === id ? styles.tabCountActive : styles.tabCount }, installedCount)
         : null)),

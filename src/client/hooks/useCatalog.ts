@@ -52,10 +52,12 @@ export function useCatalog(lang: LocaleId) {
    *  界面停在「正在加载插件数据…」假死 —— 超时自动重拉，最多自动重试 2 次后转失败态；
    *  用户手动刷新（reload）时清零重新计数。 */
   const loadRetriesRef = useRef(0)
-  /** 目录加载超时阈值：超过即判定挂起，强制刷新一次（服务端代理 curl 上限 20s，客户端 12s 先兜底） */
-  const LOAD_TIMEOUT_MS = 12000
-  /** 挂起后最多自动重试次数：避免代理持续不通时无限循环刷新（每次重试仍 12s，2 次后转失败界面可手动重试） */
+  /** 目录加载超时阈值：超过即判定挂起，强制刷新一次（服务端代理 curl 上限 60s，客户端 30s 先兜底） */
+  const LOAD_TIMEOUT_MS = 30000
+  /** 挂起后最多自动重试次数：避免代理持续不通时无限循环刷新（每次重试仍 30s，2 次后转失败界面可手动重试） */
   const MAX_LOAD_RETRIES = 2
+  /** 本次 reload 是否强制回源（跳过服务端 1 小时缓存）：由「强制刷新」置位，读取后立即复位 */
+  const forceRefreshRef = useRef(false)
 
   /** 点击排序按钮：同一按钮切换正/倒序，新按钮用默认方向 */
   function toggleSort(key: SortKey) {
@@ -99,12 +101,14 @@ export function useCatalog(lang: LocaleId) {
     // 中止控制器：请求挂起时（宿主重启/代理抖动）超时自动重试会换新请求，
     // 旧请求在此中止释放连接，避免挂起堆积
     const controller = new AbortController()
+    const refresh = forceRefreshRef.current
+    forceRefreshRef.current = false
     setPlugins(null)
     setHubPlugin(null)
     setStats(null)
     setFailed(false)
     // 此处只拉目录与统计；hub 自身版本由独立 Worker 版本控制中心提供（见 fetchHubUpdate）。
-    const load = () => Promise.all([fetchCatalog(lang, controller.signal), fetchStats(controller.signal)])
+    const load = () => Promise.all([fetchCatalog(lang, controller.signal, refresh), fetchStats(controller.signal, refresh)])
     load()
       .then(([list, stats]) => {
         if (cancelled) return
@@ -321,6 +325,8 @@ export function useCatalog(lang: LocaleId) {
     stats,
     failed,
     reload: () => { loadRetriesRef.current = 0; setReloadKey((k) => k + 1) },
+    /** 强制刷新：跳过服务端 1 小时缓存直接回源，成功后覆盖缓存（失败仍回退旧缓存） */
+    forceReload: () => { loadRetriesRef.current = 0; forceRefreshRef.current = true; setReloadKey((k) => k + 1) },
     installed,
     installedItems,
     installedName,

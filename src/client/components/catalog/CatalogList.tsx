@@ -13,7 +13,7 @@ import { siteUrl } from '../../logic/urls.ts'
 import { useIncrementalList } from '../../hooks/useIncrementalList.ts'
 import { PluginCard } from './PluginCard.tsx'
 
-export function CatalogList({ plugins, failed, visible, total, t, langPath, reload, category, copied, installedName, installedVersion, hasUpdate, langKey, onInstall, onUninstall, hasProxy, onOpenDiagnostics }: {
+export function CatalogList({ plugins, failed, visible, total, t, langPath, reload, forceReload, category, copied, installedName, installedVersion, hasUpdate, langKey, onInstall, onUninstall, hasProxy, onOpenDiagnostics }: {
   plugins: HubPlugin[] | null
   failed: boolean
   visible: HubPlugin[]
@@ -21,6 +21,8 @@ export function CatalogList({ plugins, failed, visible, total, t, langPath, relo
   t: Translate
   langPath: string
   reload: () => void
+  /** 跳过服务端缓存强制回源：缓存数据异常或弱网重试时用 */
+  forceReload: () => void
   category: string
   copied: string | null
   installedName: (p: HubPlugin) => string | null
@@ -52,6 +54,8 @@ export function CatalogList({ plugins, failed, visible, total, t, langPath, relo
         h('div', { className: styles.stateDesc }, t(hasProxy ? 'failedDescProxy' : 'failedDescNoProxy')),
         h('div', { className: styles.stateActions },
           h('button', { className: styles.retryBtn, onClick: () => reload() }, t('retry')),
+          // 强制刷新：跳过服务端缓存直接回源，缓存异常/弱网时可绕过旧数据重新拉取
+          h('button', { className: styles.retryBtn, onClick: () => forceReload(), title: t('forceReloadHint') }, t('forceReload')),
           h('button', { className: styles.diagBtn, onClick: onOpenDiagnostics }, t('failNetworkRunDiag')),
         ),
       ),

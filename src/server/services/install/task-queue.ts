@@ -20,7 +20,7 @@ import { cleanLine, estimateProgress } from '../profile/progress.ts'
 import type { LoaderHandle } from '../loader.ts'
 import { hasClientUi, isDshPlugin, mountLoadedEntry, removeLoadedEntry } from '../loader.ts'
 import { addPendingRestart, clearPendingRestart } from '../profile/pending-restart.ts'
-import { addAllowBuildsKey, githubRepoOf, parseAllowBuildsKey, profileDirectory } from '../profile/profile.ts'
+import { addAllowBuildsKey, bundleIncludes, githubRepoOf, parseAllowBuildsKey, profileDirectory } from '../profile/profile.ts'
 import { appendLog } from '../log.ts'
 
 /** 内存任务注册表，按任务 id 索引。 */
@@ -607,6 +607,11 @@ function spawnMutation(options: {
         task.status = result.timedOut || result.exitCode !== 0 ? 'failed' : 'done'
         if (task.status === 'done') {
           task.progress = 100
+          // 市场自更新：若 bundle 已被取消勾选，重启后市场不会出现，结果页要明确提示
+          if ((action === 'add' || action === 'update') && (target === 'dsh-plugin' || target.startsWith('dsh-plugin@'))
+            && !bundleIncludes(profile, 'dsh-plugin')) {
+            task.bundleDeselected = true
+          }
           if (isGlobalNpm) {
             // 全局 npm 安装：装的是本机 CLI 工具（如 dsh-tui），不进任何 profile，无需宿主重启
             task.needsRestart = false

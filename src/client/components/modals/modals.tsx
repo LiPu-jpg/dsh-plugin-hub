@@ -25,7 +25,7 @@ import type { FailureAction } from '../../logic/failures.ts'
  *  - 其余（含 needsReload=true 的「已热挂载、仅剩客户端 UI」）→ 仅「完成」按钮：关闭结果弹窗时
  *    上层自动刷新页面让插件生效，不再给「稍后/立即刷新」手动选择。 */
 function ResultView({
-  title, desc, t, restarting, needsRestart, needsReload, onRestart, onClose,
+  title, desc, t, restarting, needsRestart, needsReload, bundleDeselected, onRestart, onClose,
 }: {
   title: string
   desc: string
@@ -34,6 +34,8 @@ function ResultView({
   needsRestart: boolean
   /** 仅刷新页面即生效（插件已热挂载）：给一句自动刷新说明，按钮仍是「完成」 */
   needsReload?: boolean
+  /** 市场自更新成功、但 bundle 被取消勾选：重启后市场不会出现，提示重新勾选 */
+  bundleDeselected?: boolean
   onRestart: () => void
   onClose: () => void
 }) {
@@ -56,6 +58,7 @@ function ResultView({
     ),
     h('div', { className: styles.resultTitle }, title),
     desc ? h('div', { className: styles.resultDesc }, desc) : null,
+    bundleDeselected ? h('div', { className: styles.bundleDeselectedHint }, t('bundleDeselectedHint')) : null,
     needsRestart
       ? h('div', null, [
         h('div', { className: styles.resultRestarting }, restarting ? t('restarting') : t('restartHint')),
@@ -95,6 +98,8 @@ export interface InstallModalProps {
   needsRestart: boolean
   /** 完成结果是否只需刷新页面即生效（插件已热挂载）：true → 结果视图显示自动刷新说明 */
   needsReload: boolean
+  /** 市场自更新成功、但 profile 的 bundle 列表已不含 dsh-plugin：结果页提示重新勾选 */
+  bundleDeselected?: boolean
   onClose: () => void
   onCopy: () => void
   onInstall: () => void
@@ -107,7 +112,7 @@ export interface InstallModalProps {
  * 目录插件与命令行安装（customTarget 模式）共用同一套确认/进度/结果流程。
  */
 export function InstallModal(props: InstallModalProps) {
-  const { plugin, customTarget, globalNpm, done, task, t, langPath, restarting, submitting, update, cliOnly, needsRestart, needsReload, onClose, onCopy, onInstall, onRestart } = props
+  const { plugin, customTarget, globalNpm, done, task, t, langPath, restarting, submitting, update, cliOnly, needsRestart, needsReload, bundleDeselected, onClose, onCopy, onInstall, onRestart } = props
   const busy = submitting || (task !== null && (task.status === 'pending' || task.status === 'running'))
   // 进行中标题带上插件名（中文「XX 插件安装中」；英文状态词在前更自然），并用状态色区分；
   // 命令行安装无插件元数据 → 直接用输入的目标展示；全局 npm 安装 → 包列表空格拼接
@@ -148,6 +153,7 @@ export function InstallModal(props: InstallModalProps) {
           restarting,
           needsRestart,
           needsReload,
+          bundleDeselected,
           onRestart,
           onClose,
         })

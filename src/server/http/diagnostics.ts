@@ -71,6 +71,29 @@ function toolVersion(cmd: string, args: string[]): string | null {
   }
 }
 
+/** 本机实际生效的 npm registry：诊断与安装同口径 —— 设置里留空时读用户 npm 配置
+ *  （含 profile 目录的 .npmrc），而不是硬探官方源，避免「能装但诊断说源不通」。
+ *  读不到（npm 缺失/超时/输出异常）时回退官方源。 */
+function configuredNpmRegistry(profile: string): string {
+  const fromEnv = process.env.npm_config_registry ?? process.env.NPM_CONFIG_REGISTRY ?? ''
+  const valid = (v: string): string | null => (/^https?:\/\//.test(v) ? v.replace(/\/+$/, '') : null)
+  const viaEnv = valid(fromEnv)
+  if (viaEnv !== null) return viaEnv
+  try {
+    const cwd = join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'profiles', profile)
+    const r = spawnSync('npm', ['config', 'get', 'registry'], {
+      timeout: 3000,
+      encoding: 'utf8',
+      cwd,
+      shell: process.platform === 'win32',
+    })
+    const out = (r.stdout ?? '').trim().split(/\r?\n/).pop() ?? ''
+    return valid(out) ?? 'https://registry.npmjs.org'
+  } catch {
+    return 'https://registry.npmjs.org'
+  }
+}
+
 /** 宿主环境快照：提交 bug 时随 issue 附上，便于作者复现（前端 /env 端点返回）。 */
 export function hostEnv(profile: string): Record<string, string | null> {
   return {
@@ -109,17 +132,20 @@ export function registerDiagnosticsRoutes(webServer: WebServerService, profile: 
         }
         const settings = loadSettings(profile)
         // npm 通道：设置里配置了镜像源就探测该镜像（安装通道吃同一个 registry）；
-        // 未配置（空串）时探测官方源作为「跟随本机 npm 配置」的基础连通性参考。
-        const registry = settings.npmRegistry.replace(/\/+$/, '') || 'https://registry.npmjs.org'
-        // 连通性自检打各通道的轻量资源：npm 源拉包元数据、GitHub 行探小仓库、目录站探
-        // 小文件，避免拉取目录全量 JSON。
-        // npm 行 display：配置了镜像就显示镜像地址；未配置置空 —— 客户端显示「未配置（跟随本机 npm 配置）」。
-        const allChecks: Array<{ key: string; url: string; display: string; cmd: string; proxy?: string; git?: boolean }> = [
-          { key: 'npm', url: `${registry}/dsh-plugin`, display: settings.npmRegistry !== '' ? registry : '', cmd: `npm view dsh-plugin version --registry ${registry}` },
+        // 未配置（空串）时探测本机 npm 配置里实际生效的源 —— 与安装同口径。
+        const registry = settings.npmRegistry.replace(/\/+$/, '') || configuredNpmRegistry(profile)
+        // 连通性自检打各通道的轻量资源：npm 源拉包元数据、GitHub 行探小仓库、
+        // 目录站按 Range 取 1KB（探市场真实下载的 plugins.zh.json，但不整份下载）。
+        // npm 行 display：显式配置、或本机 npm 源不是官方源时显示实际地址，
+        // 让用户看到「诊断的到底是哪个源」；官方源且未配置时留空（显示「跟随本机 npm 配置」）。
+        const allChecks: Array<{ key: string; url: string; display: string; cmd: string; proxy?: string; git?: boolean; range?: string }> = [
+          { key: 'npm', url: `${registry}/dsh-plugin`, display: settings.npmRegistry !== '' || registry !== 'https://registry.npmjs.org' ? registry : '', cmd: `npm view dsh-plugin version --registry ${registry}` },
           // GitHub 行用真实 git 克隆握手（git ls-remote）打 dshplugin/hello-dsh 小仓库：
           // 「网页能打开」和「git 能克隆」是两码事，握手成功才算通道通；小仓库秒级完成，不打 17MB 的 dsh-plugin-hub。
           { key: 'github', url: 'https://github.com/dshplugin/hello-dsh', display: 'github.com', cmd: 'git ls-remote https://github.com/dshplugin/hello-dsh', git: true },
-          { key: 'catalog', url: 'https://api.dsh-plugin.org/stats.json', display: '', cmd: 'curl -s https://api.dsh-plugin.org/stats.json' },
+          // 目录行探市场真正下载的那个文件（plugins.zh.json），只取前 1KB：
+          // 只探 stats.json 会出现「诊断绿、市场加载不出来」—— 两者端点与体积完全不同。
+          { key: 'catalog', url: 'https://api.dsh-plugin.org/plugins.zh.json', display: '', cmd: 'curl -r 0-1023 https://api.dsh-plugin.org/plugins.zh.json', range: '0-1023' },
         ]
         // 配置了 HTTP 代理：追加一行代理诊断 —— 用该代理打 github.com（安装通道真实访问的地址），
         // 验证「代理能不能把请求带出去」。与安装同口径：curl 子进程注入该代理 env。
@@ -140,7 +166,7 @@ export function registerDiagnosticsRoutes(webServer: WebServerService, profile: 
         const effectiveProxy = settings.proxy !== ''
           ? settings.proxy
           : (systemProxy() ?? process.env.HTTPS_PROXY ?? process.env.https_proxy ?? '')
-        const probe = (url: string, proxy?: string) => probeUrl(url, proxy ?? effectiveProxy, 6000)
+        const probe = (url: string, proxy?: string, range?: string) => probeUrl(url, proxy ?? effectiveProxy, 6000, range)
         // 逐路串行：一条命令一条结果地推送给终端，保持「程序在跑」的真实感
         const results: Array<{ key: string; ok: boolean }> = []
         for (const c of checks) {
@@ -148,7 +174,7 @@ export function registerDiagnosticsRoutes(webServer: WebServerService, profile: 
           // git 行走真实克隆握手（gitLsRemote），其余走 curl 探测，两路都带超时兜底
           const r = c.git
             ? await gitLsRemote(c.url, c.proxy ?? effectiveProxy, 6000)
-            : await probe(c.url, c.proxy)
+            : await probe(c.url, c.proxy, c.range)
           results.push({ key: c.key, ok: r.ok })
           // git 行的 status 是退出码，客户端 git 行只显示 OK / 不可达，不显示成 HTTP 码。
           // reason 透出失败细分原因（如 Windows 证书吊销受阻），客户端据此给对症提示而非笼统「不可达」。

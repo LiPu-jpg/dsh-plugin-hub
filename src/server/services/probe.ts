@@ -187,13 +187,16 @@ async function curlWithTlsFallback(args: string[], env: NodeJS.ProcessEnv, timeo
  * 失败（curl 不存在 / 连接失败 / 超时）都归为不可达，全程不抛错。
  * 证书吊销检查受阻（Windows Schannel）另记 reason，供诊断给出对症提示。
  */
-async function curlProbe(url: string, proxy: string, timeoutMs: number): Promise<ProbeResult> {
+async function curlProbe(url: string, proxy: string, timeoutMs: number, range?: string): Promise<ProbeResult> {
   const started = Date.now()
   const discard = process.platform === 'win32' ? 'NUL' : '/dev/null'
   // -sS（而非仅 -s）：silent 会把连接/TLS 错误一并吞掉，而识别证书吊销受阻正需要 stderr；
   // 子进程 stderr 由我们收集、不会回显给用户，所以补 -S 不产生噪音。
+  // range：目录通道路由探真实的 plugins.zh.json，但只取前 1KB（-r 0-1023，返回 206 即视为可达），
+  // 避免诊断把 3.6MB 全量目录下载一遍。
   const r = await curlWithTlsFallback([
     '-sS', '-o', discard, '-w', '%{http_code}',
+    ...(range !== undefined ? ['-r', range] : []),
     '--max-time', String(Math.max(1, Math.round(timeoutMs / 1000))),
     url,
   ], proxyEnv(proxy), timeoutMs)
@@ -212,11 +215,12 @@ async function curlProbe(url: string, proxy: string, timeoutMs: number): Promise
 /**
  * 探测一个 HTTPS 目标：proxy 非空注入给 curl 子进程走代理，否则直连。
  * 供系统诊断 /diagnostics 使用；目标 URL 非法返回不可达。
+ * range（如 '0-1023'）只取前 N 字节，用于探大文件端点而不下载全量。
  */
-export function probeUrl(url: string, proxy: string, timeoutMs: number): Promise<ProbeResult> {
+export function probeUrl(url: string, proxy: string, timeoutMs: number, range?: string): Promise<ProbeResult> {
   let target: URL
   try { target = new URL(url) } catch { return Promise.resolve(probeFail()) }
-  return curlProbe(target.href, proxy, timeoutMs)
+  return curlProbe(target.href, proxy, timeoutMs, range)
 }
 
 /**
@@ -284,8 +288,9 @@ export async function finalUrl(url: string, proxy: string, timeoutMs: number): P
 export function fetchViaCurl(
   url: string, proxy: string, timeoutMs: number,
 ): Promise<{ ok: boolean; body: string; reason: ProbeFailReason | null }> {
-  // 同样用 -sS：正文之外还要 stderr 里的 TLS 失败线索（被 stderr 收集，不外泄给用户）
-  const args = ['-sS', '--max-time', String(Math.max(1, Math.round(timeoutMs / 1000))), url]
+  // 同样用 -sS：正文之外还要 stderr 里的 TLS 失败线索（被 stderr 收集，不外泄给用户）。
+  // --compressed：目录 JSON 约 3.6MB，源站支持 gzip，压缩后弱网下也能在超时内拉完。
+  const args = ['-sS', '--compressed', '--max-time', String(Math.max(1, Math.round(timeoutMs / 1000))), url]
   return curlWithTlsFallback(args, proxyEnv(proxy), timeoutMs).then((r) => ({
     ok: r.code === 0,
     body: r.stdout,
