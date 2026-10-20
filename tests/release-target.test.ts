@@ -115,3 +115,18 @@ test('failure reports use the recorded release command after refresh instead of 
   assert.match(unknown, /unknown \(no executed command recorded\)/)
   assert.ok(!unknown.includes('git+https://github.com/example/sample.git'))
 })
+
+test('installedNameOf: local file:/link: installs are not claimed by a same-named catalog entry', () => {
+  // 目录条目的 npm 包名与用户本地插件同名，但本地安装的身份在本机（#337）
+  const catalog = normalize({ s: 'widget', r: { repo: 'acme/widget', npmPackage: 'widget-plugin' }, vr: 'v1.2.3' })
+  for (const spec of ['file:../my-widget', 'link:../my-widget', 'file:/Users/me/widget', 'C:\\workspace\\widget']) {
+    assert.equal(installedNameOf(catalog, { 'widget-plugin': spec }, {}), null)
+    const rows = installedItemsOf([catalog], { 'widget-plugin': spec }, {}, null, null, null)
+    assert.equal(rows.length, 1)
+    // 归为自定义安装：不显示目录插件的信息
+    assert.equal(rows[0]!.plugin, null)
+    assert.equal(rows[0]!.name, 'widget-plugin')
+  }
+  // 真正的 npm 安装（版本号 spec）仍然命中目录条目
+  assert.equal(installedNameOf(catalog, { 'widget-plugin': '1.2.3' }, {}), 'widget-plugin')
+})

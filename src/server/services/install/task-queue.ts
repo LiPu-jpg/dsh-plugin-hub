@@ -22,6 +22,7 @@ import { hasClientUi, isDshPlugin, mountLoadedEntry, removeLoadedEntry } from '.
 import { addPendingRestart, clearPendingRestart } from '../profile/pending-restart.ts'
 import { addAllowBuildsKey, bundleIncludes, githubRepoOf, parseAllowBuildsKey, profileDirectory } from '../profile/profile.ts'
 import { appendLog } from '../log.ts'
+import { commandOnPath, gitMissingDetail } from './preflight.ts'
 
 /** 内存任务注册表，按任务 id 索引。 */
 const tasks = new Map<number, InstallTask>()
@@ -210,22 +211,6 @@ export function desktopCliBootstrap(entry: string): string | null {
     if (existsSync(candidate)) return candidate
   }
   return null
-}
-
-/**
- * dsh 命令存在性探测：which/where 找 PATH 里的 dsh。
- * 命令缺失时各平台报错形态不同（Windows shell 只回 GBK 乱码、POSIX 才抛 spawn ENOENT），
- * 统一在 spawn 前用 which/where 探测，命令不存在则直接失败并打 ASCII 标记 [dsh-missing]（乱码免疫）。
- * 探测自身异常（which/where 不可用等）不拦截安装，交给装后校验兜底。
- */
-function dshOnPath(env?: NodeJS.ProcessEnv): boolean {
-  try {
-    const probe = process.platform === 'win32' ? 'where' : 'which'
-    const res = spawnSync(probe, ['dsh'], { env, encoding: 'utf8', timeout: 3000, stdio: ['ignore', 'pipe', 'pipe'] })
-    return res.status === 0 && (res.stdout ?? '').trim().length > 0
-  } catch {
-    return true
-  }
 }
 
 function stopChild(child: ReturnType<typeof spawn>): void {
@@ -452,7 +437,7 @@ function spawnMutation(options: {
       // 独立 CLI 场景（file: 'dsh'，宿主加载器走 node bin 不经过这里）：先探测 dsh 是否在 PATH。
       // 命令缺失时各平台报错形态不同（GBK 乱码 / spawn ENOENT），统一前置拦截并打 ASCII 标记
       // [dsh-missing]，前端据此精准提示「dsh 未加入 PATH」而不是笼统的插件失败。
-      if (invocation.file === 'dsh' && !dshOnPath(env)) {
+      if (invocation.file === 'dsh' && !commandOnPath('dsh', env)) {
         const detail = '[dsh-missing] the dsh CLI was not found on this machine (DeepSeek Harness not installed, or dsh not on the PATH)'
         if (task) {
           task.status = 'failed'
@@ -462,6 +447,21 @@ function spawnMutation(options: {
         }
         resolveOnce({ exitCode: 1, timedOut: false, error: detail, stdout: '', stderr: detail })
         return
+      }
+      // git 源安装：pnpm 需要调用 git 解析仓库；Windows 缺 git 只回 GBK 乱码，前端认不出来。
+      // 前置探测并打 ASCII 标记 [git-missing]，给出装 git 的指引而不是笼统的安装失败。
+      if (!isGlobalNpm && action !== 'remove') {
+        const gitMissing = gitMissingDetail(target, env)
+        if (gitMissing !== null) {
+          if (task) {
+            task.status = 'failed'
+            task.exitCode = null
+            task.progress = 0
+            pushLine(task, gitMissing)
+          }
+          resolveOnce({ exitCode: 1, timedOut: false, error: gitMissing, stdout: '', stderr: gitMissing })
+          return
+        }
       }
       child = spawn(invocation.file, attemptArgs, {
         cwd: invocation.cwd,

@@ -48,6 +48,12 @@ export interface InstalledItem {
   dshCapable: boolean
 }
 
+/** 本地路径安装（file:/link:/绝对或相对路径）：身份在本机，不能按 npm 包名认领目录条目。 */
+function isLocalSpec(value: string): boolean {
+  const v = value.trim()
+  return /^(file|link):/i.test(v) || v.startsWith('.') || v.startsWith('/') || /^[A-Za-z]:[\\/]/.test(v)
+}
+
 /** 安装时记录的目录信号（按仓库小写 key 查表）。 */
 function signalOf(repo: string | null, versions: Record<string, InstalledVersionSignal>): InstalledVersionSignal | null {
   if (!repo) return null
@@ -66,15 +72,13 @@ export function installedNameOf(
   for (const [name, spec] of Object.entries(installed)) {
     if (repoFromInstallTarget(spec).toLowerCase() === needle) return name
   }
-  // npm 安装：profile 依赖 key 直接是 npm 包名。包名来源两处——目录数据（npmPackage），
-  // 或服务端安装时持久化的映射（versions[repo].npmPackage，覆盖组织 scope 与 GitHub
-  // 用户名不一致、目录未下发包名的场景）；命中任一并依赖 key 真实存在即视为已安装。
-  // 只认 npm 安装的依赖（spec 无法解析出仓库身份）：git/本地安装的依赖身份由仓库匹配决定，
-  // 包名同名不代表同仓库——否则「git 装 A 仓库」会被「npm 包名同名但仓库不同」的目录条目
-  // 误认领成已安装（假阳性），installedItems 里出现同 key 双条目，排序一变化就渲染出幽灵行。
+  // 只认 npm 安装的依赖（spec 无法解析出仓库身份、也不是本地路径）：git 安装的依赖身份由仓库
+  // 匹配决定，file:/link: 安装的本地插件身份在本机 —— 包名同名不代表同仓库，否则「本地装 A」
+  // 会被目录里同名的 B 认领，已安装页显示成 B 的信息。
   const pkg = ((plugin.source?.npmPackage || versions[repo.toLowerCase()]?.npmPackage) ?? '').toLowerCase()
   if (pkg) {
     for (const [name, spec] of Object.entries(installed)) {
+      if (isLocalSpec(spec)) continue
       if (isRepoLike(repoFromInstallTarget(spec))) continue
       if (name.toLowerCase() === pkg) return name
     }
