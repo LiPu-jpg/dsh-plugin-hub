@@ -54,7 +54,8 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
     case 'pnpmPolicy': return `pnpm supply-chain policy blocked the ${word} on the user machine`
     case 'pnpmUnusedPatch': return 'stale pnpm patch entry on the user machine'
     case 'pnpmMissingDep': return 'dependency not found on the npm registry on the user machine'
-    case 'registryVersionStale': return 'requested version not available on the npm registry in use on the user machine'
+    case 'registryVersionStale': return `requested version not available on the npm registry in use on the user machine`
+    case 'registryAuth': return `npm registry rejected the credentials for this ${word} on the user machine`
     case 'pnpmLinkedDirMissing': return 'dangling local (link:) dependency in the user profile'
     case 'fileLocked': return 'file locked by another process on the user machine'
     case 'accessDenied': return 'file write access denied on the user machine'
@@ -101,6 +102,8 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
         ? 'a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin'
       : kind === 'network'
         ? 'network connectivity issue on the user side (DNS, proxy, firewall, or a blocked connection)'
+      : kind === 'registryAuth'
+        ? 'the npm registry rejected the request with 401/403 — the configured registry needs credentials or blocks this network (local environment issue)'
         : kind === 'pluginPrepare'
           ? 'plugin prepare/build script failed during install (packaging/distribution issue)'
           : kind === 'pnpmIgnoredBuild'

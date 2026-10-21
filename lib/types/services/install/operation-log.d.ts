@@ -1,14 +1,20 @@
 /**
  * 从 DSH 输出里解析 operation 日志路径（`diagnostics: <path>`）。
- * 只认 DSH 的 operation 日志：路径含 `.plugin-manager` 且以 `pnpm.log` 结尾；
- * 不是这种路径（或压根没有该行）返回 null，调用方据此跳过回捞。
+ * 去掉首尾引号与句末标点（不同版本/语言的摘要行尾部可能带 `。`、`.`、`)`）；
+ * 相对路径原样返回，由读取方按 profile 目录解析。
  */
 export declare function operationLogPathOf(output: string): string | null;
 /**
  * 回捞 operation 日志尾部，作为失败详情返回；拿不到（无路径 / 文件不存在 / 读失败 /
- * 内容为空）返回 null。尾部截到与子进程输出相同的上限，避免超大日志撑爆内存与消息。
+ * 内容为空 / 路径越界）返回 null。尾部截到与子进程输出相同的上限。
  */
-export declare function backfillOperationLog(output: string): string | null;
+export declare function backfillOperationLog(output: string, profileDir?: string): string | null;
+/**
+ * 输出里是否有 dsh 自己的内容 —— 只有 `[exit N]`、`[install-channel]`、`[timed out]`
+ * 这类本队列自己打的标记时返回 false。用于把「宿主什么都没回显」的失败显式留痕，
+ * 否则上报正文只剩退出码，无从排查。
+ */
+export declare function hasSubstantiveOutput(output: string): boolean;
 /**
  * 运行期抓取：宿主的 operation 日志只在命令运行期间存在，结束后可能被清理，
  * 退出后再按路径读往往已经拿不到。这里在安装过程中轮询 profile 下最新的

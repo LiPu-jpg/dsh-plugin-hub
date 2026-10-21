@@ -39,6 +39,15 @@ export declare function cancelTask(id: number): boolean;
  */
 export declare function desktopCliBootstrap(entry: string): string | null;
 /**
+ * 传给 CLI 的安装目标：钉住版本优先（Hub 自我更新提示的是已过供应链门禁的版本），
+ * 其次更新走 `@latest`，git 源与全局 npm 安装保持原样。
+ */
+export declare function npmInstallTargetOf(target: string, opts: {
+    update: boolean;
+    global: boolean;
+    pinned?: string;
+}): string;
+/**
  * 插件变更入队并返回其任务。任务严格串行：队列 worker 只在上一个结束后才启动下一个。
  * 完成前可通过 `getTask(id)` / `activeTask()` 查看进度。
  */
@@ -62,6 +71,11 @@ export declare function startPluginMutation(options: {
     /** 自定义安装入口渠道（NPM 包卡片）：任务输出行与系统日志据此溯源「从哪个入口发起」；
      *  目录插件安装不传 */
     installChannel?: 'npm';
+    /** npm 源候选（首选在前）：传输层失败时按顺序换源重试，空/单个表示不降级 */
+    registries?: string[];
+    /** 精确安装 spec（如 `dsh-plugin@2.0.5`）：Hub 自我更新提示的是已过供应链门禁的版本，
+     *  必须钉住安装，不能再用 @latest 被带回门禁内的最新版 */
+    installSpec?: string;
 }): InstallTask;
 /**
  * 安装后校验已装包里 package.json 声明的文件（main / exports["."].default 与
@@ -101,4 +115,8 @@ export declare function runPluginMutation(options: {
     loader?: LoaderHandle;
     /** 全局 npm 安装（官方 `npm install -g <pkgs>`）：非空时执行全局安装，不进任何 profile、无需宿主重启 */
     globalNpm?: string[];
+    /** npm 源候选（首选在前）：传输层失败时按顺序换源重试 */
+    registries?: string[];
+    /** 精确安装 spec（如 `dsh-plugin@2.0.5`）：见 startPluginMutation 同名说明 */
+    installSpec?: string;
 }): Promise<InstallResult>;

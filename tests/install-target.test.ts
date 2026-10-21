@@ -8,6 +8,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { githubRepoOf, githubTarget, globalNpmPackagesOf, installTargetOf, profileFromArgv } from '../src/server/services/profile/profile.ts'
+import { npmInstallTargetOf } from '../src/server/services/install/task-queue.ts'
 
 test('githubTarget: emits an explicit HTTPS Git URL', () => {
   assert.equal(githubTarget('GanyuanRan/Aegis'), 'git+https://github.com/GanyuanRan/Aegis.git')
@@ -41,6 +42,18 @@ test('githubRepoOf: recognizes canonical and legacy GitHub targets', () => {
   }
   assert.equal(githubRepoOf('@scope/package'), null)
   assert.equal(githubRepoOf('https://example.com/owner/repo.git'), null)
+})
+
+test('npmInstallTargetOf: 钉住版本优先，其次 @latest，git/全局安装原样', () => {
+  // Hub 自我更新：提示的是已过供应链门禁的版本，必须钉住安装
+  assert.equal(npmInstallTargetOf('dsh-plugin', { update: true, global: false, pinned: 'dsh-plugin@2.0.5' }), 'dsh-plugin@2.0.5')
+  // 普通更新没钉版本 → @latest（pnpm 对已存在依赖才真正升级）
+  assert.equal(npmInstallTargetOf('dsh-plugin', { update: true, global: false }), 'dsh-plugin@latest')
+  // 普通安装原样
+  assert.equal(npmInstallTargetOf('dsh-plugin', { update: false, global: false }), 'dsh-plugin')
+  // 钉版本对 git 源与全局 npm 不生效
+  assert.equal(npmInstallTargetOf('owner/repo', { update: true, global: false, pinned: 'owner/repo@2.0.5' }), 'owner/repo')
+  assert.equal(npmInstallTargetOf('dsh-tui', { update: true, global: true, pinned: 'dsh-tui@1.0.0' }), 'dsh-tui')
 })
 
 test('installTargetOf: strips an official dsh plugin command down to its target', () => {

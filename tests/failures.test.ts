@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyFailure, coreErrorCode, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh } from '../src/client/logic/failures.ts'
+import { classifyFailure, coreErrorCode, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh, authRegistryHostOf } from '../src/client/logic/failures.ts'
 
 const dshTailHint = 'dsh: git-hosted plugins build on install via their prepare script, which pnpm blocks until allowed — add the exact key pnpm printed above under allowBuilds in /Users/x/.dsh/profiles/web/pnpm-workspace.yaml, then re-run'
 
@@ -689,6 +689,33 @@ test('summarizeError truncates over-long single lines and total output', () => {
 test('summarizeError honors a caller-provided budget (issue URL clamp)', () => {
   const msg = `ERR_PNPM_PREPARE_PACKAGE ${'x'.repeat(2000)}`
   assert.ok(summarizeError(msg, 300).length <= 300 + 16)
+})
+
+test('summarizeError keeps a short message as-is instead of duplicating it via head+tail', () => {
+  const msg = '[exit 1] (no output captured)\n[no-output] the CLI printed nothing'
+  assert.equal(summarizeError(msg, 800), msg)
+})
+
+test('classifyFailure: registry 401/403 is its own kind, not network or unclassified', () => {
+  for (const log of [
+    'ERR_PNPM_FETCH_401 GET https://npm.corp.internal/@scope/pkg: Unauthorized - 401',
+    'ERR_PNPM_FETCH_403 GET https://registry.example.com/x: Forbidden - 403',
+    'npm error code E401',
+    'GET https://npm.corp.internal/pkg: Unauthorized - 401',
+  ]) {
+    assert.equal(classifyFailure(log), 'registryAuth', log)
+  }
+  // 本地来源校验的 403 仍归 originRejected，不能被鉴权分支抢走
+  assert.equal(classifyFailure('untrusted origin'), 'originRejected')
+})
+
+test('authRegistryHostOf: extracts the rejecting registry host', () => {
+  assert.equal(
+    authRegistryHostOf('ERR_PNPM_FETCH_401 GET https://npm.corp.internal/@scope/pkg: Unauthorized - 401'),
+    'npm.corp.internal',
+  )
+  assert.equal(authRegistryHostOf('ERR_PNPM_FETCH_403 GET https://registry.example.com/x: Forbidden - 403'), 'registry.example.com')
+  assert.equal(authRegistryHostOf('nothing to extract'), null)
 })
 
 test('missing tarball integrity is a pnpm policy rejection with specific recovery guidance', async () => {

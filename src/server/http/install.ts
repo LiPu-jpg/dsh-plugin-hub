@@ -11,11 +11,13 @@ import { recordResolvedNpmPackage } from '../services/profile/installed-versions
 import { isDshNpmPackageForRepo } from '../services/install/npm-resolve.ts'
 import { probeUrl, systemProxy } from '../services/probe.ts'
 import { loadSettings, type HubSettings } from '../services/settings.ts'
+import { registryCandidates, registryHost, userNpmRegistry } from '../services/install/registry-fallback.ts'
+import { profileDirectory } from '../services/profile/profile.ts'
 import { readInstalled } from './catalog.ts'
 import { COMMAND_TIMEOUT_MS, readJsonBody, requireTrustedPost, sendJson, type WebRoute, type WebServerService } from './shared.ts'
 
 /** 安装/卸载 CLI 的子进程环境：透传宿主环境并注入 HTTP(S) 代理，
- *  代理来源与诊断一致（设置代理 → 系统代理 → 宿主 env）；不注入 npm registry，沿用用户本机 npm 配置。 */
+ *  代理来源与诊断一致（设置代理 → 系统代理 → 宿主 env）；registry 由任务队列按候选源逐次注入。 */
 function mutationEnv(settings: HubSettings): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, CI: 'true' }
   const proxy = settings.proxy !== '' ? settings.proxy : (systemProxy() ?? '')
@@ -64,6 +66,17 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
           const lang = typeof body === 'object' && body !== null && (body as { lang?: unknown }).lang === 'en'
             ? 'en'
             : 'zh'
+          // 代理口径与诊断/安装通道一致：设置里的代理 → 系统代理 → 环境变量 → 直连。
+          const effectiveProxy = settings.proxy !== ''
+            ? settings.proxy
+            : (systemProxy() ?? process.env.HTTPS_PROXY ?? process.env.https_proxy ?? '')
+          // 安装用的 npm 源：设置里显式选择优先；未配置时读本机 npm 配置（与诊断同口径）。
+          // 只有公共源允许失败后换源；自定义/内网源保持单一候选，避免私有包名泄露给公共源。
+          const registries = registryCandidates(
+            settings.npmRegistry,
+            settings.npmRegistry === '' ? userNpmRegistry(profileDirectory(profile)) : '',
+            settings.registryFallback,
+          )
           // 全局 npm 安装（`npm install -g <pkgs>`）：不进任何 profile、无需宿主重启。
           // 包列表优先取 body.globalNpm，兜底从 rawRepo 解析，保证直接调 API 传完整命令也能识别。
           const bodyGlobalNpm = Array.isArray((body as { globalNpm?: unknown }).globalNpm)
@@ -95,6 +108,8 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
               globalNpm,
               timeoutMs: COMMAND_TIMEOUT_MS,
               env: mutationEnv(settings),
+              // 候选源（首选在前）：任务内遇到传输层失败时按顺序换源重试
+              registries,
               // 全局 npm 安装由 NPM 包卡片/官方命令发起：日志体现入口渠道
               installChannel: installChannel ?? 'npm',
             })
@@ -107,12 +122,17 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
             return
           }
           const target = rawRepo
+          // 钉住精确版本（Hub 自我更新）：最新版可能仍在 pnpm 供应链门禁内，
+          // 客户端提示的是「已过门禁」的版本，服务端必须按该版本安装而不是 @latest。
+          const pinVersion = typeof (body as { version?: unknown }).version === 'string'
+            ? (body as { version: string }).version.trim()
+            : ''
+          if (pinVersion !== '' && !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/.test(pinVersion)) {
+            sendJson(response, 400, { error: 'invalid version' })
+            return
+          }
           // 已尝试的安装方式（供失败提 Issue 预填）：保持为空
           const attempts: string[] = []
-          // 代理口径与诊断/安装通道一致：设置里的代理 → 系统代理 → 环境变量 → 直连。
-          const effectiveProxy = settings.proxy !== ''
-            ? settings.proxy
-            : (systemProxy() ?? process.env.HTTPS_PROXY ?? process.env.https_proxy ?? '')
           // 目录插件安装：目录数据可能滞后于打包拆分，确认目录下发的 npm 目标确为该仓库的 DSH 包，
           // 命中则记录 repo → 包名映射，客户端据此把依赖 key 匹配回仓库、列表立即显示「已安装」。
           const catalogRepo = source === 'catalog' ? githubRepoOf(displayRepo) : null
@@ -136,18 +156,30 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
             return
           }
           // 安装前网络探测：探 registry 根而非具体包（404 是「包不存在」而非网络不通）；仅新安装执行，更新跳过。
-          // 不通则 400 拦下并打 [network] 标记，客户端据此提示网络问题，而非插件问题。
+          // 首选源不通时按候选顺序继续探下一个，能通的那个提到首位供实际安装使用。
+          // 全部不通则 400 拦下并打 [network] 标记，客户端据此提示网络问题，而非插件问题。
+          let ordered = registries
           if (already === null) {
-            const probeTarget = `${(settings.npmRegistry.replace(/\/+$/, '') || 'https://registry.npmjs.org')}/`
-            const net = await probeUrl(probeTarget, effectiveProxy, 6000)
-            if (!net.ok) {
+            const tried: string[] = []
+            let chosen: string | null = null
+            for (const candidate of registries) {
+              tried.push(candidate)
+              const net = await probeUrl(`${candidate}/`, effectiveProxy, 6000)
+              if (net.ok) {
+                chosen = candidate
+                break
+              }
+            }
+            if (chosen === null) {
               // 错误消息按界面语言输出，让用户看清是网络问题而非插件问题
+              const hosts = tried.map(registryHost).join(' → ')
               const error = lang === 'zh'
-                ? `[network] 安装已中止：安装前无法连接到 npm 源（${probeTarget}）—— 您的网络似乎不通或被拦截（断网 / DNS 解析失败 / 防火墙 / 代理配置问题）。这不是插件本身的问题，请检查网络连接或代理设置，运行「系统诊断」检测各通道连通性后重试。`
-                : `[network] install aborted: cannot reach the npm registry (${probeTarget}) before install — your network connection appears to be down or blocked (DNS / proxy / firewall). This is not a problem with the plugin itself. Check your connection or proxy settings, run the connectivity diagnostic, then retry.`
+                ? `[network] 安装已中止：安装前无法连接到 npm 源（${hosts}）—— 您的网络似乎不通或被拦截（断网 / DNS 解析失败 / 防火墙 / 代理配置问题）。这不是插件本身的问题，请检查网络连接或代理设置，运行「系统诊断」检测各通道连通性后重试。`
+                : `[network] install aborted: cannot reach the npm registry (${hosts}) before install — your network connection appears to be down or blocked (DNS / proxy / firewall). This is not a problem with the plugin itself. Check your connection or proxy settings, run the connectivity diagnostic, then retry.`
               sendJson(response, 400, { error, attempts })
               return
             }
+            ordered = [chosen, ...registries.filter((r) => r !== chosen)]
           }
           // 入队前复检：网络探测的 await 期间并发请求可能已通过上方检查，而此处到 startPluginMutation
           // 之间无 await，JS 单线程保证同一目标至多一个任务，杜绝双击/并发双任务。
@@ -170,6 +202,9 @@ export function registerInstallRoutes(webServer: WebServerService, profile: stri
             loader,
             timeoutMs: COMMAND_TIMEOUT_MS,
             env: mutationEnv(settings),
+            // 候选源（首选在前）：任务内遇到传输层失败时按顺序换源重试
+            registries: ordered,
+            installSpec: pinVersion !== '' ? `${target}@${pinVersion}` : undefined,
             // 自定义安装入口渠道：日志/报错据此溯源
             installChannel,
           })

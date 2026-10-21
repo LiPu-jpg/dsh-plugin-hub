@@ -176,6 +176,16 @@ export function SettingsView({ t, settings, update, reset, env, onCopy, openSect
         className: `${styles.controlDropdown} ${dropdownStyles.dropdownFill}`,
       }),
     }),
+    // 自动换源：只在公共源之间切换；自定义/内网源不降级，避免私有包名泄露
+    h(SettingRow, {
+      title: t('settingsRegistryFallback'),
+      desc: t('settingsRegistryFallbackDesc'),
+      children: h(Toggle, {
+        checked: settings.registryFallback,
+        onChange: (v) => update({ registryFallback: v }),
+        title: t('settingsRegistryFallback'),
+      }),
+    }),
     // 代理地址：文本框独占一行，整行输入，便于粘贴长代理地址；停笔后实时探测连通性，
     // 不通仅提示（可保存）—— 用户可能先填地址后开代理
     h(SettingRow, {

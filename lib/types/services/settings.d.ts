@@ -3,8 +3,10 @@ export interface HubSettings {
     checkUpdatesOnStart: boolean;
     /** HTTP(S) 代理地址，用于 npm / git / 目录请求（空串 = 直连） */
     proxy: string;
-    /** npm 镜像源 registry 地址（空串 = 未配置，跟随用户本机 npm 配置，本插件不注入任何 registry） */
+    /** npm 镜像源 registry 地址（空串 = 未配置，跟随用户本机 npm 配置） */
     npmRegistry: string;
+    /** 公共源传输失败时自动换下一个镜像重试（自定义/内网源不切换） */
+    registryFallback: boolean;
     /** 启用命令行安装 NPM 包（默认开；关掉后输入 npm 包名安装被拦截） */
     enableNpmInstall: boolean;
     /** 日志存放位置覆盖（空串 = 默认 ~/.dsh/profiles/<profile>/hub.log；可填目录或 .log 文件路径） */

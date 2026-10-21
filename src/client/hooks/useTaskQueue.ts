@@ -433,6 +433,9 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     source: 'catalog' | 'custom'
     /** 更新已安装目标（放行 add 覆盖重装） */
     update?: boolean
+    /** 钉住精确版本（Hub 自我更新用）：最新版可能仍在 pnpm 供应链门禁内，
+     *  必须安装「已过门禁」的那个版本，不能再用 @latest。 */
+    pinVersion?: string
     /** 全局 npm 安装包列表（`npm install -g <pkgs>`）：非空时服务端执行全局安装，不进任何 profile */
     globalNpm?: string[]
     /** 自定义安装入口渠道（NPM 包卡片）：随请求上报服务端落日志，
@@ -473,6 +476,8 @@ export function useTaskQueue(opts: TaskQueueOptions) {
           display: input.repo,
           source: input.source,
           mode: input.update ? 'update' : undefined,
+          // 钉住版本（Hub 自我更新）：服务端据此执行 `add <pkg>@<version>` 而不是 @latest
+          ...(input.pinVersion ? { version: input.pinVersion } : {}),
           // 界面语言带给服务端：安装前网络探测等错误消息按用户当前语言返回（中文界面给中文，英文界面给英文）
           ...(langKey ? { lang: langKey } : {}),
           // 安装入口渠道（只可能是 npm）：服务端日志/报错提示据此溯源
@@ -523,7 +528,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
   }
 
   /** 目录插件安装：安装目标取目录数据的 npm 包名，走 catalog 白名单。 */
-  const installNow = async (p: HubPlugin, opts?: { update?: boolean }) => {
+  const installNow = async (p: HubPlugin, opts?: { update?: boolean; pinVersion?: string }) => {
     const repo = p.source?.repo ?? ''
     if (!repo) return
     // 目录条目必带 npm 包名：直接用包名安装（用户无感知）。
@@ -538,6 +543,7 @@ export function useTaskQueue(opts: TaskQueueOptions) {
       command: installCommandOf(p, true),
       source: 'catalog',
       update: opts?.update,
+      pinVersion: opts?.pinVersion,
     })
   }
 

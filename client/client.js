@@ -110,6 +110,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			proxyCheckRevocation: "证书吊销检查受阻（Windows Schannel 取不到 CRL/OCSP），握手被中断；属本机 TLS 环境问题，非代理地址不通",
 			settingsMirror: "npm 镜像源",
 			settingsMirrorDesc: "默认跟随本机 npm 配置；官方源慢可换国内镜像",
+			settingsRegistryFallback: "连不上时自动换源",
+			settingsRegistryFallbackDesc: "公共源超时或被拦截时，自动改用下一个镜像重试（最多 3 个）；自定义/内网源不会切换，避免私有包名外泄",
 			mirrorNone: "未配置（跟随本机 npm 配置）",
 			mirrorOfficial: "官方源 registry.npmjs.org",
 			mirrorNpmmirror: "阿里云 npmmirror",
@@ -343,6 +345,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failReason_pluginMissingDep: "插件声明依赖的包在官方 npm 源上不存在（已删除或从未发布）。",
 			failKind_registryVersionStale: "该版本在所用源上不存在",
 			failReason_registryVersionStale: "实际安装用的源还没同步到这个版本，或版本号写错。",
+			failKind_registryAuth: "npm 源拒绝了访问",
+			failReason_registryAuth: "registry 返回 401/403：这个源需要登录凭据，或当前网络不被允许。",
 			failKind_pnpmLinkedDirMissing: "profile 里有失效的本地依赖",
 			failReason_pnpmLinkedDirMissing: "有一条指向本机不存在目录的 link/file 依赖，pnpm 每次解析都卡住。",
 			failKind_fileLocked: "文件被其他程序占用",
@@ -370,6 +374,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failKind_hub: "出现未知错误",
 			failReason_hub: "我们还没能识别这条报错，你可以一键反馈给我们。",
 			failRegistryVersionStaleHint: "安装器调用 pnpm 时报「找不到匹配的版本」（ERR_PNPM_NO_MATCHING_VERSION）：要装的这个版本在实际执行安装的 npm 源里查不到。常见原因是你设置的 npmRegistry 与本机 ~/.npmrc 用的不是同一个源——官方源刚发布、镜像还没同步上来（快则几分钟、慢则几小时），也可能只是版本号写错了。这不是插件本身的问题。可在插件市场设置里把 npmRegistry 改成与本机 ~/.npmrc 一致（或反过来），或那一次显式走官方源（https://registry.npmjs.org）、改用离线包后重试；若该版本刚发布不久，等镜像同步后重试即可。",
+			failRegistryAuthHint: "安装器访问 npm 源时被拒绝（HTTP 401/403）：这个源需要登录凭据，或不允许当前网络/IP 访问。如果你在用公司或私有源，请先配好认证（npm login，或在 ~/.npmrc 写入 //{host}/:_authToken=…）；如果不需要私有源，把 registry 换回官方源 https://registry.npmjs.org，或在插件市场设置里切换到公共镜像后重试。这不是插件本身的问题。",
+			failRegistryAuthHintNoHost: "安装器访问 npm 源时被拒绝（HTTP 401/403）：这个源需要登录凭据，或不允许当前网络/IP 访问。如果你在用公司或私有源，请先配好认证（npm login，或在 ~/.npmrc 写入 //<registry>/:_authToken=…）；如果不需要私有源，把 registry 换回官方源 https://registry.npmjs.org，或在插件市场设置里切换到公共镜像后重试。这不是插件本身的问题。",
 			failPnpmLinkedDirMissingHint: "安装器调用 pnpm 时报「要安装的目录不存在」（ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND）：你的 profile 里留着一条指向本机不存在目录的本地依赖（link: / file: 形式，例如用 dsh plugin add <本地路径> 装过开发中的插件，之后那个目录被删除或移动了）。pnpm 每次解析 profile 依赖都会先卡在它上面，因此任何插件都装不进来。这不是插件本身的问题——请在 profile 目录（~/.dsh/profiles/<profile>）的 package.json 里删除该本地依赖条目（同时删掉对应的 pnpm-lock.yaml 条目或整个锁文件），或把该目录恢复回原路径后重试。",
 			failFileLockedHint: "安装过程中 pnpm 无法替换 profile 里的文件：有程序正占用着它（Windows 常见报错 os error 32「另一个程序正在使用此文件」）。通常是 DeepSeek Harness 自身或杀毒软件的实时扫描持有文件句柄。这不是插件本身的问题——请完全退出 DeepSeek Harness（Windows 可在任务管理器确认进程已结束，必要时临时关闭杀毒软件实时防护）后重试。",
 			failAccessDeniedHint: "安装过程中 pnpm 写入 profile 里的文件被系统拒绝访问（Windows 常见报错 os error 5「拒绝访问」，英文为 Access is denied；Node 下的 EPERM / EACCES 同理）。常见原因是该文件或目录正被其他进程占用、文件带只读属性、目录权限受限，或杀毒软件实时防护拦截了写入——这与「文件正被占用」（os error 32）同属本机文件系统问题，任何插件装进该目录都会一样失败，不是插件本身的问题。请完全退出 DeepSeek Harness（Windows 可在任务管理器确认进程已结束，必要时临时关闭杀毒软件实时防护）后重试；若仍然失败，请检查 profile 目录及其文件是否被设为只读，并以管理员身份重新运行。",
@@ -517,6 +523,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			proxyCheckRevocation: "Certificate revocation check blocked (Windows Schannel could not fetch CRL/OCSP), so the handshake was aborted — a local TLS issue, not a bad proxy address",
 			settingsMirror: "npm mirror",
 			settingsMirrorDesc: "Unset by default — follows local npm config; pick a domestic mirror if slow",
+			settingsRegistryFallback: "Switch mirrors on failure",
+			settingsRegistryFallbackDesc: "When a public registry times out or is blocked, retry with the next mirror (up to 3). Custom/intranet registries are never switched, so private package names do not leak.",
 			mirrorNone: "Unset (follow local npm config)",
 			mirrorOfficial: "Official registry.npmjs.org",
 			mirrorNpmmirror: "Alibaba npmmirror",
@@ -751,6 +759,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failReason_pluginMissingDep: "A package the plugin depends on does not exist on the official npm registry.",
 			failKind_registryVersionStale: "this version is not available on the registry in use",
 			failReason_registryVersionStale: "The registry that actually performs the install has not synced this version yet, or the version is mistyped.",
+			failKind_registryAuth: "the npm registry rejected access",
+			failReason_registryAuth: "The registry returned 401/403: it needs credentials, or the current network is not allowed.",
 			failKind_pnpmLinkedDirMissing: "dangling local dependency in the profile",
 			failReason_pnpmLinkedDirMissing: "A link/file dependency points at a directory that no longer exists, so pnpm stalls on it.",
 			failKind_fileLocked: "a file is held by another program",
@@ -778,6 +788,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			failKind_hub: "unknown error",
 			failReason_hub: "We could not identify this error yet — you can report it to us in one click.",
 			failRegistryVersionStaleHint: "pnpm reported that no matching version was found (ERR_PNPM_NO_MATCHING_VERSION): the version being installed does not exist in the npm registry that actually performs the install. This usually means the npmRegistry configured in the hub differs from the source in your local ~/.npmrc — the official registry has published it but the mirror has not synced yet (it can take minutes to hours) — or the version number was simply mistyped. This is not a problem with the plugin itself. Align the hub's npmRegistry with your local ~/.npmrc (or the other way round), or explicitly use the official registry (https://registry.npmjs.org) for that one install, or use an offline package, then retry; if the version was published only recently, waiting for the mirror to sync is enough.",
+			failRegistryAuthHint: "The installer was denied access to the npm registry (HTTP 401/403): that registry requires credentials, or it does not allow the current network/IP. If you are using a company or private registry, configure authentication first (npm login, or write //{host}/:_authToken=… into ~/.npmrc). If you do not need a private registry, point the registry back to the official one (https://registry.npmjs.org), or switch to a public mirror in the hub settings, then retry. This is not a problem with the plugin itself.",
+			failRegistryAuthHintNoHost: "The installer was denied access to the npm registry (HTTP 401/403): that registry requires credentials, or it does not allow the current network/IP. If you are using a company or private registry, configure authentication first (npm login, or write //<registry>/:_authToken=… into ~/.npmrc). If you do not need a private registry, point the registry back to the official one (https://registry.npmjs.org), or switch to a public mirror in the hub settings, then retry. This is not a problem with the plugin itself.",
 			failPnpmLinkedDirMissingHint: "pnpm reported that a directory it needs to install from does not exist (ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND): your profile keeps a local dependency (a link: / file: entry, e.g. from `dsh plugin add <local path>`) whose target directory has since been deleted or moved. pnpm hits it every time it resolves profile dependencies, so no plugin can be installed into that profile. This is not a problem with the plugin itself. Remove that local dependency from package.json inside the profile directory (~/.dsh/profiles/<profile>) — along with its entry in pnpm-lock.yaml, or the lockfile itself — or restore the directory to its original path, then retry.",
 			failFileLockedHint: "During install, pnpm could not replace a file inside the profile because another program is holding it (on Windows this shows as os error 32, \"the process cannot access the file because it is being used by another process\"). Usually DeepSeek Harness itself or a real-time antivirus scan holds the handle. This is not a problem with the plugin itself — fully quit DeepSeek Harness (on Windows, confirm in Task Manager that the process has ended, and temporarily disable real-time antivirus protection if needed), then retry.",
 			failAccessDeniedHint: "During install, Windows denied pnpm access to a file inside the profile (this shows as os error 5, \"Access is denied\"; on Node the equivalent codes are EPERM / EACCES). Typical causes: the file or directory is held by another process, the file is marked read-only, the directory permissions are restricted, or a real-time antivirus scan blocked the write. This is the same class of local file-system problem as a locked file (os error 32) — no plugin can be installed into that directory, so it is not a problem with the plugin itself. Fully quit DeepSeek Harness (on Windows, confirm in Task Manager that the process has ended, and temporarily disable real-time antivirus protection if needed), then retry. If it still fails, check whether the profile directory or its files are read-only and run as administrator.",
@@ -842,42 +854,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$11
 		});
 		var Header_module_css_default = {
-			"aboutBtn": "qikqja_aboutBtn",
 			"version": "qikqja_version",
-			"resultCount": "qikqja_resultCount",
-			"taglineLink": "qikqja_taglineLink",
-			"resultSeg": "qikqja_resultSeg",
-			"title": "qikqja_title",
-			"adBanner": "qikqja_adBanner",
-			"hubUpdateBadge": "qikqja_hubUpdateBadge",
-			"adBadge": "qikqja_adBadge",
-			"segLabel": "qikqja_segLabel",
-			"headerRight": "qikqja_headerRight",
-			"segGroup": "qikqja_segGroup",
-			"sortGroup": "qikqja_sortGroup",
-			"tabCount": "qikqja_tabCount",
-			"root": "qikqja_root",
-			"githubIcon": "qikqja_githubIcon",
-			"copyIcon": "qikqja_copyIcon",
-			"adText": "qikqja_adText",
-			"tabs": "qikqja_tabs",
-			"langBtn": "qikqja_langBtn",
-			"headerTitleRow": "qikqja_headerTitleRow",
-			"adArrow": "qikqja_adArrow",
-			"brandTitle": "qikqja_brandTitle",
-			"searchRow": "qikqja_searchRow",
-			"header": "qikqja_header",
-			"githubLink": "qikqja_githubLink",
-			"segBtn": "qikqja_segBtn",
-			"tagline": "qikqja_tagline",
-			"versionBtn": "qikqja_versionBtn",
-			"search": "qikqja_search",
 			"tab": "qikqja_tab",
-			"tabsRow": "qikqja_tabsRow",
-			"controls": "qikqja_controls",
+			"brandTitle": "qikqja_brandTitle",
 			"segBtnActive": "qikqja_segBtnActive",
+			"header": "qikqja_header",
+			"controls": "qikqja_controls",
+			"adBanner": "qikqja_adBanner",
+			"tabs": "qikqja_tabs",
+			"copyIcon": "qikqja_copyIcon",
+			"root": "qikqja_root",
+			"adArrow": "qikqja_adArrow",
+			"tabCount": "qikqja_tabCount",
+			"logoIcon": "qikqja_logoIcon",
+			"title": "qikqja_title",
+			"resultCount": "qikqja_resultCount",
+			"versionBtn": "qikqja_versionBtn",
+			"tagline": "qikqja_tagline",
+			"headerTitleRow": "qikqja_headerTitleRow",
+			"taglineLink": "qikqja_taglineLink",
+			"search": "qikqja_search",
 			"tabActive": "qikqja_tabActive",
-			"logoIcon": "qikqja_logoIcon"
+			"aboutBtn": "qikqja_aboutBtn",
+			"hubUpdateBadge": "qikqja_hubUpdateBadge",
+			"langBtn": "qikqja_langBtn",
+			"tabsRow": "qikqja_tabsRow",
+			"resultSeg": "qikqja_resultSeg",
+			"headerRight": "qikqja_headerRight",
+			"githubLink": "qikqja_githubLink",
+			"segLabel": "qikqja_segLabel",
+			"searchRow": "qikqja_searchRow",
+			"adText": "qikqja_adText",
+			"segBtn": "qikqja_segBtn",
+			"githubIcon": "qikqja_githubIcon",
+			"segGroup": "qikqja_segGroup",
+			"adBadge": "qikqja_adBadge",
+			"sortGroup": "qikqja_sortGroup"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Modal.module.css.mjs
@@ -896,142 +908,142 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$10
 		});
 		var Modal_module_css_default = {
-			"queueSection": "BiQ1zG_queueSection",
-			"resultCheck": "BiQ1zG_resultCheck",
-			"noticeRemove": "BiQ1zG_noticeRemove",
-			"helpModal": "BiQ1zG_helpModal",
-			"failList": "BiQ1zG_failList",
-			"detailStars": "BiQ1zG_detailStars",
-			"detailPath": "BiQ1zG_detailPath",
-			"noticeFoot": "BiQ1zG_noticeFoot",
+			"toastFail": "BiQ1zG_toastFail",
+			"toastIn": "BiQ1zG_toastIn",
+			"queueRowPct": "BiQ1zG_queueRowPct",
 			"queueRowBody": "BiQ1zG_queueRowBody",
+			"detailStars": "BiQ1zG_detailStars",
+			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
+			"noticeRowMain": "BiQ1zG_noticeRowMain",
+			"modalCancel": "BiQ1zG_modalCancel",
+			"errorHint": "BiQ1zG_errorHint",
+			"failKind": "BiQ1zG_failKind",
+			"aboutModal": "BiQ1zG_aboutModal",
+			"detailRow": "BiQ1zG_detailRow",
+			"modalWide": "BiQ1zG_modalWide",
+			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
+			"detailMono": "BiQ1zG_detailMono",
+			"result": "BiQ1zG_result",
+			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
+			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
+			"noticeTextFail": "BiQ1zG_noticeTextFail",
+			"modalRow": "BiQ1zG_modalRow",
+			"modalLink": "BiQ1zG_modalLink",
+			"queueRowTrack": "BiQ1zG_queueRowTrack",
+			"confirmPrimary": "BiQ1zG_confirmPrimary",
+			"failBigIssue": "BiQ1zG_failBigIssue",
+			"linkIcon": "BiQ1zG_linkIcon",
+			"helpModal": "BiQ1zG_helpModal",
+			"noticeRowOk": "BiQ1zG_noticeRowOk",
+			"logModal": "BiQ1zG_logModal",
+			"modal": "BiQ1zG_modal",
+			"queueRow": "BiQ1zG_queueRow",
+			"detailStatusPending": "BiQ1zG_detailStatusPending",
+			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
+			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
+			"toast": "BiQ1zG_toast",
+			"progress": "BiQ1zG_progress",
+			"detailLink": "BiQ1zG_detailLink",
+			"noticeIgnore": "BiQ1zG_noticeIgnore",
+			"detailPath": "BiQ1zG_detailPath",
+			"confirmIcon": "BiQ1zG_confirmIcon",
+			"dangerConfirm": "BiQ1zG_dangerConfirm",
+			"queueSection": "BiQ1zG_queueSection",
+			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
+			"modalCmdCopy": "BiQ1zG_modalCmdCopy",
+			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
 			"resultTitle": "BiQ1zG_resultTitle",
+			"trustHint": "BiQ1zG_trustHint",
+			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
+			"queueRowDesc": "BiQ1zG_queueRowDesc",
+			"queueRowStatus": "BiQ1zG_queueRowStatus",
+			"progressFill": "BiQ1zG_progressFill",
+			"failRepo": "BiQ1zG_failRepo",
+			"bundleDeselectedHint": "BiQ1zG_bundleDeselectedHint",
+			"modalValue": "BiQ1zG_modalValue",
+			"modalIn": "BiQ1zG_modalIn",
+			"modalBody": "BiQ1zG_modalBody",
+			"modalHead": "BiQ1zG_modalHead",
+			"pendingRowActions": "BiQ1zG_pendingRowActions",
+			"detailPathBtn": "BiQ1zG_detailPathBtn",
+			"errorModal": "BiQ1zG_errorModal",
+			"modalClose": "BiQ1zG_modalClose",
+			"resultRestarting": "BiQ1zG_resultRestarting",
+			"noticeRow": "BiQ1zG_noticeRow",
+			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
+			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
+			"detailValue": "BiQ1zG_detailValue",
+			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
+			"queuedHint": "BiQ1zG_queuedHint",
+			"failPrepareHint": "BiQ1zG_failPrepareHint",
+			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
+			"failCopy": "BiQ1zG_failCopy",
+			"detailModal": "BiQ1zG_detailModal",
+			"noticeHead": "BiQ1zG_noticeHead",
+			"overlay": "BiQ1zG_overlay",
+			"failList": "BiQ1zG_failList",
+			"noticeFoot": "BiQ1zG_noticeFoot",
+			"errorCopySoft": "BiQ1zG_errorCopySoft",
+			"errorTitle": "BiQ1zG_errorTitle",
+			"modalTitle": "BiQ1zG_modalTitle",
+			"restartNow": "BiQ1zG_restartNow",
+			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
+			"noticeVersion": "BiQ1zG_noticeVersion",
+			"resultDesc": "BiQ1zG_resultDesc",
+			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
+			"failEmpty": "BiQ1zG_failEmpty",
+			"failDiagBtn": "BiQ1zG_failDiagBtn",
+			"modalDesc": "BiQ1zG_modalDesc",
+			"detailArrow": "BiQ1zG_detailArrow",
+			"errorBox": "BiQ1zG_errorBox",
+			"modalCmd": "BiQ1zG_modalCmd",
+			"restartLater": "BiQ1zG_restartLater",
+			"modalActions": "BiQ1zG_modalActions",
+			"stripCancel": "BiQ1zG_stripCancel",
+			"failKindUninstall": "BiQ1zG_failKindUninstall",
+			"detailPathText": "BiQ1zG_detailPathText",
+			"resultCheck": "BiQ1zG_resultCheck",
+			"noticeList": "BiQ1zG_noticeList",
+			"noticeRemove": "BiQ1zG_noticeRemove",
+			"failedCopyHint": "BiQ1zG_failedCopyHint",
+			"modalInstall": "BiQ1zG_modalInstall",
+			"queueRowTarget": "BiQ1zG_queueRowTarget",
+			"aboutMeta": "BiQ1zG_aboutMeta",
+			"failHead": "BiQ1zG_failHead",
+			"detailPathActions": "BiQ1zG_detailPathActions",
+			"failRepoUrl": "BiQ1zG_failRepoUrl",
+			"noticeTime": "BiQ1zG_noticeTime",
+			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
+			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
+			"progressTrack": "BiQ1zG_progressTrack",
+			"failRow": "BiQ1zG_failRow",
 			"failKindTitle": "BiQ1zG_failKindTitle",
 			"failKindInstall": "BiQ1zG_failKindInstall",
-			"detailDim": "BiQ1zG_detailDim",
-			"confirmIcon": "BiQ1zG_confirmIcon",
-			"stripCancel": "BiQ1zG_stripCancel",
-			"noticeRowOk": "BiQ1zG_noticeRowOk",
-			"modalTitleBusy": "BiQ1zG_modalTitleBusy",
-			"hubUpdateMetaItem": "BiQ1zG_hubUpdateMetaItem",
-			"noticeTextFail": "BiQ1zG_noticeTextFail",
-			"noticeRow": "BiQ1zG_noticeRow",
-			"restartLater": "BiQ1zG_restartLater",
-			"queueRowTarget": "BiQ1zG_queueRowTarget",
-			"modalCmd": "BiQ1zG_modalCmd",
-			"progressFillFail": "BiQ1zG_progressFillFail",
-			"detailRow": "BiQ1zG_detailRow",
-			"detailMono": "BiQ1zG_detailMono",
-			"overlayIn": "BiQ1zG_overlayIn",
-			"queueRowDesc": "BiQ1zG_queueRowDesc",
-			"modalValue": "BiQ1zG_modalValue",
-			"noticeRowMain": "BiQ1zG_noticeRowMain",
-			"restartNow": "BiQ1zG_restartNow",
-			"failRepo": "BiQ1zG_failRepo",
-			"detailModal": "BiQ1zG_detailModal",
-			"toast": "BiQ1zG_toast",
-			"modalLink": "BiQ1zG_modalLink",
-			"noticeRowUpdate": "BiQ1zG_noticeRowUpdate",
-			"modalDesc": "BiQ1zG_modalDesc",
-			"modalTitle": "BiQ1zG_modalTitle",
-			"modalLabel": "BiQ1zG_modalLabel",
-			"pendingRowActions": "BiQ1zG_pendingRowActions",
-			"noticeMain": "BiQ1zG_noticeMain",
-			"noticeHead": "BiQ1zG_noticeHead",
-			"linkIcon": "BiQ1zG_linkIcon",
-			"queueRowHead": "BiQ1zG_queueRowHead",
-			"detailStatusPending": "BiQ1zG_detailStatusPending",
-			"pendingRowStatus": "BiQ1zG_pendingRowStatus",
-			"modalClose": "BiQ1zG_modalClose",
-			"failDiagBtn": "BiQ1zG_failDiagBtn",
-			"failKindUninstall": "BiQ1zG_failKindUninstall",
 			"hubUpdateNotes": "BiQ1zG_hubUpdateNotes",
-			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
-			"queueRowPct": "BiQ1zG_queueRowPct",
-			"modalInstall": "BiQ1zG_modalInstall",
-			"noticeUpdateGo": "BiQ1zG_noticeUpdateGo",
-			"noticeIgnore": "BiQ1zG_noticeIgnore",
-			"aboutContent": "BiQ1zG_aboutContent",
-			"detailArrow": "BiQ1zG_detailArrow",
-			"noticeTime": "BiQ1zG_noticeTime",
-			"modalHead": "BiQ1zG_modalHead",
-			"hubUpdateModal": "BiQ1zG_hubUpdateModal",
-			"errorModal": "BiQ1zG_errorModal",
-			"confirmPrimary": "BiQ1zG_confirmPrimary",
-			"errorBox": "BiQ1zG_errorBox",
-			"failHead": "BiQ1zG_failHead",
-			"failBigIssue": "BiQ1zG_failBigIssue",
-			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
-			"modalCmdText": "BiQ1zG_modalCmdText",
-			"progressTrack": "BiQ1zG_progressTrack",
-			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
-			"detailPathActions": "BiQ1zG_detailPathActions",
-			"noticeVersion": "BiQ1zG_noticeVersion",
-			"failKind": "BiQ1zG_failKind",
-			"resultDesc": "BiQ1zG_resultDesc",
-			"noticeList": "BiQ1zG_noticeList",
-			"failClear": "BiQ1zG_failClear",
-			"aboutModal": "BiQ1zG_aboutModal",
-			"detailStatusRunning": "BiQ1zG_detailStatusRunning",
-			"failedCopyHint": "BiQ1zG_failedCopyHint",
-			"queueRowTrack": "BiQ1zG_queueRowTrack",
-			"uninstallConfirm": "BiQ1zG_uninstallConfirm",
-			"resultCheckIcon": "BiQ1zG_resultCheckIcon",
-			"failPrepareHint": "BiQ1zG_failPrepareHint",
-			"failMisjudgeLink": "BiQ1zG_failMisjudgeLink",
-			"cliOnlyHint": "BiQ1zG_cliOnlyHint",
-			"toastFail": "BiQ1zG_toastFail",
-			"detailUpdateHint": "BiQ1zG_detailUpdateHint",
-			"detailLink": "BiQ1zG_detailLink",
-			"detailLabel": "BiQ1zG_detailLabel",
-			"progressHead": "BiQ1zG_progressHead",
-			"dangerConfirm": "BiQ1zG_dangerConfirm",
-			"detailPathText": "BiQ1zG_detailPathText",
-			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
-			"modalBody": "BiQ1zG_modalBody",
-			"overlay": "BiQ1zG_overlay",
-			"resultRestarting": "BiQ1zG_resultRestarting",
-			"failCopy": "BiQ1zG_failCopy",
-			"progressText": "BiQ1zG_progressText",
-			"queuedHint": "BiQ1zG_queuedHint",
-			"detailValue": "BiQ1zG_detailValue",
-			"modalRow": "BiQ1zG_modalRow",
-			"noticeBadgeOk": "BiQ1zG_noticeBadgeOk",
-			"queueSectionTitle": "BiQ1zG_queueSectionTitle",
-			"detailStatusText": "BiQ1zG_detailStatusText",
-			"progressFill": "BiQ1zG_progressFill",
-			"bundleDeselectedHint": "BiQ1zG_bundleDeselectedHint",
-			"toastIn": "BiQ1zG_toastIn",
-			"modalIn": "BiQ1zG_modalIn",
-			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
-			"errorCopySoft": "BiQ1zG_errorCopySoft",
-			"errorHint": "BiQ1zG_errorHint",
-			"failReason": "BiQ1zG_failReason",
-			"errorTitle": "BiQ1zG_errorTitle",
-			"modalWide": "BiQ1zG_modalWide",
+			"queueRowHead": "BiQ1zG_queueRowHead",
 			"modalCopy": "BiQ1zG_modalCopy",
-			"modalCancel": "BiQ1zG_modalCancel",
+			"modalCmdText": "BiQ1zG_modalCmdText",
+			"noticeBadgeIcon": "BiQ1zG_noticeBadgeIcon",
 			"detailGrid": "BiQ1zG_detailGrid",
-			"queueRow": "BiQ1zG_queueRow",
-			"logModal": "BiQ1zG_logModal",
-			"result": "BiQ1zG_result",
-			"detailPathBtn": "BiQ1zG_detailPathBtn",
-			"aboutMeta": "BiQ1zG_aboutMeta",
-			"confirmIconWrap": "BiQ1zG_confirmIconWrap",
-			"progress": "BiQ1zG_progress",
-			"confirmIconDanger": "BiQ1zG_confirmIconDanger",
-			"noticeTextOk": "BiQ1zG_noticeTextOk",
-			"queueRowStatus": "BiQ1zG_queueRowStatus",
-			"failRow": "BiQ1zG_failRow",
-			"modal": "BiQ1zG_modal",
+			"progressText": "BiQ1zG_progressText",
+			"detailLabel": "BiQ1zG_detailLabel",
+			"detailDim": "BiQ1zG_detailDim",
+			"aboutContent": "BiQ1zG_aboutContent",
+			"hubUpdateMeta": "BiQ1zG_hubUpdateMeta",
+			"failClear": "BiQ1zG_failClear",
+			"overlayIn": "BiQ1zG_overlayIn",
+			"modalCloseIcon": "BiQ1zG_modalCloseIcon",
+			"detailStatusText": "BiQ1zG_detailStatusText",
 			"failRepoLabel": "BiQ1zG_failRepoLabel",
+			"modalTitleQueued": "BiQ1zG_modalTitleQueued",
+			"noticeTextOk": "BiQ1zG_noticeTextOk",
+			"failReason": "BiQ1zG_failReason",
+			"progressFillFail": "BiQ1zG_progressFillFail",
+			"noticeBadgeFail": "BiQ1zG_noticeBadgeFail",
+			"modalLabel": "BiQ1zG_modalLabel",
+			"noticeMain": "BiQ1zG_noticeMain",
 			"restartNowWarning": "BiQ1zG_restartNowWarning",
-			"failNetworkTarget": "BiQ1zG_failNetworkTarget",
-			"modalActions": "BiQ1zG_modalActions",
-			"failRepoUrl": "BiQ1zG_failRepoUrl",
-			"trustHint": "BiQ1zG_trustHint",
-			"failEmpty": "BiQ1zG_failEmpty",
-			"modalCmdCopy": "BiQ1zG_modalCmdCopy"
+			"progressHead": "BiQ1zG_progressHead"
 		};
 		//#endregion
 		//#region src/server/services/install/release-target.ts
@@ -1451,14 +1463,6 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		}
 		//#endregion
 		//#region src/client/logic/release-age.ts
-		/**
-		* DSH Plugin Hub — the community plugin marketplace for DeepSeek Harness.
-		* Website: https://dsh-plugin.org
-		* GitHub: https://github.com/dshplugin/dsh-plugin-hub
-		*
-		* 供应链门禁的时间判定（纯函数）：pnpm 会静默回退发布未满门槛的版本，
-		* 故发布太新的版本不该提示更新。Hub 自身更新与插件更新共用同一门槛。
-		*/
 		/** pnpm 供应链门禁：dsh profile 默认 minimumReleaseAge=1440（分钟）；+30 分钟缓冲抵消网络/CDN 边缘时间偏差。 */
 		const MIN_RELEASE_AGE_MS = 882e5;
 		/** 发布时间是否仍在门禁窗口内（太新 → 暂缓提示）；无值/解析不出返回 false（不拦真实更新）。 */
@@ -1467,6 +1471,55 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			const ms = Date.parse(publishedAt);
 			if (Number.isNaN(ms)) return false;
 			return now - ms < MIN_RELEASE_AGE_MS;
+		}
+		/** 版本号比较（逐段数字；缺失段按 0）。返回负数/0/正数，非法输入按相等处理。 */
+		function compareVersions(a, b) {
+			const parse = (v) => v.split(/[.+-]/).map((part) => Number.parseInt(part, 10)).filter((n) => !Number.isNaN(n));
+			const va = parse(a);
+			const vb = parse(b);
+			const len = Math.max(va.length, vb.length);
+			for (let i = 0; i < len; i++) {
+				const d = (va[i] ?? 0) - (vb[i] ?? 0);
+				if (d !== 0) return d;
+			}
+			return 0;
+		}
+		/**
+		* 选出本次真正该提示的更新版本。
+		*
+		* 只看最新版会漏更新：连续发版时间隔小于供应链门禁时，最新版永远「太新」，
+		* 提示被整体跳过。这里把最新版与 recentVersions 一起当候选，取「高于当前版本且已过门禁」
+		* 的最高版本；一个都没有但仍存在更高版本 → pending（暂缓，不谎称已是最新）。
+		*/
+		function pickHubUpdate(info, currentVersion, now) {
+			if (currentVersion === "") return {
+				state: "latest",
+				target: null
+			};
+			const seen = /* @__PURE__ */ new Set();
+			const candidates = [];
+			for (const entry of [{
+				version: info.version,
+				publishedAt: info.publishedAt,
+				notes: info.notes
+			}, ...info.recentVersions ?? []]) {
+				if (typeof entry.version !== "string" || entry.version === "" || seen.has(entry.version)) continue;
+				seen.add(entry.version);
+				candidates.push(entry);
+			}
+			const higher = candidates.filter((c) => compareVersions(c.version, currentVersion) > 0).sort((a, b) => compareVersions(b.version, a.version));
+			if (higher.length === 0) return {
+				state: "latest",
+				target: null
+			};
+			const ready = higher.find((c) => !isReleaseTooFresh(c.publishedAt, now));
+			return ready !== void 0 ? {
+				state: "available",
+				target: ready
+			} : {
+				state: "pending",
+				target: higher[0]
+			};
 		}
 		//#endregion
 		//#region src/client/logic/installed.ts
@@ -1882,12 +1935,13 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			* 落回「无更新」——回落会让弹窗在本机版本落后时谎称「已是最新」。
 			*/
 			const hubCurrentVersion = "2.0.6";
-			const hubUpdateState = (() => {
-				if (!hubUpdateInfo) return "none";
-				if (hubUpdateInfo.version === hubCurrentVersion) return "latest";
-				if (isReleaseTooFresh(hubUpdateInfo.publishedAt, Date.now())) return "pending";
-				return "available";
-			})();
+			const hubUpdateResult = hubUpdateInfo === null ? {
+				state: "none",
+				target: null
+			} : pickHubUpdate(hubUpdateInfo, hubCurrentVersion, Date.now());
+			const hubUpdateState = hubUpdateResult.state;
+			/** 本次提示的目标版本（available 时有值；pending 时是暂缓中的最高版本） */
+			const hubUpdateTarget = hubUpdateResult.target;
 			const hubHasUpdate = hubUpdateState === "available";
 			(0, react.useMemo)(() => {
 				if (!plugins) return [];
@@ -1945,6 +1999,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				hasUpdate,
 				hubHasUpdate,
 				hubUpdateState,
+				hubUpdateTarget,
 				releaseAgeReady,
 				hubCurrentVersion,
 				hubUpdateInfo,
@@ -2141,6 +2196,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			if (/os error 5\b|ERROR_ACCESS_DENIED|\bEPERM\b|\bEACCES\b|access is denied/i.test(message)) return "accessDenied";
 			if (/os error 112\b|os error 19\b|ERROR_DISK_FULL|ERROR_WRITE_PROTECT|\bENOSPC\b|\bEROFS\b|\bEMFILE\b|\bENFILE\b|no space left on device|read-only file system|too many open files/i.test(message)) return "fsUnavailable";
 			if (/ERR_PNPM_IGNORED_BUILDS|Ignored build scripts:|ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED/i.test(message)) return "pnpmIgnoredBuild";
+			if (/ERR_PNPM_FETCH_40[13]\b|\bE40[13]\b|(?:Unauthorized|Forbidden)\s*-\s*40[13]\b/i.test(message)) return "registryAuth";
 			if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return "network";
 			if (/\[request-timeout\]/i.test(message)) return "network";
 			if (/\[packaging\]|entry file missing/i.test(message)) return "pluginPrepare";
@@ -2210,6 +2266,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			}
 			let out;
 			if (core.length === 0) {
+				const whole = message.trim();
+				if (whole.length <= maxChars) return whole;
 				const tail = message.trimEnd().slice(-1e3);
 				const sep = "\n…\n";
 				const headBudget = Math.max(maxChars - tail.length - 3, 0);
@@ -2276,6 +2334,14 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			const host = m[1].replace(/:\d+$/, "");
 			return PUBLIC_REGISTRY_HOSTS.has(host) ? null : host;
 		}
+		/**
+		* 鉴权失败（401/403）时被拒绝的源主机名：从 `ERR_PNPM_FETCH_401 GET https://host/pkg: Unauthorized - 401`
+		* 里取，取不到返回 null（提示文案退回通用说法，不拼出残缺句子）。
+		*/
+		function authRegistryHostOf(message) {
+			const m = /ERR_PNPM_FETCH_40[13]\s+GET\s+https?:\/\/([^\s/:]+)/i.exec(message) ?? /GET\s+https?:\/\/([^\s/:]+)\S*\s*:?\s*(?:Unauthorized|Forbidden)\s*-\s*40[13]/i.exec(message);
+			return m === null ? null : m[1];
+		}
 		//#endregion
 		//#region src/client/logic/urls.ts
 		/** dsh-plugin.org 中文页挂在 /zh/ 前缀下，英文在根路径。 */
@@ -2316,7 +2382,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				case "pnpmPolicy": return `pnpm supply-chain policy blocked the ${word} on the user machine`;
 				case "pnpmUnusedPatch": return "stale pnpm patch entry on the user machine";
 				case "pnpmMissingDep": return "dependency not found on the npm registry on the user machine";
-				case "registryVersionStale": return "requested version not available on the npm registry in use on the user machine";
+				case "registryVersionStale": return `requested version not available on the npm registry in use on the user machine`;
+				case "registryAuth": return `npm registry rejected the credentials for this ${word} on the user machine`;
 				case "pnpmLinkedDirMissing": return "dangling local (link:) dependency in the user profile";
 				case "fileLocked": return "file locked by another process on the user machine";
 				case "accessDenied": return "file write access denied on the user machine";
@@ -2348,7 +2415,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			const executed = executedCommandOf(command, attempts);
 			const zhWord = actionWordZh(action);
 			const title = `[dsh-plugin.org | dsh-plugin-hub] ${reasonTitleOf(kind, action)}: ${repo}`;
-			const reason = kind === "hostIncompatible" ? "the plugin declares a dsh compatibility range that does not include the runtime in use, so the host rejects it before installing anything; please extend the supported dsh versions or publish a compatible release" : /\[packaging\]/i.test(message) ? "plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published npm package; please publish a complete package" : /\[registry-missing\]/i.test(message) ? "a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin" : kind === "network" ? "network connectivity issue on the user side (DNS, proxy, firewall, or a blocked connection)" : kind === "pluginPrepare" ? "plugin prepare/build script failed during install (packaging/distribution issue)" : kind === "pnpmIgnoredBuild" ? "plugin depends on a native module whose build script pnpm blocks by default (use a prebuilt variant)" : kind === "originRejected" ? "the request never reached the install flow — the local service rejected its origin (local environment issue)" : kind === "pnpmPolicy" ? pnpmPolicyHintOf(message) === "failPnpmTarballIntegrityHint" ? "pnpm rejected a lockfile entry without tarball integrity; inspect and back up the profile lockfile before resolving it again, keeping integrity checks enabled" : "the pnpm supply-chain policy on the user machine blocked the install (minimum release age for freshly published packages / untrusted origin)" : kind === "pnpmUnusedPatch" ? "the profile keeps a pnpm patch entry for an older dsh-plugin version, so pnpm aborted the install (local config issue)" : kind === "fileLocked" ? "a file in the profile is locked by another process on the user machine (local environment issue)" : kind === "accessDenied" ? "the system denied write access to a file in the profile on the user machine (local environment issue)" : kind === "fsUnavailable" ? "the local file system could not accept the write — no space left, read-only volume, or too many open file handles on the user machine (local environment issue)" : "plugin-side install failure";
+			const reason = kind === "hostIncompatible" ? "the plugin declares a dsh compatibility range that does not include the runtime in use, so the host rejects it before installing anything; please extend the supported dsh versions or publish a compatible release" : /\[packaging\]/i.test(message) ? "plugin distribution is incomplete — a file the package needs (its entry from main / exports, an entry a bundled patch mounts, or the patch declared by dsh.bundle.patch) is missing from the published npm package; please publish a complete package" : /\[registry-missing\]/i.test(message) ? "a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin" : kind === "network" ? "network connectivity issue on the user side (DNS, proxy, firewall, or a blocked connection)" : kind === "registryAuth" ? "the npm registry rejected the request with 401/403 — the configured registry needs credentials or blocks this network (local environment issue)" : kind === "pluginPrepare" ? "plugin prepare/build script failed during install (packaging/distribution issue)" : kind === "pnpmIgnoredBuild" ? "plugin depends on a native module whose build script pnpm blocks by default (use a prebuilt variant)" : kind === "originRejected" ? "the request never reached the install flow — the local service rejected its origin (local environment issue)" : kind === "pnpmPolicy" ? pnpmPolicyHintOf(message) === "failPnpmTarballIntegrityHint" ? "pnpm rejected a lockfile entry without tarball integrity; inspect and back up the profile lockfile before resolving it again, keeping integrity checks enabled" : "the pnpm supply-chain policy on the user machine blocked the install (minimum release age for freshly published packages / untrusted origin)" : kind === "pnpmUnusedPatch" ? "the profile keeps a pnpm patch entry for an older dsh-plugin version, so pnpm aborted the install (local config issue)" : kind === "fileLocked" ? "a file in the profile is locked by another process on the user machine (local environment issue)" : kind === "accessDenied" ? "the system denied write access to a file in the profile on the user machine (local environment issue)" : kind === "fsUnavailable" ? "the local file system could not accept the write — no space left, read-only volume, or too many open file handles on the user machine (local environment issue)" : "plugin-side install failure";
 			const code = coreErrorCode(message);
 			const build = (coreChars) => {
 				const body = [
@@ -2524,6 +2591,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			checkUpdatesOnStart: true,
 			proxy: "",
 			npmRegistry: "",
+			registryFallback: true,
 			enableNpmInstall: true,
 			logPath: ""
 		};
@@ -2920,6 +2988,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 							display: input.repo,
 							source: input.source,
 							mode: input.update ? "update" : void 0,
+							...input.pinVersion ? { version: input.pinVersion } : {},
 							...langKey ? { lang: langKey } : {},
 							...input.channel ? { installChannel: input.channel } : {},
 							...input.globalNpm && input.globalNpm.length > 0 ? { globalNpm: input.globalNpm } : {}
@@ -2972,7 +3041,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					updatedAt: p.dates?.repoUpdatedAt,
 					command: installCommandOf(p, true),
 					source: "catalog",
-					update: opts?.update
+					update: opts?.update,
+					pinVersion: opts?.pinVersion
 				});
 			};
 			/** 命令行安装：用户手输 npm 包名，走 custom 源（受安全开关控制）。
@@ -3821,7 +3891,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				target: "_blank",
 				rel: "noopener noreferrer",
 				title: t("failIssueHint")
-			}, t("failIssueBig")) : null]) : failureKind === "registryVersionStale" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failRegistryVersionStaleHint")) : failureKind === "pnpmLinkedDirMissing" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failPnpmLinkedDirMissingHint")) : failureKind === "fileLocked" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failFileLockedHint")) : failureKind === "accessDenied" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failAccessDeniedHint")) : failureKind === "fsUnavailable" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failFsUnavailableHint")) : failureKind === "originRejected" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failOriginRejectedHint", { profile: env?.profile ?? "<profile>" })) : failureKind === "network" ? (0, react.createElement)("div", null, [
+			}, t("failIssueBig")) : null]) : failureKind === "registryVersionStale" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failRegistryVersionStaleHint")) : failureKind === "pnpmLinkedDirMissing" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failPnpmLinkedDirMissingHint")) : failureKind === "fileLocked" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failFileLockedHint")) : failureKind === "accessDenied" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failAccessDeniedHint")) : failureKind === "fsUnavailable" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failFsUnavailableHint")) : failureKind === "originRejected" ? (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failOriginRejectedHint", { profile: env?.profile ?? "<profile>" })) : failureKind === "registryAuth" ? (() => {
+				const host = authRegistryHostOf(message);
+				return (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t(host ? "failRegistryAuthHint" : "failRegistryAuthHintNoHost", host ? { host } : void 0));
+			})() : failureKind === "network" ? (0, react.createElement)("div", null, [
 				(() => {
 					const target = unreachableTargetOf(message);
 					return target ? (0, react.createElement)("div", { className: Modal_module_css_default.failNetworkTarget }, t("failNetworkTarget", { url: target })) : null;
@@ -4455,6 +4528,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					if (kind === "accessDenied") return (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failAccessDeniedHint"));
 					if (kind === "fsUnavailable") return (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failFsUnavailableHint"));
 					if (kind === "originRejected") return (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t("failOriginRejectedHint", { profile: env?.profile ?? "<profile>" }));
+					if (kind === "registryAuth") {
+						const host = authRegistryHostOf(r.message);
+						return (0, react.createElement)("div", { className: Modal_module_css_default.failPrepareHint }, t(host ? "failRegistryAuthHint" : "failRegistryAuthHintNoHost", host ? { host } : void 0));
+					}
 					if (kind === "network") return (0, react.createElement)("div", null, [
 						(() => {
 							const target = unreachableTargetOf(r.message);
@@ -4692,40 +4769,40 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$9
 		});
 		var List_module_css_default = {
-			"diagBtn": "_3XaZHa_diagBtn",
-			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
 			"stateTitle": "_3XaZHa_stateTitle",
-			"card": "_3XaZHa_card",
-			"date": "_3XaZHa_date",
-			"fork": "_3XaZHa_fork",
-			"footer": "_3XaZHa_footer",
+			"cardHead": "_3XaZHa_cardHead",
 			"topics": "_3XaZHa_topics",
+			"stateActions": "_3XaZHa_stateActions",
+			"stats": "_3XaZHa_stats",
+			"fork": "_3XaZHa_fork",
+			"footLink": "_3XaZHa_footLink",
+			"footer": "_3XaZHa_footer",
+			"detailBtn": "_3XaZHa_detailBtn",
+			"versionBadge": "_3XaZHa_versionBadge",
+			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
+			"actions": "_3XaZHa_actions",
+			"date": "_3XaZHa_date",
+			"installBtn": "_3XaZHa_installBtn",
+			"desc": "_3XaZHa_desc",
+			"moreSentinel": "_3XaZHa_moreSentinel",
 			"body": "_3XaZHa_body",
+			"stateDesc": "_3XaZHa_stateDesc",
+			"cardMain": "_3XaZHa_cardMain",
+			"diagBtn": "_3XaZHa_diagBtn",
+			"installBtnCopied": "_3XaZHa_installBtnCopied",
 			"categoryBadge": "_3XaZHa_categoryBadge",
 			"verified": "_3XaZHa_verified",
-			"star": "_3XaZHa_star",
-			"cardHead": "_3XaZHa_cardHead",
-			"desc": "_3XaZHa_desc",
-			"topic": "_3XaZHa_topic",
-			"list": "_3XaZHa_list",
-			"actions": "_3XaZHa_actions",
-			"updateBadge": "_3XaZHa_updateBadge",
-			"moreSentinel": "_3XaZHa_moreSentinel",
-			"cardTitle": "_3XaZHa_cardTitle",
-			"cardSide": "_3XaZHa_cardSide",
-			"footLink": "_3XaZHa_footLink",
-			"installBtn": "_3XaZHa_installBtn",
-			"stats": "_3XaZHa_stats",
 			"state": "_3XaZHa_state",
-			"stateActions": "_3XaZHa_stateActions",
-			"installBtnCopied": "_3XaZHa_installBtnCopied",
-			"installBtnUpdate": "_3XaZHa_installBtnUpdate",
 			"retryBtn": "_3XaZHa_retryBtn",
-			"versionBadge": "_3XaZHa_versionBadge",
-			"cardMain": "_3XaZHa_cardMain",
+			"star": "_3XaZHa_star",
+			"card": "_3XaZHa_card",
+			"list": "_3XaZHa_list",
+			"installBtnInstalled": "_3XaZHa_installBtnInstalled",
 			"uninstallBtn": "_3XaZHa_uninstallBtn",
-			"detailBtn": "_3XaZHa_detailBtn",
-			"stateDesc": "_3XaZHa_stateDesc"
+			"cardSide": "_3XaZHa_cardSide",
+			"updateBadge": "_3XaZHa_updateBadge",
+			"cardTitle": "_3XaZHa_cardTitle",
+			"topic": "_3XaZHa_topic"
 		};
 		//#endregion
 		//#region src/client/hooks/useIncrementalList.ts
@@ -4930,16 +5007,16 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$8
 		});
 		var SectionTabs_module_css_default = {
-			"tabCount": "_7tvizq_tabCount",
-			"tab": "_7tvizq_tab",
-			"noticeIcon": "_7tvizq_noticeIcon",
-			"tabLabel": "_7tvizq_tabLabel",
-			"tabCountActive": "_7tvizq_tabCountActive",
-			"noticeBtn": "_7tvizq_noticeBtn",
-			"root": "_7tvizq_root",
-			"tabIcon": "_7tvizq_tabIcon",
 			"noticeCount": "_7tvizq_noticeCount",
-			"tabActive": "_7tvizq_tabActive"
+			"tabCount": "_7tvizq_tabCount",
+			"tabActive": "_7tvizq_tabActive",
+			"tabLabel": "_7tvizq_tabLabel",
+			"tabIcon": "_7tvizq_tabIcon",
+			"tabCountActive": "_7tvizq_tabCountActive",
+			"tab": "_7tvizq_tab",
+			"root": "_7tvizq_root",
+			"noticeBtn": "_7tvizq_noticeBtn",
+			"noticeIcon": "_7tvizq_noticeIcon"
 		};
 		//#endregion
 		//#region src/client/components/layout/SectionTabs.tsx
@@ -5015,42 +5092,42 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$7
 		});
 		var InstalledView_module_css_default = {
-			"rowTitleLine": "_1nXeGW_rowTitleLine",
-			"segBtn": "_1nXeGW_segBtn",
-			"statusInactive": "_1nXeGW_statusInactive",
-			"rowRepo": "_1nXeGW_rowRepo",
-			"rowUninstall": "_1nXeGW_rowUninstall",
 			"root": "_1nXeGW_root",
-			"rowDetail": "_1nXeGW_rowDetail",
-			"toolbar": "_1nXeGW_toolbar",
-			"rowRestart": "_1nXeGW_rowRestart",
-			"emptyTitle": "_1nXeGW_emptyTitle",
-			"rowCategory": "_1nXeGW_rowCategory",
-			"searchInput": "_1nXeGW_searchInput",
-			"segLabel": "_1nXeGW_segLabel",
-			"rowUpdate": "_1nXeGW_rowUpdate",
 			"rowSourceTagHub": "_1nXeGW_rowSourceTagHub",
-			"updateBadge": "_1nXeGW_updateBadge",
 			"statusPending": "_1nXeGW_statusPending",
-			"exampleBadge": "_1nXeGW_exampleBadge",
-			"rowDesc": "_1nXeGW_rowDesc",
-			"rowMeta": "_1nXeGW_rowMeta",
-			"segRow": "_1nXeGW_segRow",
+			"toolbar": "_1nXeGW_toolbar",
+			"rowCategory": "_1nXeGW_rowCategory",
+			"rowUninstall": "_1nXeGW_rowUninstall",
+			"segBtn": "_1nXeGW_segBtn",
+			"searchInput": "_1nXeGW_searchInput",
+			"updateBadge": "_1nXeGW_updateBadge",
 			"rowTitle": "_1nXeGW_rowTitle",
-			"searchWrap": "_1nXeGW_searchWrap",
-			"segGroup": "_1nXeGW_segGroup",
-			"segBtnActive": "_1nXeGW_segBtnActive",
-			"empty": "_1nXeGW_empty",
-			"statusDot": "_1nXeGW_statusDot",
-			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
-			"rowSourceTag": "_1nXeGW_rowSourceTag",
-			"emptyDesc": "_1nXeGW_emptyDesc",
-			"list": "_1nXeGW_list",
+			"rowDetail": "_1nXeGW_rowDetail",
+			"rowTitleLine": "_1nXeGW_rowTitleLine",
 			"row": "_1nXeGW_row",
 			"versionBadge": "_1nXeGW_versionBadge",
-			"rowActions": "_1nXeGW_rowActions",
+			"segBtnActive": "_1nXeGW_segBtnActive",
+			"list": "_1nXeGW_list",
+			"rowSourceTag": "_1nXeGW_rowSourceTag",
+			"statusInactive": "_1nXeGW_statusInactive",
+			"rowSourceTagManual": "_1nXeGW_rowSourceTagManual",
+			"segLabel": "_1nXeGW_segLabel",
+			"exampleBadge": "_1nXeGW_exampleBadge",
+			"rowMeta": "_1nXeGW_rowMeta",
+			"rowDesc": "_1nXeGW_rowDesc",
+			"empty": "_1nXeGW_empty",
+			"rowRestart": "_1nXeGW_rowRestart",
+			"exampleRow": "_1nXeGW_exampleRow",
+			"searchWrap": "_1nXeGW_searchWrap",
+			"rowUpdate": "_1nXeGW_rowUpdate",
+			"emptyTitle": "_1nXeGW_emptyTitle",
+			"segGroup": "_1nXeGW_segGroup",
+			"segRow": "_1nXeGW_segRow",
+			"statusDot": "_1nXeGW_statusDot",
+			"rowRepo": "_1nXeGW_rowRepo",
 			"rowMain": "_1nXeGW_rowMain",
-			"exampleRow": "_1nXeGW_exampleRow"
+			"rowActions": "_1nXeGW_rowActions",
+			"emptyDesc": "_1nXeGW_emptyDesc"
 		};
 		//#endregion
 		//#region src/client/components/views/InstalledView.tsx
@@ -5295,26 +5372,26 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 		});
 		var CustomInstallView_module_css_default = {
 			"helpCmd": "zISxCG_helpCmd",
-			"installCard": "zISxCG_installCard",
-			"channelOffBtn": "zISxCG_channelOffBtn",
-			"installError": "zISxCG_installError",
-			"installCardDisabled": "zISxCG_installCardDisabled",
-			"root": "zISxCG_root",
-			"installCards": "zISxCG_installCards",
 			"installInputError": "zISxCG_installInputError",
-			"desc": "zISxCG_desc",
-			"installHelpBtn": "zISxCG_installHelpBtn",
-			"installBtn": "zISxCG_installBtn",
-			"channelOffText": "zISxCG_channelOffText",
-			"installExample": "zISxCG_installExample",
-			"helpNote": "zISxCG_helpNote",
+			"installCards": "zISxCG_installCards",
+			"channelOff": "zISxCG_channelOff",
+			"installInput": "zISxCG_installInput",
 			"installRow": "zISxCG_installRow",
 			"installCardHead": "zISxCG_installCardHead",
-			"installInput": "zISxCG_installInput",
+			"installError": "zISxCG_installError",
+			"root": "zISxCG_root",
+			"installExample": "zISxCG_installExample",
+			"installCardDisabled": "zISxCG_installCardDisabled",
 			"helpBody": "zISxCG_helpBody",
+			"channelOffText": "zISxCG_channelOffText",
 			"helpLine": "zISxCG_helpLine",
-			"channelOff": "zISxCG_channelOff",
-			"installLabel": "zISxCG_installLabel"
+			"installLabel": "zISxCG_installLabel",
+			"installHelpBtn": "zISxCG_installHelpBtn",
+			"installBtn": "zISxCG_installBtn",
+			"helpNote": "zISxCG_helpNote",
+			"installCard": "zISxCG_installCard",
+			"desc": "zISxCG_desc",
+			"channelOffBtn": "zISxCG_channelOffBtn"
 		};
 		//#endregion
 		//#region src/client/components/views/CustomInstallView.tsx
@@ -5470,30 +5547,30 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$5
 		});
 		var SettingsView_module_css_default = {
-			"settingRowStack": "_506LLG_settingRowStack",
-			"navItemActive": "_506LLG_navItemActive",
-			"settingLabel": "_506LLG_settingLabel",
-			"proxyControl": "_506LLG_proxyControl",
-			"pageTitle": "_506LLG_pageTitle",
-			"pageDesc": "_506LLG_pageDesc",
-			"card": "_506LLG_card",
-			"settingTitle": "_506LLG_settingTitle",
 			"settingRow": "_506LLG_settingRow",
-			"settingDesc": "_506LLG_settingDesc",
-			"settingControl": "_506LLG_settingControl",
-			"proxyHint": "_506LLG_proxyHint",
-			"root": "_506LLG_root",
-			"proxyHintOk": "_506LLG_proxyHintOk",
-			"controlDropdown": "_506LLG_controlDropdown",
-			"resetBtn": "_506LLG_resetBtn",
-			"navIcon": "_506LLG_navIcon",
-			"pageHeader": "_506LLG_pageHeader",
-			"settingControlStack": "_506LLG_settingControlStack",
-			"navItem": "_506LLG_navItem",
-			"textInput": "_506LLG_textInput",
 			"sidebar": "_506LLG_sidebar",
+			"pageDesc": "_506LLG_pageDesc",
+			"pageTitle": "_506LLG_pageTitle",
+			"pageHeader": "_506LLG_pageHeader",
+			"settingLabel": "_506LLG_settingLabel",
+			"navItem": "_506LLG_navItem",
+			"settingTitle": "_506LLG_settingTitle",
+			"controlDropdown": "_506LLG_controlDropdown",
+			"proxyControl": "_506LLG_proxyControl",
+			"settingControl": "_506LLG_settingControl",
+			"textInput": "_506LLG_textInput",
+			"settingDesc": "_506LLG_settingDesc",
+			"navIcon": "_506LLG_navIcon",
+			"content": "_506LLG_content",
+			"settingRowStack": "_506LLG_settingRowStack",
+			"proxyHint": "_506LLG_proxyHint",
 			"proxyHintFail": "_506LLG_proxyHintFail",
-			"content": "_506LLG_content"
+			"settingControlStack": "_506LLG_settingControlStack",
+			"proxyHintOk": "_506LLG_proxyHintOk",
+			"root": "_506LLG_root",
+			"resetBtn": "_506LLG_resetBtn",
+			"navItemActive": "_506LLG_navItemActive",
+			"card": "_506LLG_card"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Dropdown.module.css.mjs
@@ -5512,18 +5589,18 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$4
 		});
 		var Dropdown_module_css_default = {
-			"dropdownLabel": "B_Gxsq_dropdownLabel",
+			"dropdownFill": "B_Gxsq_dropdownFill",
+			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen",
 			"dropdownItem": "B_Gxsq_dropdownItem",
-			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
-			"dropdownArrow": "B_Gxsq_dropdownArrow",
-			"dropdownCount": "B_Gxsq_dropdownCount",
-			"dropdownPanel": "B_Gxsq_dropdownPanel",
 			"dropdownBtn": "B_Gxsq_dropdownBtn",
-			"dropdown": "B_Gxsq_dropdown",
+			"dropdownArrow": "B_Gxsq_dropdownArrow",
 			"dropdownItemLabel": "B_Gxsq_dropdownItemLabel",
 			"dropdownCountActive": "B_Gxsq_dropdownCountActive",
-			"dropdownFill": "B_Gxsq_dropdownFill",
-			"dropdownArrowOpen": "B_Gxsq_dropdownArrowOpen"
+			"dropdown": "B_Gxsq_dropdown",
+			"dropdownItemActive": "B_Gxsq_dropdownItemActive",
+			"dropdownCount": "B_Gxsq_dropdownCount",
+			"dropdownLabel": "B_Gxsq_dropdownLabel",
+			"dropdownPanel": "B_Gxsq_dropdownPanel"
 		};
 		//#endregion
 		//#region \0dsh-css:src/client/styles/Toggle.module.css.mjs
@@ -5542,8 +5619,8 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$3
 		});
 		var Toggle_module_css_default = {
-			"toggleOn": "k-cD4G_toggleOn",
 			"knob": "k-cD4G_knob",
+			"toggleOn": "k-cD4G_toggleOn",
 			"toggle": "k-cD4G_toggle"
 		};
 		//#endregion
@@ -5641,29 +5718,29 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$2
 		});
 		var DiagnosticsView_module_css_default = {
-			"diagPulse": "k9eRya_diagPulse",
-			"envCopyBtn": "k9eRya_envCopyBtn",
-			"panel": "k9eRya_panel",
-			"envRow": "k9eRya_envRow",
-			"envDesc": "k9eRya_envDesc",
-			"summaryRunning": "k9eRya_summaryRunning",
-			"row": "k9eRya_row",
-			"display": "k9eRya_display",
-			"headHint": "k9eRya_headHint",
-			"head": "k9eRya_head",
-			"envTitle": "k9eRya_envTitle",
-			"badgeRunning": "k9eRya_badgeRunning",
-			"runBtn": "k9eRya_runBtn",
-			"badgeOk": "k9eRya_badgeOk",
-			"badgeIdle": "k9eRya_badgeIdle",
-			"meta": "k9eRya_meta",
 			"envLabel": "k9eRya_envLabel",
-			"summary": "k9eRya_summary",
-			"badgeFail": "k9eRya_badgeFail",
-			"summaryFail": "k9eRya_summaryFail",
-			"summaryOk": "k9eRya_summaryOk",
+			"display": "k9eRya_display",
 			"badge": "k9eRya_badge",
-			"name": "k9eRya_name"
+			"head": "k9eRya_head",
+			"envCopyBtn": "k9eRya_envCopyBtn",
+			"badgeIdle": "k9eRya_badgeIdle",
+			"panel": "k9eRya_panel",
+			"row": "k9eRya_row",
+			"badgeOk": "k9eRya_badgeOk",
+			"envTitle": "k9eRya_envTitle",
+			"badgeFail": "k9eRya_badgeFail",
+			"runBtn": "k9eRya_runBtn",
+			"summaryOk": "k9eRya_summaryOk",
+			"headHint": "k9eRya_headHint",
+			"name": "k9eRya_name",
+			"summaryRunning": "k9eRya_summaryRunning",
+			"envDesc": "k9eRya_envDesc",
+			"envRow": "k9eRya_envRow",
+			"badgeRunning": "k9eRya_badgeRunning",
+			"meta": "k9eRya_meta",
+			"diagPulse": "k9eRya_diagPulse",
+			"summary": "k9eRya_summary",
+			"summaryFail": "k9eRya_summaryFail"
 		};
 		//#endregion
 		//#region src/client/components/views/DiagnosticsView.tsx
@@ -5838,57 +5915,57 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			css: css$1
 		});
 		var LogsView_module_css_default = {
-			"catUpdate": "_3j77BW_catUpdate",
-			"headActions": "_3j77BW_headActions",
-			"pathDialogRow": "_3j77BW_pathDialogRow",
-			"linkBtn": "_3j77BW_linkBtn",
-			"pathDialogReset": "_3j77BW_pathDialogReset",
-			"catDiagnostics": "_3j77BW_catDiagnostics",
-			"empty": "_3j77BW_empty",
-			"searchInput": "_3j77BW_searchInput",
-			"footActions": "_3j77BW_footActions",
-			"badgeDebug": "_3j77BW_badgeDebug",
-			"pathLabel": "_3j77BW_pathLabel",
 			"clearBtn": "_3j77BW_clearBtn",
-			"footFail": "_3j77BW_footFail",
-			"footPath": "_3j77BW_footPath",
-			"footCount": "_3j77BW_footCount",
-			"btn": "_3j77BW_btn",
-			"badgeError": "_3j77BW_badgeError",
-			"catBadge": "_3j77BW_catBadge",
-			"moreEnd": "_3j77BW_moreEnd",
-			"catSettings": "_3j77BW_catSettings",
-			"filterChipActive": "_3j77BW_filterChipActive",
-			"message": "_3j77BW_message",
-			"pathDraft": "_3j77BW_pathDraft",
-			"pathRow": "_3j77BW_pathRow",
-			"entry": "_3j77BW_entry",
-			"catInstall": "_3j77BW_catInstall",
-			"pathDialog": "_3j77BW_pathDialog",
-			"search": "_3j77BW_search",
-			"head": "_3j77BW_head",
-			"logList": "_3j77BW_logList",
-			"pathDialogDesc": "_3j77BW_pathDialogDesc",
-			"more": "_3j77BW_more",
-			"event": "_3j77BW_event",
-			"panel": "_3j77BW_panel",
-			"previewRow": "_3j77BW_previewRow",
-			"pathText": "_3j77BW_pathText",
-			"filterBar": "_3j77BW_filterBar",
-			"filterChip": "_3j77BW_filterChip",
-			"foot": "_3j77BW_foot",
-			"badgeWarn": "_3j77BW_badgeWarn",
 			"pathDialogFoot": "_3j77BW_pathDialogFoot",
-			"pathDialogHint": "_3j77BW_pathDialogHint",
-			"badgeInfo": "_3j77BW_badgeInfo",
-			"list": "_3j77BW_list",
-			"time": "_3j77BW_time",
-			"badgeSuccess": "_3j77BW_badgeSuccess",
 			"catUninstall": "_3j77BW_catUninstall",
-			"badge": "_3j77BW_badge",
-			"actions": "_3j77BW_actions",
+			"footActions": "_3j77BW_footActions",
+			"badgeError": "_3j77BW_badgeError",
+			"head": "_3j77BW_head",
+			"pathDialogRow": "_3j77BW_pathDialogRow",
+			"pathDialog": "_3j77BW_pathDialog",
+			"pathRow": "_3j77BW_pathRow",
+			"btn": "_3j77BW_btn",
+			"entry": "_3j77BW_entry",
+			"pathText": "_3j77BW_pathText",
+			"badgeDebug": "_3j77BW_badgeDebug",
+			"filterChipActive": "_3j77BW_filterChipActive",
+			"empty": "_3j77BW_empty",
+			"catInstall": "_3j77BW_catInstall",
 			"headHint": "_3j77BW_headHint",
-			"catSystem": "_3j77BW_catSystem"
+			"list": "_3j77BW_list",
+			"pathDialogDesc": "_3j77BW_pathDialogDesc",
+			"pathDraft": "_3j77BW_pathDraft",
+			"logList": "_3j77BW_logList",
+			"panel": "_3j77BW_panel",
+			"search": "_3j77BW_search",
+			"searchInput": "_3j77BW_searchInput",
+			"pathLabel": "_3j77BW_pathLabel",
+			"more": "_3j77BW_more",
+			"badgeSuccess": "_3j77BW_badgeSuccess",
+			"event": "_3j77BW_event",
+			"badgeInfo": "_3j77BW_badgeInfo",
+			"catDiagnostics": "_3j77BW_catDiagnostics",
+			"previewRow": "_3j77BW_previewRow",
+			"badgeWarn": "_3j77BW_badgeWarn",
+			"actions": "_3j77BW_actions",
+			"filterBar": "_3j77BW_filterBar",
+			"linkBtn": "_3j77BW_linkBtn",
+			"headActions": "_3j77BW_headActions",
+			"catUpdate": "_3j77BW_catUpdate",
+			"catSettings": "_3j77BW_catSettings",
+			"footFail": "_3j77BW_footFail",
+			"foot": "_3j77BW_foot",
+			"catSystem": "_3j77BW_catSystem",
+			"moreEnd": "_3j77BW_moreEnd",
+			"pathDialogReset": "_3j77BW_pathDialogReset",
+			"footCount": "_3j77BW_footCount",
+			"pathDialogHint": "_3j77BW_pathDialogHint",
+			"catBadge": "_3j77BW_catBadge",
+			"footPath": "_3j77BW_footPath",
+			"filterChip": "_3j77BW_filterChip",
+			"badge": "_3j77BW_badge",
+			"message": "_3j77BW_message",
+			"time": "_3j77BW_time"
 		};
 		//#endregion
 		//#region src/client/components/modals/LogsModal.tsx
@@ -6595,6 +6672,14 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					className: `${SettingsView_module_css_default.controlDropdown} ${Dropdown_module_css_default.dropdownFill}`
 				})
 			}), (0, react.createElement)(SettingRow, {
+				title: t("settingsRegistryFallback"),
+				desc: t("settingsRegistryFallbackDesc"),
+				children: (0, react.createElement)(Toggle, {
+					checked: settings.registryFallback,
+					onChange: (v) => update({ registryFallback: v }),
+					title: t("settingsRegistryFallback")
+				})
+			}), (0, react.createElement)(SettingRow, {
 				title: t("settingsProxy"),
 				desc: t("settingsProxyDesc"),
 				stack: true,
@@ -6719,6 +6804,9 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 			const [confirmPlugin, setConfirmPlugin] = (0, react.useState)(null);
 			/** 弹窗动作是否为「更新」：已安装插件点「更新」→ 走同一条 add 命令原位覆盖重装，文案区分安装/更新 */
 			const [confirmIsUpdate, setConfirmIsUpdate] = (0, react.useState)(false);
+			/** Hub 自我更新指定的精确版本：连续发版时提示的是「已过供应链门禁」的旧一版，
+			*  安装必须钉在该版本上，否则又会被 @latest 带回门禁内的最新版。 */
+			const [confirmPinVersion, setConfirmPinVersion] = (0, react.useState)(null);
 			/** 命令行安装确认弹窗：记录待安装的裸目标（npm 包名）——
 			*  与应用商店同一套确认/进度/结果弹窗，提供时 plugin 传 null 走 customTarget 模式 */
 			const [confirmCustomTarget, setConfirmCustomTarget] = (0, react.useState)(null);
@@ -7074,6 +7162,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				onInstall: (p, opts) => {
 					setInstallDone(false);
 					setConfirmIsUpdate(opts?.update ?? false);
+					setConfirmPinVersion(null);
 					queue.clearModalTask();
 					setConfirmPlugin(p);
 				},
@@ -7099,6 +7188,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					setDetailItem(null);
 					setInstallDone(false);
 					setConfirmIsUpdate(true);
+					setConfirmPinVersion(null);
 					queue.clearModalTask();
 					setConfirmPlugin(item.plugin);
 				},
@@ -7149,7 +7239,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 				openSection: settingsSection,
 				onConsumedOpenSection: () => setSettingsSection(null)
 			}), showHubUpdate && (0, react.createElement)(HubUpdateModal, {
-				info: catalog.hubUpdateInfo ?? { version: "2.0.6" },
+				info: catalog.hubUpdateTarget ?? catalog.hubUpdateInfo ?? { version: "2.0.6" },
 				state: catalog.hubUpdateState,
 				currentVersion: catalog.hubCurrentVersion,
 				lang,
@@ -7160,6 +7250,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					if (hubEntry) {
 						setInstallDone(false);
 						setConfirmIsUpdate(true);
+						setConfirmPinVersion(catalog.hubUpdateTarget?.version ?? null);
 						queue.clearModalTask();
 						setConfirmPlugin(hubEntry);
 					}
@@ -7191,6 +7282,7 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					setShowNotifications(false);
 					setInstallDone(false);
 					setConfirmIsUpdate(true);
+					setConfirmPinVersion(null);
 					queue.clearModalTask();
 					setConfirmPlugin(plugin);
 				},
@@ -7249,7 +7341,10 @@ window.__ModuleLoader__.load({ id: "dsh-plugin", factory: (require) => {
 					if (reload) window.location.reload();
 				},
 				onCopy: () => copyCommand(confirmPlugin),
-				onInstall: () => queue.installNow(confirmPlugin, confirmIsUpdate ? { update: true } : void 0),
+				onInstall: () => queue.installNow(confirmPlugin, confirmIsUpdate ? {
+					update: true,
+					pinVersion: confirmPinVersion ?? void 0
+				} : void 0),
 				onRestart: () => setShowRestartConfirm(true)
 			}), confirmCustomTarget && (0, react.createElement)(InstallModal, {
 				plugin: null,

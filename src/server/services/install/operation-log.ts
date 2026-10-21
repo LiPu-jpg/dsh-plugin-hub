@@ -6,36 +6,71 @@
  * 失败回捞：DSH 有时只把一行摘要（`dsh: plugin command failed; diagnostics: <path>`）
  * 回显到控制台，真正的 pnpm 报错写进该路径的 operation 日志。这里从输出里解析出该路径
  * 并读取其尾部，补进失败信息 —— 否则前端拿不到任何错误特征，只能把失败归为「未知」。
- * 只允许读 DSH 自己的 operation 日志（路径含 .plugin-manager 且以 pnpm.log 结尾），
+ * 只允许读 profile 目录下的 pnpm.log（dsh 自己的 operation 日志），
  * 防止插件把任意路径打印进日志造成越权读取；任何异常都静默降级（返回 null），
  * 不改变原有失败处理。
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+import { basename, join, resolve, sep } from 'node:path'
 import { CAPTURE_LIMIT_BYTES } from './install-types.ts'
+
+/** 去掉 ANSI 颜色码：宿主的摘要行可能带终端着色，直接匹配路径会失败。 */
+function stripAnsi(text: string): string {
+  return text.replace(/\x1b\[[0-9;]*m/g, '')
+}
 
 /**
  * 从 DSH 输出里解析 operation 日志路径（`diagnostics: <path>`）。
- * 只认 DSH 的 operation 日志：路径含 `.plugin-manager` 且以 `pnpm.log` 结尾；
- * 不是这种路径（或压根没有该行）返回 null，调用方据此跳过回捞。
+ * 去掉首尾引号与句末标点（不同版本/语言的摘要行尾部可能带 `。`、`.`、`)`）；
+ * 相对路径原样返回，由读取方按 profile 目录解析。
  */
 export function operationLogPathOf(output: string): string | null {
   for (const raw of output.split(/\r?\n/)) {
-    const m = /diagnostics:\s*"?(.+?)"?\s*$/i.exec(raw.trim())
+    // 兼容纯文本与 JSON 包裹两种形态：`diagnostics: <path>` / `"diagnostics": "<path>"}`
+    const m = /"?diagnostics"?\s*:\s*(.+)$/i.exec(stripAnsi(raw).trim())
     if (m === null) continue
-    const path = m[1].trim()
-    if (!path.includes('.plugin-manager') || !path.toLowerCase().endsWith('pnpm.log')) continue
-    return path
+    let path = m[1]
+      .trim()
+      .replace(/[.,;:，。；、)\]}]+$/, '')
+      .trim()
+    // JSON 形态：引号包裹且反斜杠被转义过，按字符串字面量还原；普通文本里的引号直接剥掉
+    if (path.startsWith('"') && path.endsWith('"')) {
+      try {
+        const parsed: unknown = JSON.parse(path)
+        if (typeof parsed === 'string') path = parsed
+      } catch {
+        path = path.slice(1, -1)
+      }
+    }
+    path = path.trim()
+    // URL 不是本地日志：避免把网络地址当文件读
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(path)) continue
+    if (path.toLowerCase().endsWith('pnpm.log')) return path
   }
   return null
 }
 
 /**
- * 回捞 operation 日志尾部，作为失败详情返回；拿不到（无路径 / 文件不存在 / 读失败 /
- * 内容为空）返回 null。尾部截到与子进程输出相同的上限，避免超大日志撑爆内存与消息。
+ * 只允许读 profile 目录下的 pnpm.log（dsh 自己的操作日志）：
+ * 绝对路径必须落在该目录内，相对路径按该目录解析。
+ * 未提供 profileDir 时退回旧口径（路径须含 .plugin-manager），防止插件打印任意路径造成越权读取。
  */
-export function backfillOperationLog(output: string): string | null {
-  const path = operationLogPathOf(output)
+function allowedLogPath(raw: string, profileDir?: string): string | null {
+  const path = resolve(profileDir ?? '', raw)
+  if (basename(path).toLowerCase() !== 'pnpm.log') return null
+  if (profileDir === undefined) return path.includes('.plugin-manager') ? path : null
+  const root = resolve(profileDir)
+  return path.startsWith(`${root}${sep}`) ? path : null
+}
+
+/**
+ * 回捞 operation 日志尾部，作为失败详情返回；拿不到（无路径 / 文件不存在 / 读失败 /
+ * 内容为空 / 路径越界）返回 null。尾部截到与子进程输出相同的上限。
+ */
+export function backfillOperationLog(output: string, profileDir?: string): string | null {
+  const raw = operationLogPathOf(output)
+  if (raw === null) return null
+  const path = allowedLogPath(raw, profileDir)
   if (path === null) return null
   try {
     const text = readFileSync(path, 'utf8').trim()
@@ -44,6 +79,18 @@ export function backfillOperationLog(output: string): string | null {
   } catch {
     return null
   }
+}
+
+/**
+ * 输出里是否有 dsh 自己的内容 —— 只有 `[exit N]`、`[install-channel]`、`[timed out]`
+ * 这类本队列自己打的标记时返回 false。用于把「宿主什么都没回显」的失败显式留痕，
+ * 否则上报正文只剩退出码，无从排查。
+ */
+export function hasSubstantiveOutput(output: string): boolean {
+  return output.split(/\r?\n/).some((raw) => {
+    const line = raw.trim()
+    return line !== '' && !/^\[(?:exit\b|timed out\]|install-channel\]|stale pipe\]|error\]|pnpm log\])/.test(line)
+  })
 }
 
 /**

@@ -15,7 +15,7 @@ import { CloseIcon, ConfirmIcon, CopyIcon, LinkIcon } from '../ui/icons.tsx'
 import { ProgressView } from './ProgressView.tsx'
 import { installCommandOf } from '../../logic/install-command.ts'
 import { pluginDetailUrl, pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
-import { classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import { classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf } from '../../logic/failures.ts'
 import type { FailureAction } from '../../logic/failures.ts'
 
 /** 完成结果视图：绿色对勾 + 标题/描述；
@@ -530,6 +530,14 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
               // 请求来源没通过本地 hub 服务的校验（服务端 403 untrusted origin）：请求根本没进
               // 安装流程，与插件无关 —— 引导从本机地址重新打开市场，不引导提 Issue
               ? h('div', { className: styles.failPrepareHint }, t('failOriginRejectedHint', { profile: env?.profile ?? '<profile>' }))
+              : failureKind === 'registryAuth'
+              // npm 源返回 401/403：私有源需要凭据，或当前网络/IP 不被允许 —— 本机环境问题，
+              // 给「配认证 / 换回官方源 / 切公共镜像」指引，不引导提 Issue
+              ? (() => {
+                const host = authRegistryHostOf(message)
+                return h('div', { className: styles.failPrepareHint },
+                  t(host ? 'failRegistryAuthHint' : 'failRegistryAuthHintNoHost', host ? { host } : undefined))
+              })()
               : failureKind === 'network'
               // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：
               // 是本机网络不通或代理有问题，不是插件问题 —— 提示检查网络 + 直达「系统诊断」，

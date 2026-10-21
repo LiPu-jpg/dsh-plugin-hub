@@ -72,6 +72,10 @@ export interface QueueItem {
     env?: NodeJS.ProcessEnv
     globalNpm?: string[]
     installChannel?: 'npm'
+    /** npm 源候选（首选在前）：传输层失败时按顺序换源重试 */
+    registries?: string[]
+    /** 精确安装 spec（Hub 自我更新钉版本） */
+    installSpec?: string
   }
 }
 

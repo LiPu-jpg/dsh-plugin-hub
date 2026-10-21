@@ -14,7 +14,7 @@ import type { MouseEvent } from 'react'
 import styles from '../../styles/Modal.module.css'
 import type { EnvInfo, Translate } from '../../types.ts'
 import type { NotificationRecord } from '../../logic/failures.ts'
-import { actionOfRecord, classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf } from '../../logic/failures.ts'
+import { actionOfRecord, classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf } from '../../logic/failures.ts'
 import type { PendingRestart, QueueTask } from '../../hooks/useTaskQueue.ts'
 import { pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { CloseIcon } from '../ui/icons.tsx'
@@ -396,6 +396,13 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // 请求来源没通过本地 hub 服务的校验（服务端 403 untrusted origin）：请求根本没进
                       // 安装流程，与插件无关 —— 引导从本机地址重新打开市场，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failOriginRejectedHint', { profile: env?.profile ?? '<profile>' }))
+                    }
+                    if (kind === 'registryAuth') {
+                      // npm 源返回 401/403：私有源需要凭据，或当前网络/IP 不被允许 —— 本机环境问题，
+                      // 给「配认证 / 换回官方源 / 切公共镜像」指引，不引导提 Issue
+                      const host = authRegistryHostOf(r.message)
+                      return h('div', { className: styles.failPrepareHint },
+                        t(host ? 'failRegistryAuthHint' : 'failRegistryAuthHintNoHost', host ? { host } : undefined))
                     }
                     if (kind === 'network') {
                       // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：

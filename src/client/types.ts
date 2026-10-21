@@ -108,6 +108,19 @@ export interface HubUpdateInfo {
   publishedAt?: string | null
   /** Markdown 变更记录；可传字符串，或 { zh, en } 双语言对象按界面语言取 */
   notes?: string | Record<string, string> | null
+  /**
+   * 最近若干发版（含最新版），按版本号降序无关、由客户端自行排序。
+   * 用途：连续快速发版时，最新版往往还在 pnpm 的 24h 供应链门禁内；
+   * 客户端据此回退到「更早、但已过门禁」的版本提示更新，而不是整体跳过。
+   */
+  recentVersions?: HubUpdateVersion[]
+}
+
+/** 单个发版记录：版本号 + 与 npm registry 同源的发布时间 + 该版本变更记录。 */
+export interface HubUpdateVersion {
+  version: string
+  publishedAt?: string | null
+  notes?: string | Record<string, string> | null
 }
 
 /**

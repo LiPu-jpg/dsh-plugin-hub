@@ -76,6 +76,9 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
   const [confirmPlugin, setConfirmPlugin] = useState<HubPlugin | null>(null)
   /** 弹窗动作是否为「更新」：已安装插件点「更新」→ 走同一条 add 命令原位覆盖重装，文案区分安装/更新 */
   const [confirmIsUpdate, setConfirmIsUpdate] = useState(false)
+  /** Hub 自我更新指定的精确版本：连续发版时提示的是「已过供应链门禁」的旧一版，
+   *  安装必须钉在该版本上，否则又会被 @latest 带回门禁内的最新版。 */
+  const [confirmPinVersion, setConfirmPinVersion] = useState<string | null>(null)
   /** 命令行安装确认弹窗：记录待安装的裸目标（npm 包名）——
    *  与应用商店同一套确认/进度/结果弹窗，提供时 plugin 传 null 走 customTarget 模式 */
   const [confirmCustomTarget, setConfirmCustomTarget] = useState<string | null>(null)
@@ -450,6 +453,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
           onInstall: (p, opts) => {
             setInstallDone(false)
             setConfirmIsUpdate(opts?.update ?? false)
+            setConfirmPinVersion(null)
             // 与卸载一致：重置弹窗关联任务，避免新弹窗误匹配到进行中的任务而禁用安装按钮
             queue.clearModalTask()
             setConfirmPlugin(p)
@@ -484,6 +488,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
               setDetailItem(null)
               setInstallDone(false)
               setConfirmIsUpdate(true)
+              setConfirmPinVersion(null)
               queue.clearModalTask()
               setConfirmPlugin(item.plugin)
             },
@@ -547,7 +552,8 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
     // 暂缓提示显示同一标题但只给「稍后再说」，无更新显示当前版本 + 记录 + 「已是最新」。
     // 版本号与本机版本一律由 hubUpdateState / hubCurrentVersion 决定，不用远端版号冒充本机。
     showHubUpdate && h(HubUpdateModal, {
-      info: catalog.hubUpdateInfo ?? { version: PLUGIN_VERSION },
+      // 提示目标是「已过供应链门禁」的版本，可能不是 latest —— 展示它与它的变更记录
+      info: catalog.hubUpdateTarget ?? catalog.hubUpdateInfo ?? { version: PLUGIN_VERSION },
       state: catalog.hubUpdateState,
       currentVersion: catalog.hubCurrentVersion,
       lang,
@@ -559,6 +565,8 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
         if (hubEntry) {
           setInstallDone(false)
           setConfirmIsUpdate(true)
+          // 钉住本次提示的版本：最新版可能仍在门禁内，@latest 会被 pnpm 拒绝
+          setConfirmPinVersion(catalog.hubUpdateTarget?.version ?? null)
           queue.clearModalTask()
           setConfirmPlugin(hubEntry)
         }
@@ -595,6 +603,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
         setShowNotifications(false)
         setInstallDone(false)
         setConfirmIsUpdate(true)
+        setConfirmPinVersion(null)
         queue.clearModalTask()
         setConfirmPlugin(plugin)
       },
@@ -673,7 +682,7 @@ export function PluginHubSection({ t: _hostT, locale }: SectionProps) {
         if (reload) window.location.reload()
       },
       onCopy: () => copyCommand(confirmPlugin),
-      onInstall: () => queue.installNow(confirmPlugin, confirmIsUpdate ? { update: true } : undefined),
+      onInstall: () => queue.installNow(confirmPlugin, confirmIsUpdate ? { update: true, pinVersion: confirmPinVersion ?? undefined } : undefined),
       // 重启：结果视图「立即重启」也会中断进行中的任务 → 先弹重启确认弹窗
       onRestart: () => setShowRestartConfirm(true),
     }),

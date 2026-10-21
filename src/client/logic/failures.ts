@@ -148,7 +148,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'registryAuth' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
 
 /** 失败动作口径：标题、上报正文与提示文案按安装/更新/卸载取词，不写死「安装」。 */
 export type FailureAction = 'install' | 'update' | 'uninstall'
@@ -253,6 +253,9 @@ export function classifyFailure(message: string): FailureKind {
   if (/os error 112\b|os error 19\b|ERROR_DISK_FULL|ERROR_WRITE_PROTECT|\bENOSPC\b|\bEROFS\b|\bEMFILE\b|\bENFILE\b|no space left on device|read-only file system|too many open files/i.test(message)) return 'fsUnavailable'
   // 构建脚本被 allowBuilds 拦截。必须在 network 之前判：日志尾部混重试残留的连接失败特征
   if (/ERR_PNPM_IGNORED_BUILDS|Ignored build scripts:|ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED/i.test(message)) return 'pnpmIgnoredBuild'
+  // npm 源拒绝了访问（401/403）：私有源要登录凭据，或当前网络/IP 不被源允许。
+  // 必须在 network 之前判：pnpm 的 401/403 日志也常带 "fetch failed" 字样，先判网络会误报成「网络不通」
+  if (/ERR_PNPM_FETCH_40[13]\b|\bE40[13]\b|(?:Unauthorized|Forbidden)\s*-\s*40[13]\b/i.test(message)) return 'registryAuth'
   // 网络/代理/源配置问题。必须在 prepare 之前判：git fetch 失败常被外层包成 "Command failed"
   // tarball 下载失败的括号里可能是数字码（pnpm 自己的）或符号码（undici 的 UND_ERR_*），两种都要认
   if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return 'network'
@@ -353,6 +356,9 @@ export function summarizeError(message: string, maxChars: number = MAX_CORE_CHAR
   }
   let out: string
   if (core.length === 0) {
+    // 整段本来就是短消息时直接给全量：head+tail 兜底会把同一段重复两遍，正文反而更难读
+    const whole = message.trim()
+    if (whole.length <= maxChars) return whole
     // 无关键行时退化为「头部 + 尾部」快照：优先保尾部完整，头部按预算压缩，总长不超上限
     const tail = message.trimEnd().slice(-1000)
     const sep = '\n…\n'
@@ -430,4 +436,14 @@ export function registryHostOf(message: string): string | null {
   if (!m) return null
   const host = m[1].replace(/:\d+$/, '')
   return PUBLIC_REGISTRY_HOSTS.has(host) ? null : host
+}
+
+/**
+ * 鉴权失败（401/403）时被拒绝的源主机名：从 `ERR_PNPM_FETCH_401 GET https://host/pkg: Unauthorized - 401`
+ * 里取，取不到返回 null（提示文案退回通用说法，不拼出残缺句子）。
+ */
+export function authRegistryHostOf(message: string): string | null {
+  const m = /ERR_PNPM_FETCH_40[13]\s+GET\s+https?:\/\/([^\s/:]+)/i.exec(message)
+    ?? /GET\s+https?:\/\/([^\s/:]+)\S*\s*:?\s*(?:Unauthorized|Forbidden)\s*-\s*40[13]/i.exec(message)
+  return m === null ? null : m[1]
 }

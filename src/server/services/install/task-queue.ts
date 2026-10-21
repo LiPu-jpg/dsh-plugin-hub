@@ -15,7 +15,7 @@ import type { InstallResult, InstallTask, Invocation, QueueItem } from './instal
 import { CAPTURE_LIMIT_BYTES, MAX_TASKS, MAX_TASK_LINES } from './install-types.ts'
 import { npmTooLowMarker } from './npm-check.ts'
 import { registryMissingMarker } from './registry-check.ts'
-import { backfillOperationLog, createOperationLogTap, operationLogPathOf } from './operation-log.ts'
+import { backfillOperationLog, createOperationLogTap, hasSubstantiveOutput, operationLogPathOf } from './operation-log.ts'
 import { cleanLine, estimateProgress } from '../profile/progress.ts'
 import type { LoaderHandle } from '../loader.ts'
 import { hasClientUi, isDshPlugin, mountLoadedEntry, removeLoadedEntry } from '../loader.ts'
@@ -23,6 +23,8 @@ import { addPendingRestart, clearPendingRestart } from '../profile/pending-resta
 import { addAllowBuildsKey, bundleIncludes, githubRepoOf, parseAllowBuildsKey, profileDirectory } from '../profile/profile.ts'
 import { appendLog } from '../log.ts'
 import { commandOnPath, gitMissingDetail } from './preflight.ts'
+import { isTransportFailure, registryHost } from './registry-fallback.ts'
+import { OutputDecoder } from './decode-output.ts'
 
 /** 内存任务注册表，按任务 id 索引。 */
 const tasks = new Map<number, InstallTask>()
@@ -213,6 +215,16 @@ export function desktopCliBootstrap(entry: string): string | null {
   return null
 }
 
+/**
+ * 传给 CLI 的安装目标：钉住版本优先（Hub 自我更新提示的是已过供应链门禁的版本），
+ * 其次更新走 `@latest`，git 源与全局 npm 安装保持原样。
+ */
+export function npmInstallTargetOf(target: string, opts: { update: boolean; global: boolean; pinned?: string }): string {
+  if (opts.global || githubRepoOf(target) !== null) return target
+  if (opts.pinned !== undefined && opts.pinned !== '') return opts.pinned
+  return opts.update ? `${target}@latest` : target
+}
+
 function stopChild(child: ReturnType<typeof spawn>): void {
   if (process.platform === 'win32' && child.pid !== undefined) {
     const killer = spawn('taskkill', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' })
@@ -272,6 +284,11 @@ export function startPluginMutation(options: {
   /** 自定义安装入口渠道（NPM 包卡片）：任务输出行与系统日志据此溯源「从哪个入口发起」；
    *  目录插件安装不传 */
   installChannel?: 'npm'
+  /** npm 源候选（首选在前）：传输层失败时按顺序换源重试，空/单个表示不降级 */
+  registries?: string[]
+  /** 精确安装 spec（如 `dsh-plugin@2.0.5`）：Hub 自我更新提示的是已过供应链门禁的版本，
+   *  必须钉住安装，不能再用 @latest 被带回门禁内的最新版 */
+  installSpec?: string
 }): InstallTask {
   // 卸载入队时先快照「该包是否带客户端 UI」：卸载完成后包已从磁盘删除，读不到 package.json，
   // 只能在此刻取；卸载成功且曾存活时据此决定是否要刷新页面摘除插件面板
@@ -397,8 +414,12 @@ function spawnMutation(options: {
   globalNpm?: string[]
   /** 更新已安装的 npm 包（mode=update）：命令显式带 @latest，让 pnpm 真正解析最新版本 */
   updateNpm?: boolean
+  /** npm 源候选（首选在前）：传输层失败时按顺序换源重试 */
+  registries?: string[]
+  /** 精确安装 spec（如 `dsh-plugin@2.0.5`）：见 startPluginMutation 同名说明 */
+  installSpec?: string
 }): Promise<InstallResult> {
-  const { action, profile, target, timeoutMs = 5 * 60 * 1000, env, task, displayTarget, loader, globalNpm, updateNpm } = options
+  const { action, profile, target, timeoutMs = 5 * 60 * 1000, env, task, displayTarget, loader, globalNpm, updateNpm, registries, installSpec } = options
   // 全局 npm 安装：直接 spawn 本机 npm（`npm install -g <pkgs>`），不是 dsh plugin 命令
   const isGlobalNpm = (globalNpm ?? []).length > 0
   const invocation = isGlobalNpm
@@ -411,9 +432,8 @@ function spawnMutation(options: {
   // CLI 动词仍透传 add —— 不执行官方 update 动词，避免与既有覆盖重装机制分叉。
   const isUpdate = action === 'update' || updateNpm === true
   const cliAction = action === 'update' ? 'add' : action
-  const npmUpdateTarget = isUpdate && !isGlobalNpm && githubRepoOf(target) === null
-    ? `${target}@latest`
-    : target
+  // 钉住版本优先于 @latest：提示的是「已过门禁」的版本，装 latest 会被 pnpm 拒绝
+  const npmUpdateTarget = npmInstallTargetOf(target, { update: isUpdate, global: isGlobalNpm, pinned: installSpec })
   const args = isGlobalNpm
     ? ['install', '-g', ...(globalNpm ?? [])]
     : [...invocation.prefixArgs, 'plugin', '--profile', profile, cliAction, npmUpdateTarget]
@@ -427,9 +447,12 @@ function spawnMutation(options: {
   // 单次 spawn 并捕获结果：流式输出打日志 + 超时/取消兜底，close 后 resolve。
   // 不做任何终态后处理（exitCode/status/needsRestart 由下方统一收尾），
   // 这样全局 npm 首次失败后可以干净地换参数重试一次。
-  const spawnOnce = (attemptArgs: string[]): Promise<InstallResult> => new Promise((resolveOnce) => {
+  const spawnOnce = (attemptArgs: string[], registry?: string): Promise<InstallResult> => new Promise((resolveOnce) => {
     let stdout = ''
     let stderr = ''
+    // 每次 spawn 独立解码器：中文 Windows 下 dsh/pnpm 可能输出 GBK，需按流判定编码
+    const stdoutDecoder = new OutputDecoder()
+    const stderrDecoder = new OutputDecoder()
     let timedOut = false
     let settled = false
     let child: ReturnType<typeof spawn>
@@ -463,11 +486,17 @@ function spawnMutation(options: {
           return
         }
       }
+      // invocation.env 是「必须叠加」的变量（打包桌面端的 ELECTRON_RUN_AS_NODE）：
+      // 没有它时保持 env 原样透传，有它时必须基于完整环境叠加，否则子进程会丢掉 PATH。
+      // registry 最后写入：换源重试只改这一层，pnpm/npm 都认 npm_config_registry。
+      const childEnv: NodeJS.ProcessEnv = { ...(env ?? process.env), ...(invocation.env ?? {}) }
+      if (registry !== undefined) {
+        childEnv.npm_config_registry = registry
+        childEnv.NPM_CONFIG_REGISTRY = registry
+      }
       child = spawn(invocation.file, attemptArgs, {
         cwd: invocation.cwd,
-        // invocation.env 是「必须叠加」的变量（打包桌面端的 ELECTRON_RUN_AS_NODE）：
-        // 没有它时保持 env 原样透传，有它时必须基于完整环境叠加，否则子进程会丢掉 PATH。
-        env: invocation.env === undefined ? env : { ...(env ?? process.env), ...invocation.env },
+        env: childEnv,
         shell: invocation.useShell,
         // detached 使子进程成为独立进程组组长：取消时能整组清理（见 stopChild），
         // 且宿主进程崩溃后安装任务不会被连带误杀
@@ -522,7 +551,7 @@ function spawnMutation(options: {
       if (task && task.status === 'running' && task.progress < 85) task.progress += 1
     }, 500)
     const collect = (kind: 'stdout' | 'stderr', chunk: Buffer): void => {
-      const text = chunk.toString()
+      const text = kind === 'stdout' ? stdoutDecoder.push(chunk) : stderrDecoder.push(chunk)
       if (kind === 'stdout') stdout = (stdout + text).slice(-CAPTURE_LIMIT_BYTES)
       else stderr = (stderr + text).slice(-CAPTURE_LIMIT_BYTES)
       if (task) {
@@ -578,7 +607,21 @@ function spawnMutation(options: {
     // 超时复核用基线：本次任务开始前目标是否已在 profile 里。已安装的话，超时后核对无法区分
     // 「旧版本还在」与「刚装上」，那种情形（更新超时）不冒认成功。
     const wasInstalled = action !== 'remove' && !isGlobalNpm && verifyInstalledEntry(profile, target).name !== null
-    let result = await spawnOnce(args)
+    // 候选源：卸载不拉包、git 源装的是仓库快照，都不受 npm 镜像影响，不参与换源
+    const candidates = action === 'remove' || githubRepoOf(target) !== null ? [] : (registries ?? [])
+    let activeRegistry = candidates[0]
+    let result = await spawnOnce(args, activeRegistry)
+    // 传输层失败（超时 / 连接重置 / DNS / 5xx）才换下一个公共镜像；404、版本不存在、鉴权错误
+    // 保持原样，否则会掩盖作者侧问题或装到滞后版本。整段超时也不再换源，避免耗时翻倍。
+    for (const candidate of candidates.slice(1)) {
+      if (task?.status === 'cancelled' || result.exitCode === 0 || result.timedOut) break
+      if (!isTransportFailure(`${result.stderr}\n${result.stdout}`)) break
+      if (task) {
+        pushLine(task, `[registry-fallback] ${registryHost(activeRegistry ?? '')} unreachable — retrying with ${registryHost(candidate)}`)
+      }
+      activeRegistry = candidate
+      result = await spawnOnce(args, candidate)
+    }
     // npm 11 的 arborist peer-set bug（`Cannot read properties of null (reading 'children')`）
     // 会让 `npm install -g` 在解析阶段直接崩溃。首次失败后自动带 `--legacy-peer-deps` 重试一次：
     // 跳过 peer 自动解析即可绕过该 bug；二次尝试仍失败则保留其错误信息，不掩盖真正的原因。
@@ -587,7 +630,7 @@ function spawnMutation(options: {
       const retryExecuted = `npm install -g --legacy-peer-deps ${(globalNpm ?? []).join(' ')}`
       if (task && !task.attempts.includes(retryExecuted)) task.attempts.push(retryExecuted)
       if (task) pushLine(task, '[npm] peer-set resolution crashed npm (known npm bug) — retrying with --legacy-peer-deps')
-      result = await spawnOnce(retryArgs)
+      result = await spawnOnce(retryArgs, activeRegistry)
     }
     // 超时被强杀 ≠ 没装上：命中的安装可能已经落盘（日志里 pnpm 已打印 Done，只是 dsh 进程迟迟不退出
     // 而被我们超时掐掉）。判失败之前先复核 profile —— 目标已在依赖里、且声明分发的入口文件都在，
@@ -644,7 +687,9 @@ function spawnMutation(options: {
             addPendingRestart(displayTarget ?? target, action === 'remove' ? 'uninstall' : 'install')
           }
         }
-        pushLine(task, result.timedOut ? '[timed out]' : `[exit ${result.exitCode ?? '?'}]`)
+        // 子进程一个字节都没吐时在退出行上标注：日志面板与失败上报都能看出「没有输出可排查」
+        const printedNothing = `${result.stdout}${result.stderr}`.trim() === ''
+        pushLine(task, result.timedOut ? '[timed out]' : `[exit ${result.exitCode ?? '?'}]${printedNothing ? ' (no output captured)' : ''}`)
       }
     }
     return result
@@ -771,9 +816,14 @@ export async function runPluginMutation(options: {
   loader?: LoaderHandle
   /** 全局 npm 安装（官方 `npm install -g <pkgs>`）：非空时执行全局安装，不进任何 profile、无需宿主重启 */
   globalNpm?: string[]
+  /** npm 源候选（首选在前）：传输层失败时按顺序换源重试 */
+  registries?: string[]
+  /** 精确安装 spec（如 `dsh-plugin@2.0.5`）：见 startPluginMutation 同名说明 */
+  installSpec?: string
 }): Promise<InstallResult> {
   // operation 日志只在运行期存在（宿主结束后可能清掉），先开抓取，退出后按路径读作兜底
-  const logTap = createOperationLogTap(profileDirectory(options.profile))
+  const profileDir = profileDirectory(options.profile)
+  const logTap = createOperationLogTap(profileDir)
   let result = await spawnMutation(options)
   // allowBuilds 放行 / 装后入口校验都是 profile 专属（pnpm 装进 profile 的场景）；
   // 全局 npm 安装直接走 npm，无 pnpm allowBuilds 拦截、也不进 profile，跳过这两类恢复
@@ -834,18 +884,27 @@ export async function runPluginMutation(options: {
   // 宿主只把一行摘要（`dsh: plugin command failed; diagnostics: <path>`）回显到控制台、真正的报错
   // 写进该日志文件时，前端拿不到任何错误特征、只能归为「未知」。按该路径回捞日志尾部补进失败信息。
   // 只在输出本就不含错误码时回捞 —— pnpm 已回显报错时无需多读一次文件。
-  if (result.exitCode !== 0 && !result.timedOut && !/\bERR_[A-Z0-9_]+\b/.test(`${result.stderr}\n${result.stdout}`)) {
+  // 超时同样回捞：被强杀前 pnpm 往往已经把真实原因写进 operation 日志。
+  if ((result.exitCode !== 0 || result.timedOut) && !/\bERR_[A-Z0-9_]+\b/.test(`${result.stderr}\n${result.stdout}`)) {
     const output = `${result.stderr}\n${result.stdout}`
-    const backfilled = tappedLog !== '' ? tappedLog : backfillOperationLog(output)
+    const backfilled = tappedLog !== '' ? tappedLog : backfillOperationLog(output, profileDir)
     if (backfilled !== null) {
       if (options.task && options.task.status !== 'cancelled') {
         pushLine(options.task, '[pnpm log] DSH did not echo pnpm output — recovered the operation log from disk')
         for (const line of backfilled.split(/\r?\n/)) if (line.trim() !== '') pushLine(options.task, line.trimEnd())
       }
       result = { ...result, stderr: `${result.stderr}\n${backfilled}` }
-    } else if (options.task && options.task.status !== 'cancelled' && operationLogPathOf(output) !== null) {
-      // 诊断路径在、日志却取不到：留一行证据，否则下一次同类上报又只剩宿主那句摘要、看不出根因
-      pushLine(options.task, '[pnpm log] the host-reported diagnostics log could not be read from disk (missing, empty, or unreadable)')
+    } else if (options.task && options.task.status !== 'cancelled') {
+      if (operationLogPathOf(output) !== null) {
+        // 诊断路径在、日志却取不到：留一行证据，否则下一次同类上报又只剩宿主那句摘要、看不出根因
+        pushLine(options.task, '[pnpm log] the host-reported diagnostics log could not be read from disk (missing, empty, or unreadable)')
+      } else if (!hasSubstantiveOutput(output)) {
+        // 宿主连 diagnostics 路径都没回显：显式留痕，避免上报正文只剩一个退出码
+        const what = result.timedOut
+          ? 'printed nothing before the timeout'
+          : `exited with code ${result.exitCode ?? '?'} without printing anything`
+        pushLine(options.task, `[no-output] the dsh CLI ${what}, and no pnpm log was written under .plugin-manager/logs — attach ~/.dsh/profiles/${options.profile}/hub.log when reporting this`)
+      }
     }
   }
   // 包在 registry 不存在（404）→ 官方源复查，区分「作者的依赖缺失/包被删」与「本机镜像源滞后」

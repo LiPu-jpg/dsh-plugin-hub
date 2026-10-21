@@ -16,7 +16,7 @@ import type { SortKey } from '../logic/constants.ts'
 import { fetchCatalog, fetchStats } from '../data/catalog.ts'
 import { fetchHubAbout, fetchHubUpdate } from '../data/hub.ts'
 import { fetchInstalled, fetchNpmReleaseAge } from '../data/host.ts'
-import { isReleaseTooFresh } from '../logic/release-age.ts'
+import { isReleaseTooFresh, pickHubUpdate } from '../logic/release-age.ts'
 import {
   hasUpdateOf, installedItemsOf, installedNameOf, installedVersionOf, npmPackageOf,
 } from '../logic/installed.ts'
@@ -272,13 +272,14 @@ export function useCatalog(lang: LocaleId) {
    * 落回「无更新」——回落会让弹窗在本机版本落后时谎称「已是最新」。
    */
   const hubCurrentVersion = PLUGIN_VERSION || versions[HUB_REPO]?.version || ''
-  const hubUpdateState: HubUpdateState = (() => {
-    if (!hubUpdateInfo) return 'none'
-    if (hubCurrentVersion === '' || hubUpdateInfo.version === hubCurrentVersion) return 'latest'
-    // 供应链门禁（24h + 30 分钟缓冲）与插件更新同一口径：发布未满门槛的版本暂缓提示
-    if (isReleaseTooFresh(hubUpdateInfo.publishedAt, Date.now())) return 'pending'
-    return 'available'
-  })()
+  // 候选含 recentVersions：最新版还在门禁内时回退到「更早、但已过门禁」的版本，
+  // 避免连续快速发版把所有提示窗口都吞掉（见 pickHubUpdate）。
+  const hubUpdateResult = hubUpdateInfo === null
+    ? { state: 'none' as HubUpdateState, target: null }
+    : pickHubUpdate(hubUpdateInfo, hubCurrentVersion, Date.now())
+  const hubUpdateState: HubUpdateState = hubUpdateResult.state
+  /** 本次提示的目标版本（available 时有值；pending 时是暂缓中的最高版本） */
+  const hubUpdateTarget = hubUpdateResult.target
   const hubHasUpdate = hubUpdateState === 'available'
 
   /** 当前分类下的插件（「全部」时为整个目录）。 */
@@ -334,6 +335,7 @@ export function useCatalog(lang: LocaleId) {
     hasUpdate,
     hubHasUpdate,
     hubUpdateState,
+    hubUpdateTarget,
     releaseAgeReady,
     hubCurrentVersion,
     hubUpdateInfo,
