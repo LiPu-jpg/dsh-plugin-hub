@@ -14,7 +14,7 @@ import type { MouseEvent } from 'react'
 import styles from '../../styles/Modal.module.css'
 import type { EnvInfo, Translate } from '../../types.ts'
 import type { NotificationRecord } from '../../logic/failures.ts'
-import { actionOfRecord, classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf } from '../../logic/failures.ts'
+import { actionOfRecord, classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, missingLocalDirOf } from '../../logic/failures.ts'
 import type { PendingRestart, QueueTask } from '../../hooks/useTaskQueue.ts'
 import { pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { CloseIcon } from '../ui/icons.tsx'
@@ -306,6 +306,11 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // 给 .npmrc 豁免指引，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failPnpmWorkspaceHint'))
                     }
+                    if (kind === 'pnpmVirtualStore') {
+                      // profile 的 modules 目录与当前 pnpm 的 virtual-store-dir-max-length 不一致：
+                      // 该 profile 内的安装/卸载都会失败 —— 重建 modules 目录或统一配置即可，不引导提 Issue
+                      return h('div', { className: styles.failPrepareHint }, t('failPnpmVirtualStoreHint'))
+                    }
                     if (kind === 'pnpmStore') {
                       // pnpm 存在但 store 大版本不匹配（ERR_PNPM_UNEXPECTED_STORE）：profile 目录的依赖是
                       // 另一大版本 pnpm 装的，当前 pnpm 不认，任何插件装进该 profile 都会失败 ——
@@ -372,10 +377,13 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       return h('div', { className: styles.failPrepareHint }, t('failRegistryVersionStaleHint'))
                     }
                     if (kind === 'pnpmLinkedDirMissing') {
-                      // profile 里留着指向不存在目录的本地依赖（ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND）：
-                      // 常见于 link:/本地路径装过开发中的插件、之后目录被删；与本次要装的插件无关
-                      // —— 给删除悬空条目的指引，不引导提 Issue
-                      return h('div', { className: styles.failPrepareHint }, t('failPnpmLinkedDirMissingHint'))
+                      // profile 里留着指向不存在目录的本地依赖（ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND /
+                      // pnpm ENOENT lstat）：点名缺失目录 + 删除悬空条目，不引导提 Issue
+                      const dir = missingLocalDirOf(r.message)
+                      return h('div', null, [
+                        dir ? h('div', { className: styles.failNetworkTarget }, t('failLinkedDirTarget', { path: dir })) : null,
+                        h('div', { className: styles.failPrepareHint }, t('failPnpmLinkedDirMissingHint')),
+                      ])
                     }
                     if (kind === 'fileLocked') {
                       // profile 里的文件被其他进程占用（Windows os error 32）：通常是宿主或杀毒软件
@@ -397,12 +405,54 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // 安装流程，与插件无关 —— 引导从本机地址重新打开市场，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failOriginRejectedHint', { profile: env?.profile ?? '<profile>' }))
                     }
+                    if (kind === 'profileExclusive') {
+                      // desktop profile 只能由桌面应用管理：外部 dsh CLI 被宿主拒绝，属环境约束。
+                      // 带 [desktop-cli-fallback] 则是安装器没找到应用内 CLI 引导脚本 —— 我们的问题，给反馈入口
+                      const profile = exclusiveProfileOf(r.message)
+                      const ourBug = desktopCliFallbackOf(r.message)
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint },
+                          t(profile ? 'failProfileExclusiveHint' : 'failProfileExclusiveHintNoProfile', profile ? { profile } : undefined)),
+                        ourBug ? h('div', { className: styles.failPrepareHint }, t('failDesktopCliFallbackHint')) : null,
+                        ourBug ? h('a', {
+                          className: styles.failBigIssue,
+                          href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts, 'triage', action),
+                          target: '_blank',
+                          rel: 'noopener noreferrer',
+                          title: t('failHubIssueHint'),
+                        }, t('failIssueBig')) : null,
+                      ])
+                    }
                     if (kind === 'registryAuth') {
                       // npm 源返回 401/403：私有源需要凭据，或当前网络/IP 不被允许 —— 本机环境问题，
                       // 给「配认证 / 换回官方源 / 切公共镜像」指引，不引导提 Issue
                       const host = authRegistryHostOf(r.message)
                       return h('div', { className: styles.failPrepareHint },
                         t(host ? 'failRegistryAuthHint' : 'failRegistryAuthHintNoHost', host ? { host } : undefined))
+                    }
+                    if (kind === 'dshTooOld') {
+                      // 插件要求的 DSH 下限高于本机宿主：升级 DSH 即可，不属作者、也不属插件中心
+                      const info = dshTooOldInfoOf(r.message)
+                      return h('div', { className: styles.failPrepareHint },
+                        t('failDshTooOldHint', info ?? { pkg: shownRepo || r.repo || 'plugin', floor: '?', current: '?' }))
+                    }
+                    if (kind === 'localEnv') {
+                      // 未命中具体成因、但特征指向本机环境：给通用自查清单 + 系统诊断，默认不推给我们，
+                      // 只留小字反馈入口（判据是我们自己的启发式，可能误判）
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failLocalEnvHint')),
+                        onRunDiagnostics ? h('button', { className: styles.failDiagBtn, onClick: onRunDiagnostics }, t('failNetworkRunDiag')) : null,
+                        h('div', null, [
+                          h('div', { className: styles.failPrepareHint }, t('failMisjudgeHint')),
+                          h('a', {
+                            className: styles.failMisjudgeLink,
+                            href: hubIssueUrl(shownRepo || r.repo, r.message, env, r.command, r.attempts, 'triage', action),
+                            target: '_blank',
+                            rel: 'noopener noreferrer',
+                            title: t('failHubIssueHint'),
+                          }, t('failMisjudgeLink')),
+                        ]),
+                      ])
                     }
                     if (kind === 'network') {
                       // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：

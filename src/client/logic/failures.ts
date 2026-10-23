@@ -148,7 +148,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'registryAuth' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmVirtualStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'registryAuth' | 'profileExclusive' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'dshTooOld' | 'localEnv' | 'hub'
 
 /** 失败动作口径：标题、上报正文与提示文案按安装/更新/卸载取词，不写死「安装」。 */
 export type FailureAction = 'install' | 'update' | 'uninstall'
@@ -220,6 +220,9 @@ export function classifyFailure(message: string): FailureKind {
   // 宿主版本门禁：插件声明的兼容范围不含当前 dsh 版本，宿主在安装前直接拒绝。
   // 必须最先判 —— 这是宿主自己给的结论，不是 pnpm 的安装失败
   if (/installation rejected:.*incompatible with dsh/i.test(message)) return 'hostIncompatible'
+  // desktop profile 由桌面应用独占：外部 dsh CLI 无权管理，宿主在安装前直接拒绝。
+  // 属宿主/环境约束，不是插件问题；必须在所有 pnpm 分支之前判（日志里没有 pnpm 报错）。
+  if (/is managed exclusively by the Electron application|managed exclusively by the desktop app/i.test(message)) return 'profileExclusive'
   // npm 自身崩溃（edgesOut）或服务端标记的本机 npm 版本过低。必须最先判，否则会被外层
   // ERR_PNPM_PREPARE_PACKAGE 吞成「插件打包问题」
   if (/\[npm-too-low\]|edgesOut/i.test(message)) return 'npmTooOld'
@@ -231,6 +234,9 @@ export function classifyFailure(message: string): FailureKind {
   if (/\[npm-missing\]|spawn npm ENOENT|'npm' 不是内部或外部命令|"npm" 不是内部或外部命令|npm['"]?\s*is not recognized|npm: command not found/i.test(message)) return 'npmMissing'
   // 本机缺 dsh。服务端 [dsh-missing] 标记乱码免疫（Windows GBK 解码后无法匹配原文）
   if (/\[dsh-missing\]|不是内部或外部命令|is not recognized as an internal or external command|command not found|spawn dsh ENOENT/i.test(message)) return 'dshMissing'
+  // profile 的 modules 目录由另一套 virtual-store-dir-max-length 配置生成，当前 pnpm 拒绝复用。
+  // 必须在 pnpmStore 之前：两者的处置方式不同（这里只需重建 modules 目录 / 统一配置）
+  if (/ERR_PNPM_VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF|virtual-store-dir-max-length/i.test(message)) return 'pnpmVirtualStore'
   // store 版本不匹配：profile 依赖由另一大版本 pnpm 生成，当前 pnpm 不认。
   // 必须在 pnpmMissing 之后（pnpm 能跑起来报错，不是找不到命令）
   if (/ERR_PNPM_UNEXPECTED_(VIRTUAL_)?STORE|Unexpected (virtual )?store location/i.test(message)) return 'pnpmStore'
@@ -256,6 +262,9 @@ export function classifyFailure(message: string): FailureKind {
   // npm 源拒绝了访问（401/403）：私有源要登录凭据，或当前网络/IP 不被源允许。
   // 必须在 network 之前判：pnpm 的 401/403 日志也常带 "fetch failed" 字样，先判网络会误报成「网络不通」
   if (/ERR_PNPM_FETCH_40[13]\b|\bE40[13]\b|(?:Unauthorized|Forbidden)\s*-\s*40[13]\b/i.test(message)) return 'registryAuth'
+  // profile 里指向已删除目录的本地依赖（file:/link:）：pnpm 直接 ENOENT（lstat），任何安装都会失败。
+  // 必须在 network 之前判 —— 同一份日志常混着 pnpm 重试产生的 UND_ERR_* 警告，先判网络会把根因盖掉。
+  if (/ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND|Could not install from .+ as it does not exist|pnpm:\s*ENOENT: no such file or directory,\s*(?:lstat|scandir|readlink)/i.test(message)) return 'pnpmLinkedDirMissing'
   // 网络/代理/源配置问题。必须在 prepare 之前判：git fetch 失败常被外层包成 "Command failed"
   // tarball 下载失败的括号里可能是数字码（pnpm 自己的）或符号码（undici 的 UND_ERR_*），两种都要认
   if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return 'network'
@@ -269,8 +278,6 @@ export function classifyFailure(message: string): FailureKind {
   if (/ERR_PNPM_FETCH_404|404 Not Found|Not Found - 404/i.test(message)) return 'pnpmMissingDep'
   // 要装的版本在实际安装源里没有（镜像滞后或版本写错）。必须在 pluginPrepare 之前判
   if (/\bERR_PNPM_NO_MATCHING_VERSION\b|\bETARGET\b|No matching version found/i.test(message)) return 'registryVersionStale'
-  // profile 残留指向不存在目录的本地依赖（link:/file:）。必须在 pluginPrepare 之前判
-  if (/\bERR_PNPM_LINKED_PKG_DIR_NOT_FOUND\b|Could not install from .+ as it does not exist/i.test(message)) return 'pnpmLinkedDirMissing'
   // 原生模块需要本机编译，缺编译器/构建工具属于用户环境，不是插件的 prepare 失败。
   // 必须排在 pluginPrepare 之前：这类日志同样带 ELIFECYCLE，否则会被推给作者。
   if (/Unable to detect compiler type|gyp ERR!|Could not find any Visual Studio|No Xcode or CLT version detected|xcode-select|python(?:3)? is (?:not set|not found)|Could not find Python|\bmake: not found\b|\bgcc: not found\b|\bg\+\+: not found\b|\bMSB\d{4}\b/i.test(message)) return 'buildToolchainMissing'
@@ -296,9 +303,25 @@ export function classifyFailure(message: string): FailureKind {
   // 宿主自身入口起不来（服务端 [host-spawn] 标记）：环境问题，给提示、不引导提 Issue。
   // 不匹配 `spawn … ENOENT` 文本 —— 那个形态任何 spawn（curl/git/taskkill…）都会产出
   if (/\[host-spawn\]/i.test(message)) return 'hostCliSpawn'
-  // 其余未知失败：引导到插件中心仓库排查
+  // 安装器读插件 npm 元数据得出的客观结论：插件声明的 DSH 下限高于本机宿主。
+  // 放在所有具体成因之后 —— 日志里有真实报错时仍以真实报错为准；但在「未分类」之前，
+  // 否则这类本来能说清的失败又会变成未知。
+  if (/\[dsh-too-old\]/i.test(message)) return 'dshTooOld'
+  // 裸 `spawn <cmd> ENOENT`（无 [host-spawn] 标记）：分不清是用户机器上缺这个可执行文件，
+  // 还是安装器解析错了路径 —— 不冒充环境问题，留给插件中心分诊
+  if (/spawn .+ ENOENT/i.test(message)) return 'hub'
+  // 未命中任何具体成因，但特征指向本机环境（系统调用错误码 / 证书代理 / 本地配置损坏）：
+  // 归「本机环境」给自助排查，而不是丢进未分类让用户等着我们分析 —— 装任何插件都会同样失败，
+  // 且这类误判代价低（用户自查重试即可）。位置必须在所有具体分支之后：能精确归因的优先精确。
+  if (LOCAL_ENV_RE.test(message)) return 'localEnv'
+  // 其余未知失败：没有任何环境/插件侧特征，可能是安装器或宿主的 bug —— 引导到插件中心仓库排查
   return 'hub'
 }
+
+/** 「特征指向本机环境但说不清具体哪一类」的兜底判据：系统调用错误码（权限/路径过长/设备异常）、
+ *  证书与代理校验失败、本地配置文件（~/.npmrc、profile 的 package.json）损坏。
+ *  只做排除用：命中它表示「不是插件侧问题」，不代表我们已经定位到原因。 */
+const LOCAL_ENV_RE = /os error \d{1,3}\b|ERROR_[A-Z_]{4,}|\bE(?:ACCES|PERM|NOENT|NAMETOOLONG|INVAL|PROTO|ISDIR|NOTDIR|EXIST|BADF|NOTEMPTY|JSONPARSE)\b|Unexpected token .{0,60}in JSON|SELF_SIGNED_CERT_IN_CHAIN|UNABLE_TO_VERIFY_LEAF_SIGNATURE|ERR_TLS_CERT_ALTNAME_INVALID|unable to verify the first certificate|self[- ]signed certificate|ERR_INVALID_URL|invalid registry|proxy authentication|407 Proxy/i
 
 /** 从服务端 `[npm-too-low]` 标记行提取本机 npm 版本（如 `[npm-too-low] npm@11.3.0` → "11.3.0"）；
  *  历史记录无标记时返回 null，前端据此决定提示文案是否带具体版本。 */
@@ -315,6 +338,10 @@ const CORE_LINE_RE = /ERR_[A-Z_]+|ELIFECYCLE|Command failed|prepare-guard|Failed
  *  无关 —— 抓核心错误时必须跳过，否则会被 CORE_LINE_RE 的 `missing` 分支误抓、淹没真正的
  *  错误码（如 git 源的 ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED），让 issue 正文只剩一堆 peer WARN。 */
 const PEER_WARN_RE = /missing peer|issues with peer dependencies|peer dependencies that should be installed/i
+/** 安装器自己打的诊断标记行：它们本身就是「为什么没有日志 / 卡在哪一步」的证据，
+ *  不含 CORE_LINE_RE 的关键词，必须无条件保留 —— 否则上报正文会退回成只剩宿主那句摘要，
+ *  我们又拿不到任何可排查的信息（#382/#393 就是这样）。 */
+const MARKER_LINE_RE = /^\[(?:pnpm log|no-output|desktop-cli-fallback|dsh-too-old|host-spawn|npm-too-low|git-missing|npm-missing|pnpm-missing|dsh-missing|network|packaging|registry-missing|registry-mirror-lag|internal|exit\b|timed out)/i
 /** 提交 issue 时正文里错误摘要的上限字符数。GitHub 请求行上限 8192 字节，
  * 固定模板与 URL 编码开销约 1~2K，核心错误（以 ASCII 日志为主）可安全带到 ~5K；
  * 仍超长时 pluginIssueUrl 会逐档缩小核心预算，最终 URL 不会超限。 */
@@ -347,7 +374,8 @@ export function summarizeError(message: string, maxChars: number = MAX_CORE_CHAR
   const core: string[] = []
   for (const raw of message.split(/\r?\n/)) {
     const line = raw.trim()
-    if (!line || PEER_WARN_RE.test(line) || !CORE_LINE_RE.test(line)) continue
+    if (!line || PEER_WARN_RE.test(line)) continue
+    if (!MARKER_LINE_RE.test(line) && !CORE_LINE_RE.test(line)) continue
     const short = line.length > MAX_LINE_CHARS ? `${line.slice(0, MAX_LINE_CHARS)}…` : line
     if (!seen.has(short)) {
       seen.add(short)
@@ -436,6 +464,43 @@ export function registryHostOf(message: string): string | null {
   if (!m) return null
   const host = m[1].replace(/:\d+$/, '')
   return PUBLIC_REGISTRY_HOSTS.has(host) ? null : host
+}
+
+/**
+ * 「本地依赖目录不存在」失败里缺失的路径：
+ * `pnpm: ENOENT: no such file or directory, lstat '<path>'`
+ * 或 `Could not install from "<path>" as it does not exist`。取不到返回 null。
+ */
+export function missingLocalDirOf(message: string): string | null {
+  const lstat = /ENOENT: no such file or directory,\s*(?:lstat|scandir|readlink)\s+'([^']+)'/i.exec(message)
+  if (lstat !== null) return lstat[1]
+  const quoted = /Could not install from\s+"([^"]+)"\s+as it does not exist/i.exec(message)
+    ?? /Could not install from\s+'([^']+)'\s+as it does not exist/i.exec(message)
+  return quoted === null ? null : quoted[1]
+}
+
+/**
+ * 「profile 由桌面应用独占」错误里的 profile 名：
+ * `error: profile "desktop" is managed exclusively by the Electron application`。
+ * 取不到返回 null（提示文案退回通用说法）。
+ */
+export function exclusiveProfileOf(message: string): string | null {
+  const m = /profile\s+"?([A-Za-z0-9_-]+)"?\s+is managed exclusively/i.exec(message)
+  return m === null ? null : m[1]
+}
+
+/**
+ * 日志里有安装器的 `[desktop-cli-fallback]` 标记：没找到桌面应用内置的 CLI 引导脚本，
+ * 退回 PATH 上的 dsh 才被「profile 独占」拒绝 —— 是我们的路径推导问题，不是用户环境问题。
+ */
+export function desktopCliFallbackOf(message: string): boolean {
+  return /\[desktop-cli-fallback\]/i.test(message)
+}
+
+/** `[dsh-too-old]` 标记里的三方信息（包名 / 插件要求的 DSH 下限 / 当前宿主版本）；取不到返回 null。 */
+export function dshTooOldInfoOf(message: string): { pkg: string; floor: string; current: string } | null {
+  const m = /\[dsh-too-old\]\s*(\S+)\s+requires DSH >= (\S+).*?runs (\S+)/i.exec(message)
+  return m === null ? null : { pkg: m[1]!, floor: m[2]!, current: m[3]! }
 }
 
 /**

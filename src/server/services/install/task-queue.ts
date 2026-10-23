@@ -24,6 +24,7 @@ import { addAllowBuildsKey, bundleIncludes, githubRepoOf, parseAllowBuildsKey, p
 import { appendLog } from '../log.ts'
 import { commandOnPath, gitMissingDetail } from './preflight.ts'
 import { isTransportFailure, registryHost } from './registry-fallback.ts'
+import { dshTooOldMarker } from './dsh-compat.ts'
 import { OutputDecoder } from './decode-output.ts'
 
 /** 内存任务注册表，按任务 id 索引。 */
@@ -425,6 +426,12 @@ function spawnMutation(options: {
   const invocation = isGlobalNpm
     ? { file: 'npm', prefixArgs: [], cwd: process.cwd(), useShell: process.platform === 'win32' }
     : cliInvocation(profile)
+  // 打包桌面端却回退到 PATH 上的 dsh：说明 desktop CLI 引导路径没命中，desktop profile 必被宿主拒绝。
+  // 留一行 ASCII 标记，后续同类上报可直接区分「用户自起 CLI」与「我们没走对引导路径」。
+  if (task && task.status !== 'cancelled' && invocation.file === 'dsh'
+    && (process.versions as Record<string, string | undefined>).electron !== undefined) {
+    pushLine(task, '[desktop-cli-fallback] running inside Electron but no desktop CLI bootstrap was found — falling back to dsh on PATH (a desktop-managed profile will be rejected)')
+  }
   // 更新已安装的 npm 包：显式指定 @latest。pnpm add <pkg>（无版本）对已存在依赖
   // （尤其精确 spec 如 "1.3.0"）是幂等的 —— 输出 "Already up to date" 且不改 package.json，
   // 导致「更新成功」但实际仍停留在旧版本；git 地址与全局安装不受此影响。
@@ -785,6 +792,26 @@ async function annotateRegistryMissing(result: InstallResult, options: {
   return { ...result, stderr: `${result.stderr}\n${line}`, error: result.error ? `${result.error}\n${line}` : line }
 }
 
+/** 安装失败且插件声明的最低 DSH 版本高于当前宿主 → 注入 [dsh-too-old] 标记。
+ *  只在失败路径上发生：peer 不满足本身通常只是警告，装成功时不该冒这个提示。
+ *  超时也算失败 —— 旧宿主上插件可能卡在半兼容状态，这个信息同样有用。 */
+async function annotateDshTooOld(result: InstallResult, options: {
+  action: 'add' | 'remove' | 'update'
+  target: string
+  task?: InstallTask
+  globalNpm?: string[]
+  registries?: string[]
+}): Promise<InstallResult> {
+  if (options.action === 'remove' || result.exitCode === 0) return result
+  // 全局 npm 装的是本机 CLI 工具，不进 profile，没有宿主版本要求
+  if ((options.globalNpm ?? []).length > 0) return result
+  // 用安装实际使用的源读元数据：私有源/镜像里也能读到同一个包的声明
+  const line = await dshTooOldMarker(options.target, { registry: options.registries?.[0] })
+  if (line === null) return result
+  if (options.task && options.task.status !== 'cancelled') pushLine(options.task, line)
+  return { ...result, stderr: `${result.stderr}\n${line}`, error: result.error ? `${result.error}\n${line}` : line }
+}
+
 /**
  * 宿主自身 CLI 调不起来时的 ASCII 标记行：spawn 我们解析出的宿主入口报 ENOENT 时返回
  * `[host-spawn]`，供前端单独归因、不引导提 Issue。PATH 上的 dsh/npm 各有自己的标记，返回 null。
@@ -909,6 +936,8 @@ export async function runPluginMutation(options: {
   }
   // 包在 registry 不存在（404）→ 官方源复查，区分「作者的依赖缺失/包被删」与「本机镜像源滞后」
   result = await annotateRegistryMissing(result, options)
+  // 插件声明的最低 DSH 版本高于当前宿主 → 追加 [dsh-too-old] 标记，前端提示先升级 DSH
+  result = await annotateDshTooOld(result, options)
   // npm arborist edgesOut 崩溃 + 本机 npm 版本过低 → 追加 [npm-too-low] 标记，前端据此给准确原因
   return annotateNpmTooLow(result, options)
 }

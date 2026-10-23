@@ -49,6 +49,7 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
     case 'dshMissing': return 'dsh command not found on the user machine'
     case 'pnpmMissing': return 'pnpm command not found on the user machine'
     case 'pnpmStore': return 'pnpm store version mismatch on the user machine'
+    case 'pnpmVirtualStore': return 'the profile modules directory was built with a different virtual-store-dir-max-length on the user machine'
     case 'pnpmWorkspace': return `pnpm workspace-root check blocked the ${word} on the user machine`
     case 'originRejected': return 'request origin rejected by the local service on the user machine'
     case 'pnpmPolicy': return `pnpm supply-chain policy blocked the ${word} on the user machine`
@@ -56,6 +57,7 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
     case 'pnpmMissingDep': return 'dependency not found on the npm registry on the user machine'
     case 'registryVersionStale': return `requested version not available on the npm registry in use on the user machine`
     case 'registryAuth': return `npm registry rejected the credentials for this ${word} on the user machine`
+    case 'profileExclusive': return `the desktop profile is managed only by the Electron app, so the CLI refused the ${word}`
     case 'pnpmLinkedDirMissing': return 'dangling local (link:) dependency in the user profile'
     case 'fileLocked': return 'file locked by another process on the user machine'
     case 'accessDenied': return 'file write access denied on the user machine'
@@ -69,6 +71,8 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
     case 'timeout': return `${word} timed out`
     case 'profileLock': return 'DSH profile is locked by another process'
     case 'pluginMissingDep': return 'a dependency of the plugin is not published on npm'
+    case 'dshTooOld': return 'the plugin requires a newer DSH than the host runs'
+    case 'localEnv': return `no plugin-side cause found — the failure points at the local environment for this ${word}`
     case 'hub': return `${word} failed (cause unclassified)`
     default: return `plugin ${word} failed`
   }
@@ -102,8 +106,16 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
         ? 'a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin'
       : kind === 'network'
         ? 'network connectivity issue on the user side (DNS, proxy, firewall, or a blocked connection)'
+      : kind === 'localEnv'
+        ? 'no evidence of a plugin-side cause; the log shows local-environment signals (system error codes, certificates/proxy, or a broken local config), so this is reported for triage of the classifier only'
+      : kind === 'dshTooOld'
+        ? 'the plugin declares a minimum DSH version this host does not meet — upgrade DSH first (local environment issue)'
+      : kind === 'pnpmVirtualStore'
+        ? 'the profile node_modules was created with a different virtual-store-dir-max-length (or a different pnpm config), so pnpm refuses to reuse it (local environment issue)'
       : kind === 'registryAuth'
         ? 'the npm registry rejected the request with 401/403 — the configured registry needs credentials or blocks this network (local environment issue)'
+      : kind === 'profileExclusive'
+        ? 'the desktop profile can only be managed by the Electron app, and the install was attempted from an external CLI (local environment issue)'
         : kind === 'pluginPrepare'
           ? 'plugin prepare/build script failed during install (packaging/distribution issue)'
           : kind === 'pnpmIgnoredBuild'
@@ -166,8 +178,8 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
           `- OS: ${env.platform} ${env.arch} (${env.release})`,
           `- Profile: \`${env.profile}\``,
           `- DSH Home: \`${env.dshHome}\``,
-          // 完整安装日志所在（正文受 URL 长度限制只能带摘要，完整日志在 hub.log，可复制/附加给作者）
-          `- Full log: \`~/.dsh/profiles/${env.profile}/hub.log\` (paste or attach for the full output)`,
+          // 完整安装日志在通知中心（hub.log 只有任务开始/结束，没有 pnpm 输出，别让用户白附）
+          '- Full log: open the Hub notifications, select the failed record and press "Copy"',
         ]
         : []),
       // 该插件在插件市场的收录位置（详情页链接）
@@ -268,7 +280,7 @@ export function hubIssueUrl(
           `- OS: ${env.platform} ${env.arch} (${env.release})`,
           `- Profile: \`${env.profile}\``,
           `- DSH Home: \`${env.dshHome}\``,
-          `- Full log: \`~/.dsh/profiles/${env.profile}/hub.log\` (paste or attach for the full output)`,
+          '- Full log: open the Hub notifications, select the failed record and press "Copy"',
         ]
         : []),
       ...(repo !== 'unknown' ? [`- Catalog: [${pluginSiteUrl(repo)}](${pluginSiteUrl(repo)})`] : []),

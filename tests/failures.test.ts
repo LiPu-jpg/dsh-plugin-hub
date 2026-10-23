@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyFailure, coreErrorCode, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh, authRegistryHostOf } from '../src/client/logic/failures.ts'
+import { classifyFailure, coreErrorCode, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, missingLocalDirOf } from '../src/client/logic/failures.ts'
 
 const dshTailHint = 'dsh: git-hosted plugins build on install via their prepare script, which pnpm blocks until allowed — add the exact key pnpm printed above under allowBuilds in /Users/x/.dsh/profiles/web/pnpm-workspace.yaml, then re-run'
 
@@ -696,6 +696,21 @@ test('summarizeError keeps a short message as-is instead of duplicating it via h
   assert.equal(summarizeError(msg, 800), msg)
 })
 
+test('summarizeError never drops the installer diagnostic markers', () => {
+  // 宿主摘要行命中核心行，会把「为什么没有日志」的标记挤掉 —— 那样正文又只剩一行路径，
+  // 我们又拿不到任何可排查信息（#382/#393）
+  const msg = [
+    'dsh: plugin command failed; diagnostics: C:\\Users\\x\\.dsh\\profiles\\desktop\\.plugin-manager\\logs\\op-1\\pnpm.log',
+    '[pnpm log] the host-reported diagnostics log could not be read from disk (missing, empty, or unreadable)',
+  ].join('\n')
+  const out = summarizeError(msg)
+  assert.ok(out.includes('[pnpm log]'), out)
+  assert.ok(out.includes('plugin command failed'), out)
+
+  const none = summarizeError('dsh: plugin command failed\n[no-output] the dsh CLI exited with code 1 without printing anything')
+  assert.ok(none.includes('[no-output]'), none)
+})
+
 test('classifyFailure: registry 401/403 is its own kind, not network or unclassified', () => {
   for (const log of [
     'ERR_PNPM_FETCH_401 GET https://npm.corp.internal/@scope/pkg: Unauthorized - 401',
@@ -716,6 +731,91 @@ test('authRegistryHostOf: extracts the rejecting registry host', () => {
   )
   assert.equal(authRegistryHostOf('ERR_PNPM_FETCH_403 GET https://registry.example.com/x: Forbidden - 403'), 'registry.example.com')
   assert.equal(authRegistryHostOf('nothing to extract'), null)
+})
+
+test('classifyFailure: desktop-managed profile is its own kind, not unclassified', () => {
+  for (const log of [
+    'error: profile "desktop" is managed exclusively by the Electron application',
+    'dsh: plugin command failed\nprofile desktop is managed exclusively by the desktop app',
+  ]) {
+    assert.equal(classifyFailure(log), 'profileExclusive', log)
+  }
+})
+
+test('exclusiveProfileOf: extracts the profile name from the host guard', () => {
+  assert.equal(exclusiveProfileOf('error: profile "desktop" is managed exclusively by the Electron application'), 'desktop')
+  assert.equal(exclusiveProfileOf('profile web_x is managed exclusively by the desktop app'), 'web_x')
+  assert.equal(exclusiveProfileOf('some other error'), null)
+})
+
+test('desktopCliFallbackOf: only the installer marker counts as our own bug', () => {
+  const marker = '[desktop-cli-fallback] running inside Electron but no desktop CLI bootstrap was found'
+  assert.equal(desktopCliFallbackOf(`${marker}\nerror: profile "desktop" is managed exclusively by the Electron application`), true)
+  // 外部 CLI 直接撞上 profile 独占（没有我们的回退标记）→ 用户环境问题，不该引导到我们仓库
+  assert.equal(desktopCliFallbackOf('error: profile "desktop" is managed exclusively by the Electron application'), false)
+})
+
+test('classifyFailure: local-environment signals fall back to localEnv, not unclassified', () => {
+  for (const log of [
+    'dsh: plugin command failed\nerror: ENAMETOOLONG: name too long, scandir \'/very/long/path\'',
+    'Unexpected token } in JSON at position 42',
+    'error SELF_SIGNED_CERT_IN_CHAIN: self-signed certificate in certificate chain',
+    'os error 33',
+    'invalid registry configuration in ~/.npmrc',
+  ]) {
+    assert.equal(classifyFailure(log), 'localEnv', log)
+  }
+})
+
+test('classifyFailure: a precise local kind still wins over the localEnv fallback', () => {
+  assert.equal(classifyFailure('EPERM: operation not permitted, open \'/x/package.json\''), 'accessDenied')
+  assert.equal(classifyFailure('os error 32: the process cannot access the file'), 'fileLocked')
+})
+
+test('classifyFailure: a bare host summary with no signal stays unclassified', () => {
+  const log = 'dsh: plugin command failed; diagnostics: C:\\Users\\x\\.dsh\\profiles\\desktop\\.plugin-manager\\logs\\operation-E67GG8\\pnpm.log'
+  assert.equal(classifyFailure(log), 'hub')
+})
+
+test('classifyFailure: dsh-too-old marker is its own kind, and real errors still win', () => {
+  const marker = '[dsh-too-old] dsh-better-sidebar requires DSH >= ^0.2.1-rc.1 (declared in engines / peerDependencies), but this host runs 0.2.0-rc.2 — upgrade DSH before installing'
+  assert.equal(classifyFailure(`dsh: plugin command failed\n${marker}`), 'dshTooOld')
+  // 日志里有真实错误码时以真实错误为准（标记只是补充说明）
+  assert.equal(classifyFailure(`ERR_PNPM_FETCH_404 GET https://r/x: Not Found - 404\n${marker}`), 'pnpmMissingDep')
+  assert.deepEqual(dshTooOldInfoOf(marker), {
+    pkg: 'dsh-better-sidebar',
+    floor: '^0.2.1-rc.1',
+    current: '0.2.0-rc.2',
+  })
+  assert.equal(dshTooOldInfoOf('nothing here'), null)
+})
+
+test('classifyFailure: virtual-store-dir-max-length mismatch is its own kind, not store mismatch', () => {
+  const log = '[ERR_PNPM_VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF] This modules directory was created using a different virtual-store-dir-max-length value. Run "pnpm install" to recreate the modules directory.'
+  assert.equal(classifyFailure(log), 'pnpmVirtualStore')
+  // 即便日志里同时出现 store 字样，也优先按 max-length 处置
+  assert.equal(classifyFailure(`${log}\nERR_PNPM_UNEXPECTED_STORE`), 'pnpmVirtualStore')
+  assert.equal(classifyFailure('ERR_PNPM_UNEXPECTED_STORE'), 'pnpmStore')
+})
+
+test('classifyFailure: dangling local dependency (plain pnpm ENOENT) wins over retry warnings', () => {
+  const log = [
+    '[WARN] GET https://registry.npmjs.org/crc-32 error (UND_ERR_CONNECT_TIMEOUT). Will retry in 10 seconds. 2 retries left.',
+    "pnpm: ENOENT: no such file or directory, lstat 'C:\\Users\\u\\Desktop\\HarnessWorkspace\\tavern-content'",
+  ].join('\n')
+  assert.equal(classifyFailure(log), 'pnpmLinkedDirMissing')
+})
+
+test('missingLocalDirOf: names the exact missing directory in the dialog', () => {
+  assert.equal(
+    missingLocalDirOf("pnpm: ENOENT: no such file or directory, lstat 'C:\\Users\\u\\Desktop\\HarnessWorkspace\\tavern-content'"),
+    'C:\\Users\\u\\Desktop\\HarnessWorkspace\\tavern-content',
+  )
+  assert.equal(
+    missingLocalDirOf('Could not install from "/home/u/dev/my-plugin" as it does not exist'),
+    '/home/u/dev/my-plugin',
+  )
+  assert.equal(missingLocalDirOf('ERR_PNPM_FETCH_404'), null)
 })
 
 test('missing tarball integrity is a pnpm policy rejection with specific recovery guidance', async () => {
