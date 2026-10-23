@@ -759,7 +759,7 @@ test('classifyFailure: local-environment signals fall back to localEnv, not uncl
   for (const log of [
     'dsh: plugin command failed\nerror: ENAMETOOLONG: name too long, scandir \'/very/long/path\'',
     'Unexpected token } in JSON at position 42',
-    'error SELF_SIGNED_CERT_IN_CHAIN: self-signed certificate in certificate chain',
+    'EISDIR: illegal operation on a directory, open \'/x\'',
     'os error 33',
     'invalid registry configuration in ~/.npmrc',
   ]) {
@@ -788,6 +788,14 @@ test('classifyFailure: dsh-too-old marker is its own kind, and real errors still
     current: '0.2.0-rc.2',
   })
   assert.equal(dshTooOldInfoOf('nothing here'), null)
+})
+
+test('classifyFailure: TLS trust failures are certificate issues, not plain network', () => {
+  const log = '[ERR_PNPM_META_FETCH_FAIL] GET https://registry.npmjs.org/@deepseek-ai%2Fcordis-plugin-group: unable to verify the first certificate; if the root CA is installed locally, try running Node.js with --use-system-ca'
+  assert.equal(classifyFailure(log), 'tlsTrust')
+  assert.equal(classifyFailure('SELF_SIGNED_CERT_IN_CHAIN'), 'tlsTrust')
+  // 纯连接失败仍然是 network，别被证书分支吞掉
+  assert.equal(classifyFailure('ETIMEDOUT'), 'network')
 })
 
 test('classifyFailure: virtual-store-dir-max-length mismatch is its own kind, not store mismatch', () => {

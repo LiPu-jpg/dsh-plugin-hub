@@ -148,7 +148,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmVirtualStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'registryAuth' | 'profileExclusive' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'dshTooOld' | 'localEnv' | 'hub'
+export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmVirtualStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'registryAuth' | 'profileExclusive' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'tlsTrust' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'dshTooOld' | 'localEnv' | 'hub'
 
 /** 失败动作口径：标题、上报正文与提示文案按安装/更新/卸载取词，不写死「安装」。 */
 export type FailureAction = 'install' | 'update' | 'uninstall'
@@ -265,6 +265,9 @@ export function classifyFailure(message: string): FailureKind {
   // profile 里指向已删除目录的本地依赖（file:/link:）：pnpm 直接 ENOENT（lstat），任何安装都会失败。
   // 必须在 network 之前判 —— 同一份日志常混着 pnpm 重试产生的 UND_ERR_* 警告，先判网络会把根因盖掉。
   if (/ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND|Could not install from .+ as it does not exist|pnpm:\s*ENOENT: no such file or directory,\s*(?:lstat|scandir|readlink)/i.test(message)) return 'pnpmLinkedDirMissing'
+  // TLS 证书信任失败（公司 SSL 审计 / 杀软网页防护 / 本机代理替换证书）：属于本机证书链问题，
+  // 必须在 network 之前 —— 否则会被当成「网络不通」，给出的排查方向完全不对。
+  if (/unable to verify the first certificate|SELF_SIGNED_CERT_IN_CHAIN|UNABLE_TO_VERIFY_LEAF_SIGNATURE|ERR_TLS_CERT_ALTNAME_INVALID|CERT_HAS_EXPIRED|certificate has expired|UNABLE_TO_GET_ISSUER_CERT|CERT_UNTRUSTED|ERR_TLS_CERT/i.test(message)) return 'tlsTrust'
   // 网络/代理/源配置问题。必须在 prepare 之前判：git fetch 失败常被外层包成 "Command failed"
   // tarball 下载失败的括号里可能是数字码（pnpm 自己的）或符号码（undici 的 UND_ERR_*），两种都要认
   if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return 'network'

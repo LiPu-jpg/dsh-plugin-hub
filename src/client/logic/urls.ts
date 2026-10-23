@@ -66,6 +66,7 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
     case 'pluginPrepare': return 'plugin distribution incomplete'
     case 'hostIncompatible': return 'plugin does not support the DSH version in use'
     case 'network': return 'network failure on the user side'
+    case 'tlsTrust': return `TLS certificate verification failed on the user machine during the ${word}`
     case 'hostCliSpawn': return 'the DSH host could not be launched on the user machine'
     case 'hubState': return `stale ${word} state in the plugin hub`
     case 'timeout': return `${word} timed out`
@@ -106,6 +107,8 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
         ? 'a dependency declared by the plugin is not published on the public npm registry (missing, removed, or never released); please publish or correct that dependency, or ship it with the plugin'
       : kind === 'network'
         ? 'network connectivity issue on the user side (DNS, proxy, firewall, or a blocked connection)'
+      : kind === 'tlsTrust'
+        ? 'the local certificate chain is not trusted by Node/pnpm (corporate SSL inspection, antivirus web shield, or a local MITM proxy) — local environment issue'
       : kind === 'localEnv'
         ? 'no evidence of a plugin-side cause; the log shows local-environment signals (system error codes, certificates/proxy, or a broken local config), so this is reported for triage of the classifier only'
       : kind === 'dshTooOld'

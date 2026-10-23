@@ -454,6 +454,14 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                         ]),
                       ])
                     }
+                    if (kind === 'tlsTrust') {
+                      // 本机证书链不被信任（公司 SSL 审计 / 杀软 / 抓包代理）：给 CA 与镜像的具体处置，
+                      // 不引导提 Issue —— 换任何插件都会一样失败
+                      return h('div', null, [
+                        h('div', { className: styles.failPrepareHint }, t('failTlsTrustHint')),
+                        onRunDiagnostics ? h('button', { className: styles.failDiagBtn, onClick: onRunDiagnostics }, t('failNetworkRunDiag')) : null,
+                      ])
+                    }
                     if (kind === 'network') {
                       // 安装前网络探测 / 安装日志里的连接失败（[network] / git fetch 超时 / DNS / TLS）：
                       // 是本机网络不通或代理有问题，不是插件问题 —— 提示检查网络 + 直达「系统诊断」，
