@@ -11,5 +11,5 @@ export declare const DEFAULT_NPM_REGISTRY = "https://registry.npmjs.org";
 export declare function latestReleaseOf(packument: unknown): NpmRelease | null;
 /** 请求体 → 去重后的合法包名列表；非数组 / 超量 / 含非法包名一律 null（拒绝非法输入）。 */
 export declare function parseReleaseAgeRequest(body: unknown): string[] | null;
-/** 查询一个包的最新版本与发布时间（成功结果缓存，同会话内同包不重复请求）；registry 为空回退官方源，失败返回 null。 */
+/** 查询一个包的最新版本与发布时间（成功结果按源缓存 10 分钟）；registry 为空回退官方源，失败返回 null。 */
 export declare function lookupReleaseAge(packageName: string, registry: string, proxy: string, timeoutMs?: number): Promise<NpmRelease | null>;

@@ -12,6 +12,8 @@ export declare function userNpmRegistry(cwd: string): string;
 /**
  * 传输层失败才值得换源：超时、连接重置、DNS、5xx。
  * 404 / 版本不存在 / 鉴权失败必须保持原样 —— 换源只会掩盖作者侧问题或装到滞后版本。
+ * 本机证书链不被信任（TLS 校验失败）同样不换源：换哪个公共镜像都会以同样方式失败，
+ * 白白多等两轮超时、把真正的根因淹进换源噪音里。
  */
 export declare function isTransportFailure(text: string): boolean;
 /** 日志里展示用的源主机名（不打印可能带凭据的完整 URL）。 */

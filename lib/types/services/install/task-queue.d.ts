@@ -78,6 +78,11 @@ export declare function startPluginMutation(options: {
     installSpec?: string;
 }): InstallTask;
 /**
+ * 安装成功后从 profile 的 `node_modules/<pkg>/package.json` 读**实际**版本；
+ * 定位不到包名或读不到返回 null。客户端拿它写版本账本 —— 目录里的版本可能滞后。
+ */
+export declare function installedVersionOf(profile: string, target: string): string | null;
+/**
  * 安装后校验已装包里 package.json 声明的文件（main / exports["."].default 与
  * dsh.bundle.patch）是否真实存在。npm 包也可能漏发构建产物（lib/ 等），pnpm 装完没有
  * 报错，但宿主重启加载插件树时会 ERR_MODULE_NOT_FOUND 直接崩溃、网页打不开 —— 这里在

@@ -12,6 +12,8 @@ export interface InstallResult {
     error: string | null;
     stdout: string;
     stderr: string;
+    /** 实际执行安装用的 npm 源（换源重试后是最终那一个）：后续读元数据的注解要跟它同源 */
+    registry?: string;
 }
 export interface InstallTask {
     id: number;
@@ -44,6 +46,9 @@ export interface InstallTask {
     needsReload?: boolean;
     /** 自更新成功、但该 profile 的 dsh.profile.bundles 已不含 dsh-plugin：重启后市场不会出现 */
     bundleDeselected?: boolean;
+    /** 安装/更新成功后，从 profile 的 node_modules 读到的**实际**版本。
+     *  客户端用它写版本账本（目录版本可能滞后，抄目录字段会让「有更新」永久失真）。 */
+    installedVersion?: string;
     /** 卸载入队时该包是否带客户端 UI（`dsh.client`）：卸载后包已从磁盘删除，只能入队前快照，
      *  卸载成功且曾存活时据此决定是否需要刷新页面摘除插件面板。 */
     hadClientUi?: boolean;
