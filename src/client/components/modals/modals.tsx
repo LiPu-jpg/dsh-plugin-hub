@@ -15,7 +15,7 @@ import { CloseIcon, ConfirmIcon, CopyIcon, LinkIcon } from '../ui/icons.tsx'
 import { ProgressView } from './ProgressView.tsx'
 import { installCommandOf } from '../../logic/install-command.ts'
 import { pluginDetailUrl, pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
-import { classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, missingLocalDirOf } from '../../logic/failures.ts'
+import { classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, unresolvedBundleOf, missingLocalDirOf } from '../../logic/failures.ts'
 import type { FailureAction } from '../../logic/failures.ts'
 
 /** 完成结果视图：绿色对勾 + 标题/描述；
@@ -445,10 +445,10 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
               // 调 pnpm add 时未声明在根操作，任何插件都会失败，不是插件问题 ——
               // 给 .npmrc 豁免指引，不引导提 Issue
               ? h('div', { className: styles.failPrepareHint }, t('failPnpmWorkspaceHint'))
-              : failureKind === 'pnpmVirtualStore'
-              // profile 的 modules 目录与当前 pnpm 的 virtual-store-dir-max-length 不一致：
+              : failureKind === 'pnpmModulesMismatch'
+              // profile 的 modules 目录与当前 pnpm 配置不一致（hoist / 虚拟目录长度 / node-linker 等）：
               // 该 profile 内的安装/卸载都会失败 —— 重建 modules 目录或统一配置即可，不引导提 Issue
-              ? h('div', { className: styles.failPrepareHint }, t('failPnpmVirtualStoreHint'))
+              ? h('div', { className: styles.failPrepareHint }, t('failPnpmModulesMismatchHint'))
               : failureKind === 'pnpmStore'
               // pnpm 存在但 store 大版本不匹配（ERR_PNPM_UNEXPECTED_STORE）：profile 目录的依赖是
               // 另一大版本 pnpm 装的，当前 pnpm 不认，任何插件装进该 profile 都会失败 ——
@@ -462,6 +462,15 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
               // profile 里留着指向旧版本 dsh-plugin 的补丁声明（ERR_PNPM_UNUSED_PATCH）：pnpm 发现
               // 补丁没被用上就中止整次安装，任何插件都装不进来 —— 给删除条目的指引，不引导提 Issue
               ? h('div', { className: styles.failPrepareHint }, t('failPnpmUnusedPatchHint'))
+              : failureKind === 'profileState'
+              // profile 的 pnpm 元数据与本机不一致（lockfile 过期 / packageManager 版本不符 /
+              // 补丁未生效）：pnpm 在真正装插件之前就中止，该 profile 内的安装都会失败 ——
+              // 给重建指引，不引导提 Issue
+              ? h('div', { className: styles.failPrepareHint }, t('failProfileStateHint'))
+              : failureKind === 'nodeEngine'
+              // 本机 Node / pnpm 版本低于包声明的下限：升级即可解决，装任何同类插件都会失败 ——
+              // 不引导提 Issue
+              ? h('div', { className: styles.failPrepareHint }, t('failNodeEngineHint'))
               : failureKind === 'pnpmMissingDep'
               // profile 里留着指向 registry 上不存在（404）的包的依赖：pnpm 连得上 registry，
               // 是被明确告知包不存在 —— 该 profile 的任何安装都会先卡在这条依赖上，与本次要装的
@@ -642,6 +651,14 @@ export function ErrorModal({ message, repo, action, command, attempts, t, env, o
                   }, t('failMisjudgeLink')),
                 ]) : null,
               ])
+              : failureKind === 'profileBundleMissing'
+              // profile 声明的某个 bundle 没装进 node_modules：宿主在安装前就中止，
+              // 与本次插件无关 —— 给「让宿主补装 profile 依赖 / 重装应用」指引，不引导提 Issue
+              ? (() => {
+                const info = unresolvedBundleOf(message)
+                return h('div', { className: styles.failPrepareHint },
+                  t('failProfileBundleMissingHint', { pkg: info?.pkg ?? 'unknown', profile: env?.profile ?? '<profile>' }))
+              })()
               : failureKind === 'hubState'
               ? h('div', null, [
                 // 插件中心的列表状态已过期（安装器自身守卫消息）：不是插件问题、也不是 bug，只给可行动提示，不引导提 Issue

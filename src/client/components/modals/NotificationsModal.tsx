@@ -14,7 +14,7 @@ import type { MouseEvent } from 'react'
 import styles from '../../styles/Modal.module.css'
 import type { EnvInfo, Translate } from '../../types.ts'
 import type { NotificationRecord } from '../../logic/failures.ts'
-import { actionOfRecord, classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, missingLocalDirOf } from '../../logic/failures.ts'
+import { actionOfRecord, classifyFailure, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, pnpmPolicyHintOf, pnpmPolicyHintParams, registryMissingHintOf, unreachableTargetOf, registryHostOf, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, unresolvedBundleOf, missingLocalDirOf } from '../../logic/failures.ts'
 import type { PendingRestart, QueueTask } from '../../hooks/useTaskQueue.ts'
 import { pluginIssueUrl, pluginSiteUrl, hubIssueUrl } from '../../logic/urls.ts'
 import { CloseIcon } from '../ui/icons.tsx'
@@ -306,10 +306,10 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // 给 .npmrc 豁免指引，不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failPnpmWorkspaceHint'))
                     }
-                    if (kind === 'pnpmVirtualStore') {
-                      // profile 的 modules 目录与当前 pnpm 的 virtual-store-dir-max-length 不一致：
+                    if (kind === 'pnpmModulesMismatch') {
+                      // profile 的 modules 目录与当前 pnpm 配置不一致（hoist / 虚拟目录长度 / node-linker 等）：
                       // 该 profile 内的安装/卸载都会失败 —— 重建 modules 目录或统一配置即可，不引导提 Issue
-                      return h('div', { className: styles.failPrepareHint }, t('failPnpmVirtualStoreHint'))
+                      return h('div', { className: styles.failPrepareHint }, t('failPnpmModulesMismatchHint'))
                     }
                     if (kind === 'pnpmStore') {
                       // pnpm 存在但 store 大版本不匹配（ERR_PNPM_UNEXPECTED_STORE）：profile 目录的依赖是
@@ -326,6 +326,16 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                       // profile 里留着指向旧版本 dsh-plugin 的补丁声明（ERR_PNPM_UNUSED_PATCH）：pnpm
                       // 发现补丁没被用上就中止安装，任何插件都装不进来 —— 不引导提 Issue
                       return h('div', { className: styles.failPrepareHint }, t('failPnpmUnusedPatchHint'))
+                    }
+                    if (kind === 'profileState') {
+                      // profile 的 pnpm 元数据与本机不一致（lockfile 过期 / packageManager 版本不符 /
+                      // 补丁未生效）：pnpm 在真正装插件之前就中止，该 profile 内的安装都会失败 ——
+                      // 给重建指引，不引导提 Issue
+                      return h('div', { className: styles.failPrepareHint }, t('failProfileStateHint'))
+                    }
+                    if (kind === 'nodeEngine') {
+                      // 本机 Node / pnpm 版本低于包声明的下限：升级即可解决 —— 不引导提 Issue
+                      return h('div', { className: styles.failPrepareHint }, t('failNodeEngineHint'))
                     }
                     if (kind === 'pnpmMissingDep') {
                       // profile 里留着指向 registry 上不存在（404）的包的依赖：pnpm 连得上 registry，
@@ -504,6 +514,13 @@ export function NotificationsModal({ records, tasks, pendingRestarts, t, env, on
                           }, t('failMisjudgeLink')),
                         ]) : null,
                       ])
+                    }
+                    if (kind === 'profileBundleMissing') {
+                      // profile 声明的某个 bundle 没装进 node_modules：宿主在安装前就中止，
+                      // 与本次插件无关 —— 给「让宿主补装 profile 依赖 / 重装应用」指引，不引导提 Issue
+                      const info = unresolvedBundleOf(r.message)
+                      return h('div', { className: styles.failPrepareHint },
+                        t('failProfileBundleMissingHint', { pkg: info?.pkg ?? 'unknown', profile: env?.profile ?? '<profile>' }))
                     }
                     if (kind === 'hubState') {
                       // 插件中心的列表状态已过期（安装器自身守卫消息）：非插件问题、也不是 bug，只给可行动提示，不引导提 Issue

@@ -14,7 +14,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { verifyInstalledEntry } from '../src/server/services/install/task-queue.ts'
+import { installedVersionOf, verifyInstalledEntry } from '../src/server/services/install/task-queue.ts'
 
 const TARGET = 'git+https://github.com/owner/repo.git'
 
@@ -85,6 +85,24 @@ test('verifyInstalledEntry: a target that is not installed yet yields no name (t
       const verified = verifyInstalledEntry('test', TARGET)
       assert.equal(verified.name, null)
       assert.equal(verified.missing, null)
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('installedVersionOf: reads the version that actually landed, not the catalog one', () => {
+  const root = mkdtempSync(join(tmpdir(), 'dsh-home-'))
+  try {
+    withProfile(root, { 'some-plugin': 'github:owner/repo' }, {
+      name: 'some-plugin',
+      // 盘上真实版本与目录里显示的版本可能不同：账本必须用这个值
+      manifest: JSON.stringify({ name: 'some-plugin', version: '1.1.10', main: './lib/index.js' }),
+      files: ['lib/index.js'],
+    }, () => {
+      assert.equal(installedVersionOf('test', TARGET), '1.1.10')
+      // 未安装的目标读不到版本
+      assert.equal(installedVersionOf('test', 'git+https://github.com/other/repo.git'), null)
     })
   } finally {
     rmSync(root, { recursive: true, force: true })

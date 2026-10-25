@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyFailure, coreErrorCode, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, missingLocalDirOf } from '../src/client/logic/failures.ts'
+import { classifyFailure, coreErrorCode, formatFailureMessage, missingRegistryPackageOf, npmTooLowVersion, registryMissingHintOf, summarizeError, unreachableTargetOf, registryHostOf, actionOfRecord, actionWordEn, actionWordZh, authRegistryHostOf, exclusiveProfileOf, desktopCliFallbackOf, dshTooOldInfoOf, unresolvedBundleOf, missingLocalDirOf } from '../src/client/logic/failures.ts'
 
 const dshTailHint = 'dsh: git-hosted plugins build on install via their prepare script, which pnpm blocks until allowed — add the exact key pnpm printed above under allowBuilds in /Users/x/.dsh/profiles/web/pnpm-workspace.yaml, then re-run'
 
@@ -269,6 +269,54 @@ test('classifyFailure: a stale pnpm patch entry on the machine is an environment
   assert.notEqual(classifyFailure(msg), 'pluginPrepare')
   // 只带说明句（无错误码）也要能归到 pnpmUnusedPatch，且优先于「Command failed」的插件侧判定
   assert.equal(classifyFailure('The following patches were not used: dsh-plugin@1.4.2\nCommand failed: pnpm add'), 'pnpmUnusedPatch')
+})
+
+test('classifyFailure: profile pnpm metadata mismatches stay on the user side', () => {
+  // profile 的 lockfile / manifest / packageManager / 补丁声明与本机 pnpm 对不上：
+  // pnpm 在真正装插件前就中止，装任何插件都会失败 —— 必须给用户自助指引，不能落到 hub 上报给我们
+  for (const log of [
+    '[ERR_PNPM_OUTDATED_LOCKFILE] Cannot install with "frozen-lockfile" because pnpm-lock.yaml is not up to date with package.json',
+    '[ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND] No package.json (or package.yaml, or package.json5) was found in "/Users/x/.dsh/profiles/web"',
+    '[ERR_PNPM_NO_PKG_MANIFEST] No package.json found in /Users/x/.dsh/profiles/web',
+    '[ERR_PNPM_BAD_PM_VERSION] This project is configured to use v8.6.0 of pnpm, but you are running v10.0.0',
+    '[ERR_PNPM_LOCKFILE_MISSING_DEPENDENCY] Broken lockfile: no entry for foo@1.0.0',
+    '[ERR_PNPM_PATCH_NOT_APPLIED] The following patches were not applied: dsh-plugin@1.4.2',
+    '[ERR_PNPM_WORKSPACE_PKG_NOT_FOUND] In : "@scope/x@workspace:*" is in the dependencies but no package named "@scope/x" is present in the workspace',
+  ]) {
+    assert.equal(classifyFailure(log), 'profileState', log)
+  }
+  // 必须优先于 pluginPrepare 的「Command failed」包装，否则会被推给插件作者
+  assert.equal(classifyFailure('Command failed: pnpm add\n[ERR_PNPM_OUTDATED_LOCKFILE] Cannot install with "frozen-lockfile"'), 'profileState')
+})
+
+test('classifyFailure: an engine requirement below the local Node / pnpm stays on the user side', () => {
+  assert.equal(classifyFailure('[ERR_PNPM_UNSUPPORTED_ENGINE] Unsupported environment (bad pnpm and/or Node.js version)'), 'nodeEngine')
+  assert.equal(classifyFailure('npm error code EBADENGINE\nnpm error notsup Required: {"node":">=22"}'), 'nodeEngine')
+  // pnpm 只是 WARN 时不算失败原因：此时日志里通常还有真实报错，不能被 engine 判定盖掉
+  assert.equal(classifyFailure('WARN Unsupported Engine: wanted: {"node":">=22"} (current: {"node":"20.11.0"})\nERR_PNPM_FETCH_404 GET https://registry.npmjs.org/@scope/missing: Not Found - 404'), 'pnpmMissingDep')
+})
+
+test('classifyFailure: TLS wording only counts as network when it is a real transport failure', () => {
+  // 过宽的 \bTLS\b / \bSSL\b 会把包名、路径里的词段当成网络失败，盖掉真实原因
+  assert.equal(classifyFailure('[ERR_PNPM_UNUSED_PATCH] patches were not used: dsh-tls-helper@1.0.0'), 'pnpmUnusedPatch')
+  assert.equal(classifyFailure('Command failed: pnpm add\nprepare script failed in /opt/ssl/setup.js'), 'pluginPrepare')
+  // 真正的 TLS 传输失败仍然归网络
+  assert.equal(classifyFailure('FetchError: request failed, reason: SSL routines:ssl3_get_record:wrong version number'), 'network')
+})
+
+test('classifyFailure: registry transport failures are classified as network, not left unclassified', () => {
+  // 5xx / 元数据拉取失败说明连不上源，属本机网络，不能落到 hub 让用户提交给我们
+  for (const log of [
+    '[ERR_PNPM_FETCH_502] GET https://registry.npmjs.org/@scope/pkg: Bad Gateway - 502',
+    '[ERR_PNPM_META_FETCH_FAIL] GET https://registry.npmjs.org/@scope%2Fpkg: request to https://registry.npmjs.org/@scope%2Fpkg failed, reason: connect ETIMEDOUT',
+    'ERR_SOCKET_TIMEOUT: Socket timeout',
+  ]) {
+    assert.equal(classifyFailure(log), 'network', log)
+  }
+  // store 内容损坏同样是本机环境
+  assert.equal(classifyFailure('[ERR_PNPM_UNEXPECTED_PKG_CONTENT_IN_STORE] Unexpected package content in the store'), 'pnpmStore')
+  // profile 的 package.json 损坏
+  assert.equal(classifyFailure('[ERR_PNPM_JSON_PARSE] Unexpected token } in JSON at position 12'), 'profileState')
 })
 
 test('classifyFailure: a locked file inside the profile is an environment issue, not a plugin issue', () => {
@@ -798,11 +846,27 @@ test('classifyFailure: TLS trust failures are certificate issues, not plain netw
   assert.equal(classifyFailure('ETIMEDOUT'), 'network')
 })
 
-test('classifyFailure: virtual-store-dir-max-length mismatch is its own kind, not store mismatch', () => {
-  const log = '[ERR_PNPM_VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF] This modules directory was created using a different virtual-store-dir-max-length value. Run "pnpm install" to recreate the modules directory.'
-  assert.equal(classifyFailure(log), 'pnpmVirtualStore')
-  // 即便日志里同时出现 store 字样，也优先按 max-length 处置
-  assert.equal(classifyFailure(`${log}\nERR_PNPM_UNEXPECTED_STORE`), 'pnpmVirtualStore')
+test('classifyFailure: unresolved profile bundle is a profile-integrity problem, not unknown', () => {
+  const log = [
+    'Error: dsh: cannot resolve profile bundle "dsh-plugin-marketplace" from the dsh installation or C:\\Users\\hd\\.dsh\\profiles\\desktop; run \'dsh plugin --profile desktop install\' if its dependency is not installed',
+  ].join('\n')
+  assert.equal(classifyFailure(log), 'profileBundleMissing')
+  assert.deepEqual(unresolvedBundleOf(log), {
+    pkg: 'dsh-plugin-marketplace',
+    profileDir: 'C:\\Users\\hd\\.dsh\\profiles\\desktop',
+  })
+  assert.equal(unresolvedBundleOf('nothing here'), null)
+})
+
+test('classifyFailure: pnpm modules-dir config mismatch covers every *_DIFF, not store mismatch', () => {
+  const logs = [
+    '[ERR_PNPM_VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF] This modules directory was created using a different virtual-store-dir-max-length value. Run "pnpm install" to recreate the modules directory.',
+    '[ERR_PNPM_PUBLIC_HOIST_PATTERN_DIFF] This modules directory was created using a different public-hoist-pattern value. Run "pnpm install" to recreate the modules directory.',
+    '[ERR_PNPM_HOIST_PATTERN_DIFF] This modules directory was created using a different hoist-pattern value.',
+  ]
+  for (const log of logs) assert.equal(classifyFailure(log), 'pnpmModulesMismatch', log)
+  // 即便日志里同时出现 store 字样，也优先按 modules 配置不一致处置
+  assert.equal(classifyFailure(`${logs[1]}\nERR_PNPM_UNEXPECTED_STORE`), 'pnpmModulesMismatch')
   assert.equal(classifyFailure('ERR_PNPM_UNEXPECTED_STORE'), 'pnpmStore')
 })
 

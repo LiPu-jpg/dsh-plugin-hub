@@ -36,6 +36,8 @@ export interface QueueTask {
   /** 安装时的目录信号快照（版本 + 仓库更新时间）：任务成功后在本地记录，供「有更新」比对 */
   version?: string
   updatedAt?: string
+  /** 服务端在成功终态带出的**实际**安装版本（读 profile 的 node_modules）：优先于目录版本写账本 */
+  installedVersion?: string
   /** pending 排队中 / running 执行中 / cancelling 取消中（客户端乐观过渡态） */
   status: 'pending' | 'running' | 'cancelling'
   progress: number
@@ -186,17 +188,33 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     setPendingRestarts(next)
   }
 
-  /** 向宿主记录某插件的安装时目录信号（version + updatedAt）；version 为空时清除记录（卸载）。 */
+  /** 向宿主记录某插件的安装时目录信号（version + updatedAt）。
+   *  版本未知时**不写**：服务端把空版本当作「卸载清理」会删掉整条记录（连 npm 包名映射一起），
+   *  刷新页面后任务丢了快照就会走到这条路径 —— 宁可保留旧记录，也不能把账本清空。 */
   const syncInstalledVersion = async (repo: string | null, version: string | undefined, updatedAt: string | undefined) => {
+    if (!repo || version === undefined || version === '') return
+    try {
+      await fetch('/dsh-plugin-hub/installed-version', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ repo, version, updatedAt }),
+      })
+    } catch {
+      // 宿主未挂本地路由：静默忽略，仅本机展示受影响
+    }
+  }
+
+  /** 清除某仓库的版本记录（卸载成功后调用）：空版本是服务端的「删除记录」语义，只在这里显式发送。 */
+  const clearInstalledVersion = async (repo: string | null) => {
     if (!repo) return
     try {
       await fetch('/dsh-plugin-hub/installed-version', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ repo, version: version ?? null, updatedAt }),
+        body: JSON.stringify({ repo, version: null }),
       })
     } catch {
-      // 宿主未挂本地路由：静默忽略，仅本机展示受影响
+      // 同上：清理失败不影响卸载结果
     }
   }
 
@@ -207,13 +225,15 @@ export function useTaskQueue(opts: TaskQueueOptions) {
       refreshInstalled()
       if (q.kind === 'uninstall') {
         // 卸载成功：清掉本地版本记录
-        void syncInstalledVersion(q.repo, undefined, undefined)
+        void clearInstalledVersion(q.repo)
         onUninstallDone(modalTaskRef.current === q.id, q.repo, q.needsRestart, q.needsReload ?? false)
       } else {
         // 安装成功：记录安装时的目录信号（版本 + 仓库更新时间），供「有更新」比对；
         // 同时缓存展示信息，待重启列表（服务端已登记）合并时直接补齐简介/版本
-        void syncInstalledVersion(q.repo, q.version, q.updatedAt)
-        pendingInfoRef.current.set(q.target, { desc: q.desc, version: q.version })
+        // 账本记**实际装上的版本**：目录版本可能滞后，抄目录字段会让「有更新」永久失真
+        const recordedVersion = q.installedVersion ?? q.version
+        void syncInstalledVersion(q.repo, recordedVersion, q.updatedAt)
+        pendingInfoRef.current.set(q.target, { desc: q.desc, version: recordedVersion })
         onInstallDone(modalTaskRef.current === q.id, q.repo, q.needsRestart, q.action === 'update', q.needsReload ?? false, q.bundleDeselected === true)
       }
     } else {
@@ -260,21 +280,23 @@ export function useTaskQueue(opts: TaskQueueOptions) {
     let lines: string[] = []
     let attempts: string[] | undefined
     let bundleDeselected: boolean | undefined
+    let installedVersion: string | undefined
     try {
       const res = await fetch(`/dsh-plugin-hub/status?task=${q.id}`, { cache: 'no-store' })
       if (res.ok) {
-        const data = await res.json() as { task?: { status?: string; lines?: string[]; attempts?: string[]; needsRestart?: unknown; needsReload?: unknown; bundleDeselected?: unknown } }
+        const data = await res.json() as { task?: { status?: string; lines?: string[]; attempts?: string[]; needsRestart?: unknown; needsReload?: unknown; bundleDeselected?: unknown; installedVersion?: unknown } }
         const task = data.task
         if (task !== undefined) {
           status = task.status ?? 'failed'
           lines = task.lines ?? []
           attempts = Array.isArray(task.attempts) ? task.attempts : undefined
           bundleDeselected = task.bundleDeselected === true ? true : undefined
+          installedVersion = typeof task.installedVersion === 'string' && task.installedVersion !== '' ? task.installedVersion : undefined
           // 终态带出的「是否需要重启 / 是否只需刷新」覆盖本地（服务端 done 时按 loader 热挂/即时移除情况设置）
           const needsRestart = typeof task.needsRestart === 'boolean' ? task.needsRestart : q.needsRestart
           const needsReload = typeof task.needsReload === 'boolean' ? task.needsReload : (q.needsReload ?? false)
           if (status === 'done') {
-            const settled = { ...q, needsRestart, needsReload, bundleDeselected: bundleDeselected === true ? true : q.bundleDeselected }
+            const settled = { ...q, needsRestart, needsReload, bundleDeselected: bundleDeselected === true ? true : q.bundleDeselected, installedVersion }
             // 卸载成功走进度过渡动画；安装成功直接收尾
             if (q.kind === 'uninstall') settleDone(settled, lines)
             else finishQueueTask(true, settled, lines)

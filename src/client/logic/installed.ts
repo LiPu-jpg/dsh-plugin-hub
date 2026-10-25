@@ -12,6 +12,7 @@
 import type { HubPlugin } from '../types.ts'
 import { HUB_REPO } from './constants.ts'
 import { repoFromInstallTarget } from './install-command.ts'
+import { compareVersions } from './release-age.ts'
 
 /** 安装时记录的目录信号（versions 表项）。 */
 export interface InstalledVersionSignal {
@@ -104,6 +105,8 @@ export function npmPackageOf(plugin: HubPlugin, versions: Record<string, Install
  * 是否有更新：仅对已安装插件有意义。
  * 双信号判定——有 release 版本的比版本；无版本（repo 不打 tag）的比仓库最近更新时间
  * （repoUpdatedAt，ISO 字符串字典序 = 时间序），更新时间变新说明有新提交。
+ * 版本用「目录 > 已装」判断，不做 != 比较：目录可能滞后于 npm，若直接用不等，
+ * 会把「已装 1.1.10、目录还写 1.1.8」判成有更新，反而引导用户降级。
  */
 export function hasUpdateOf(
   plugin: HubPlugin,
@@ -115,7 +118,7 @@ export function hasUpdateOf(
   if (!repo) return false
   const rec = versions[repo.toLowerCase()]
   if (!rec) return false
-  if (plugin.version) return plugin.version !== rec.version
+  if (plugin.version) return compareVersions(plugin.version, rec.version) > 0
   const current = plugin.dates?.repoUpdatedAt
   return Boolean(current && rec.updatedAt && current > rec.updatedAt)
 }

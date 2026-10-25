@@ -25,8 +25,11 @@ export const RELEASE_AGE_TIMEOUT_MS = 8000
 const MAX_PACKUMENT_BYTES = 10 * 1024 * 1024
 export const DEFAULT_NPM_REGISTRY = 'https://registry.npmjs.org'
 
-/** 会话内缓存（包名 → 版本与发布时间）：只存成功结果，一次网络抖动不会把判断永久粘住。 */
-const releaseCache = new Map<string, NpmRelease>()
+/** 会话内缓存（源 + 包名 → 结果）：只存成功结果，一次网络抖动不会把判断永久粘住。
+ *  必须带过期时间 —— 插件中心可能连续开着几小时，作者发了新版本后不能一直沿用旧结果；
+ *  也必须把源算进键 —— 同一个包在官方源与镜像上的 latest / 发布时间不同，混用会算错门禁。 */
+const CACHE_TTL_MS = 10 * 60 * 1000
+const releaseCache = new Map<string, { at: number; release: NpmRelease }>()
 
 /** 从完整 packument 取 dist-tags.latest 对应版本及其发布时间；缺任一字段返回 null。 */
 export function latestReleaseOf(packument: unknown): NpmRelease | null {
@@ -87,21 +90,22 @@ async function fetchPackument(url: string, proxy: string, timeoutMs: number): Pr
   return getJson(url, timeoutMs)
 }
 
-/** 查询一个包的最新版本与发布时间（成功结果缓存，同会话内同包不重复请求）；registry 为空回退官方源，失败返回 null。 */
+/** 查询一个包的最新版本与发布时间（成功结果按源缓存 10 分钟）；registry 为空回退官方源，失败返回 null。 */
 export async function lookupReleaseAge(
   packageName: string,
   registry: string,
   proxy: string,
   timeoutMs = RELEASE_AGE_TIMEOUT_MS,
 ): Promise<NpmRelease | null> {
-  const cached = releaseCache.get(packageName)
-  if (cached !== undefined) return cached
   const base = registry.replace(/\/+$/, '') || DEFAULT_NPM_REGISTRY
+  const key = `${base}\n${packageName}`
+  const cached = releaseCache.get(key)
+  if (cached !== undefined && Date.now() - cached.at < CACHE_TTL_MS) return cached.release
   const body = await fetchPackument(`${base}/${encodeURIComponent(packageName)}`, proxy, timeoutMs)
   if (body === null) return null
   let parsed: unknown
   try { parsed = JSON.parse(body) } catch { return null }
   const release = latestReleaseOf(parsed)
-  if (release !== null) releaseCache.set(packageName, release)
+  if (release !== null) releaseCache.set(key, { at: Date.now(), release })
   return release
 }

@@ -71,9 +71,14 @@ export function userNpmRegistry(cwd: string): string {
 /**
  * 传输层失败才值得换源：超时、连接重置、DNS、5xx。
  * 404 / 版本不存在 / 鉴权失败必须保持原样 —— 换源只会掩盖作者侧问题或装到滞后版本。
+ * 本机证书链不被信任（TLS 校验失败）同样不换源：换哪个公共镜像都会以同样方式失败，
+ * 白白多等两轮超时、把真正的根因淹进换源噪音里。
  */
 export function isTransportFailure(text: string): boolean {
   if (/\b(?:ERR_PNPM_FETCH_404|E404|ERR_PNPM_NO_MATCHING_VERSION|ETARGET|ERR_PNPM_FETCH_401|ERR_PNPM_FETCH_403|E401|E403)\b/i.test(text)) {
+    return false
+  }
+  if (/unable to verify the first certificate|SELF_SIGNED_CERT_IN_CHAIN|UNABLE_TO_VERIFY_LEAF_SIGNATURE|ERR_TLS_CERT_ALTNAME_INVALID|CERT_HAS_EXPIRED|CERT_UNTRUSTED|UNABLE_TO_GET_ISSUER_CERT/i.test(text)) {
     return false
   }
   return /\b(?:ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|EPIPE)\b|socket hang up|getaddrinfo|network request failed|connect timeout|request to .+ failed|FetchError|ERR_PNPM_FETCH_5\d\d|ERR_PNPM_META_FETCH_FAIL/i.test(text)

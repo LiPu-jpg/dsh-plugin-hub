@@ -46,10 +46,12 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
   const word = actionWordEn(action)
   switch (kind) {
     case 'npmTooOld': return `npm too old for this ${word}`
+    case 'nodeEngine': return `Node / pnpm on the user machine is below the version this ${word} requires`
+    case 'profileState': return `the user profile's pnpm metadata does not match the local pnpm for this ${word}`
     case 'dshMissing': return 'dsh command not found on the user machine'
     case 'pnpmMissing': return 'pnpm command not found on the user machine'
     case 'pnpmStore': return 'pnpm store version mismatch on the user machine'
-    case 'pnpmVirtualStore': return 'the profile modules directory was built with a different virtual-store-dir-max-length on the user machine'
+    case 'pnpmModulesMismatch': return 'the profile modules directory was built with a different pnpm config on the user machine'
     case 'pnpmWorkspace': return `pnpm workspace-root check blocked the ${word} on the user machine`
     case 'originRejected': return 'request origin rejected by the local service on the user machine'
     case 'pnpmPolicy': return `pnpm supply-chain policy blocked the ${word} on the user machine`
@@ -69,6 +71,7 @@ function reasonTitleOf(kind: FailureKind, action: FailureAction): string {
     case 'tlsTrust': return `TLS certificate verification failed on the user machine during the ${word}`
     case 'hostCliSpawn': return 'the DSH host could not be launched on the user machine'
     case 'hubState': return `stale ${word} state in the plugin hub`
+    case 'profileBundleMissing': return 'the DSH profile is missing a bundle it declares'
     case 'timeout': return `${word} timed out`
     case 'profileLock': return 'DSH profile is locked by another process'
     case 'pluginMissingDep': return 'a dependency of the plugin is not published on npm'
@@ -113,8 +116,10 @@ export function pluginIssueUrl(repo: string, message: string, env?: EnvInfo | nu
         ? 'no evidence of a plugin-side cause; the log shows local-environment signals (system error codes, certificates/proxy, or a broken local config), so this is reported for triage of the classifier only'
       : kind === 'dshTooOld'
         ? 'the plugin declares a minimum DSH version this host does not meet — upgrade DSH first (local environment issue)'
-      : kind === 'pnpmVirtualStore'
-        ? 'the profile node_modules was created with a different virtual-store-dir-max-length (or a different pnpm config), so pnpm refuses to reuse it (local environment issue)'
+      : kind === 'pnpmModulesMismatch'
+        ? 'the profile node_modules was created with a different pnpm config (hoisting / virtual store settings), so pnpm refuses to reuse it (local environment issue)'
+      : kind === 'profileBundleMissing'
+        ? 'the profile declares a bundle that is not installed in it (interrupted install or incomplete app update), so the host aborts before installing anything (local environment issue)'
       : kind === 'registryAuth'
         ? 'the npm registry rejected the request with 401/403 — the configured registry needs credentials or blocks this network (local environment issue)'
       : kind === 'profileExclusive'

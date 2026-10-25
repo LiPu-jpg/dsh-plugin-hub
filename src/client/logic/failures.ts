@@ -148,7 +148,7 @@ export function removeNotification(id: number): NotificationRecord[] {
   return next
 }
 
-export type FailureKind = 'npmTooOld' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmVirtualStore' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'registryAuth' | 'profileExclusive' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'tlsTrust' | 'network' | 'hostCliSpawn' | 'hubState' | 'timeout' | 'profileLock' | 'dshTooOld' | 'localEnv' | 'hub'
+export type FailureKind = 'npmTooOld' | 'nodeEngine' | 'dshMissing' | 'gitMissing' | 'pnpmMissing' | 'npmMissing' | 'pnpmStore' | 'pnpmModulesMismatch' | 'profileState' | 'pnpmWorkspace' | 'originRejected' | 'pnpmPolicy' | 'pnpmUnusedPatch' | 'pnpmMissingDep' | 'pluginMissingDep' | 'registryVersionStale' | 'registryAuth' | 'profileExclusive' | 'pnpmLinkedDirMissing' | 'fileLocked' | 'accessDenied' | 'fsUnavailable' | 'buildToolchainMissing' | 'pnpmIgnoredBuild' | 'pluginPrepare' | 'hostIncompatible' | 'tlsTrust' | 'network' | 'hostCliSpawn' | 'hubState' | 'profileBundleMissing' | 'timeout' | 'profileLock' | 'dshTooOld' | 'localEnv' | 'hub'
 
 /** 失败动作口径：标题、上报正文与提示文案按安装/更新/卸载取词，不写死「安装」。 */
 export type FailureAction = 'install' | 'update' | 'uninstall'
@@ -226,6 +226,9 @@ export function classifyFailure(message: string): FailureKind {
   // npm 自身崩溃（edgesOut）或服务端标记的本机 npm 版本过低。必须最先判，否则会被外层
   // ERR_PNPM_PREPARE_PACKAGE 吞成「插件打包问题」
   if (/\[npm-too-low\]|edgesOut/i.test(message)) return 'npmTooOld'
+  // 本机 Node / pnpm 版本低于包声明的下限：装任何声明了同样 engine 的插件都会失败，属本机环境。
+  // 只认硬错误码 —— pnpm 的「WARN Unsupported Engine」只是告警，照着判会盖掉真实失败原因
+  if (/ERR_PNPM_UNSUPPORTED_ENGINE|ERR_PNPM_INVALID_NODE_VERSION|\bEBADENGINE\b/i.test(message)) return 'nodeEngine'
   // 本机缺 pnpm。必须在 dshMissing 之前 —— 后者的裸「command not found」会吞掉 pnpm 缺失
   if (/\[pnpm-missing\]|pnpm not found|pnpm: command not found|spawn pnpm ENOENT|'pnpm' 不是内部或外部命令|"pnpm" 不是内部或外部命令|pnpm['"]?\s*is not recognized/i.test(message)) return 'pnpmMissing'
   // 本机缺 git。必须在 dshMissing 之前，原因同上（裸「is not recognized」会吞掉 git 缺失）
@@ -234,12 +237,13 @@ export function classifyFailure(message: string): FailureKind {
   if (/\[npm-missing\]|spawn npm ENOENT|'npm' 不是内部或外部命令|"npm" 不是内部或外部命令|npm['"]?\s*is not recognized|npm: command not found/i.test(message)) return 'npmMissing'
   // 本机缺 dsh。服务端 [dsh-missing] 标记乱码免疫（Windows GBK 解码后无法匹配原文）
   if (/\[dsh-missing\]|不是内部或外部命令|is not recognized as an internal or external command|command not found|spawn dsh ENOENT/i.test(message)) return 'dshMissing'
-  // profile 的 modules 目录由另一套 virtual-store-dir-max-length 配置生成，当前 pnpm 拒绝复用。
-  // 必须在 pnpmStore 之前：两者的处置方式不同（这里只需重建 modules 目录 / 统一配置）
-  if (/ERR_PNPM_VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF|virtual-store-dir-max-length/i.test(message)) return 'pnpmVirtualStore'
+  // profile 的 modules 目录与当前 pnpm 配置不一致（pnpm 会把 virtual-store-dir-max-length /
+  // public-hoist-pattern / hoist 规则 / node-linker 等写进 node_modules/.modules.yaml，任一不一致就拒绝复用）。
+  // 必须在 pnpmStore 之前：两者处置方式不同（这里只需按当前配置重建 modules 目录）。
+  if (/ERR_PNPM_[A-Z0-9_]*DIFF\b|modules directory was created using a different/i.test(message)) return 'pnpmModulesMismatch'
   // store 版本不匹配：profile 依赖由另一大版本 pnpm 生成，当前 pnpm 不认。
   // 必须在 pnpmMissing 之后（pnpm 能跑起来报错，不是找不到命令）
-  if (/ERR_PNPM_UNEXPECTED_(VIRTUAL_)?STORE|Unexpected (virtual )?store location/i.test(message)) return 'pnpmStore'
+  if (/ERR_PNPM_UNEXPECTED_(VIRTUAL_)?STORE|ERR_PNPM_UNEXPECTED_PKG_CONTENT_IN_STORE|Unexpected (virtual )?store location/i.test(message)) return 'pnpmStore'
   // pnpm 拒绝往 workspace 根装依赖：profile 被视为 workspace 根但未声明根操作
   if (/ERR_PNPM_ADDING_TO_ROOT|add the dependency to the workspace root/i.test(message)) return 'pnpmWorkspace'
   // 本地服务来源校验拒绝（403 untrusted origin），请求没进安装流程。必须在 pnpmPolicy 之前
@@ -250,6 +254,10 @@ export function classifyFailure(message: string): FailureKind {
   if (missingTarballIntegrity(message) || mismatchedTarballIntegrity(message) || /ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION|ERR_PNPM_NO_MATURE_MATCHING_VERSION|Minimum release age|minimumReleaseAge|untrusted origin/i.test(message)) return 'pnpmPolicy'
   // profile 残留旧版本 patch 声明，pnpm 中止安装。必须在兜底之前
   if (/ERR_PNPM_UNUSED_PATCH|patches were not used/i.test(message)) return 'pnpmUnusedPatch'
+  // profile 的 pnpm 元数据与本机不一致（lockfile 过期 / 找不到可安装的 manifest / packageManager
+  // 版本不符 / 补丁未生效 / workspace 依赖缺失）：都是 profile 自身状态，这个 profile 里装任何
+  // 插件都会同样失败。必须在 pluginPrepare 之前 —— 这类错误常被 pnpm 包一层 Command failed
+  if (/ERR_PNPM_OUTDATED_LOCKFILE|ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND|ERR_PNPM_NO_PKG_MANIFEST|ERR_PNPM_BAD_PM_VERSION|ERR_PNPM_LOCKFILE_MISSING_DEPENDENCY|ERR_PNPM_PATCH_NOT_APPLIED|ERR_PNPM_WORKSPACE_PKG_NOT_FOUND|ERR_PNPM_JSON_PARSE|ERR_PNPM_PKG_MANIFEST_IS_NOT_OBJECT|ERR_PNPM_MISSING_HOIST_PATTERN|Cannot install with "frozen-lockfile"/i.test(message)) return 'profileState'
   // profile 文件被其他进程占用（os error 32 / EBUSY）。ASCII 特征免疫乱码
   if (/os error 32|EBUSY|resource busy or locked|being used by another process/i.test(message)) return 'fileLocked'
   // 系统拒绝写 profile（os error 5 / EPERM / EACCES）。ASCII 特征免疫乱码
@@ -270,7 +278,7 @@ export function classifyFailure(message: string): FailureKind {
   if (/unable to verify the first certificate|SELF_SIGNED_CERT_IN_CHAIN|UNABLE_TO_VERIFY_LEAF_SIGNATURE|ERR_TLS_CERT_ALTNAME_INVALID|CERT_HAS_EXPIRED|certificate has expired|UNABLE_TO_GET_ISSUER_CERT|CERT_UNTRUSTED|ERR_TLS_CERT/i.test(message)) return 'tlsTrust'
   // 网络/代理/源配置问题。必须在 prepare 之前判：git fetch 失败常被外层包成 "Command failed"
   // tarball 下载失败的括号里可能是数字码（pnpm 自己的）或符号码（undici 的 UND_ERR_*），两种都要认
-  if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|\bTLS\b|\bSSL\b|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return 'network'
+  if (/\[network\]|ERR_PNPM_GIT_FETCH_FAILED|ERR_PNPM_FETCH_5\d\d|ERR_PNPM_META_FETCH_FAIL|ERR_SOCKET_TIMEOUT|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EPIPE|EHOSTUNREACH|ENETUNREACH|UND_ERR_[A-Z0-9_]+|getaddrinfo|Could not connect|Could not resolve host|Network unreachable|Failed to connect|socket hang up|CERT_HAS_EXPIRED|SSL certificate problem|SSL routines|TLS handshake|SSL handshake|ERR_SSL_|ssl_error|fetch failed|failed to fetch|\bGET https?:\/\/\S+\.tgz\s+error \([A-Za-z0-9_]+\)/i.test(message)) return 'network'
   // 浏览器端请求超时（客户端 fetch 被 abort）：请求没到宿主，属于连不上网络，与插件无关
   if (/\[request-timeout\]/i.test(message)) return 'network'
   // 装后校验发现入口文件缺失（[packaging]）= 分发物缺构建产物
@@ -303,6 +311,10 @@ export function classifyFailure(message: string): FailureKind {
   if (/atomic-write: timed out waiting for the writer lock|timed out waiting for the writer lock/i.test(message)) return 'profileLock'
   // 宿主自己的 allowBuilds 摘要行（pnpm 原文只写进 diagnostics 日志文件，终端只剩这一句）
   if (/git-hosted plugins build on install via their prepare script|add the exact key pnpm printed above under allowBuilds/i.test(message)) return 'pnpmIgnoredBuild'
+  // 宿主启动插件管理时找不到某个 profile bundle（`cannot resolve profile bundle "<pkg>"`）：
+  // 该 profile 声明的依赖没装全（node_modules 被删过 / 上次安装中断 / 桌面端更新不完整），
+  // 与本次要装的插件无关 —— 必须在 hub 兜底之前，否则又会被当成未知错误丢给我们
+  if (/cannot resolve profile bundle/i.test(message)) return 'profileBundleMissing'
   // 宿主自身入口起不来（服务端 [host-spawn] 标记）：环境问题，给提示、不引导提 Issue。
   // 不匹配 `spawn … ENOENT` 文本 —— 那个形态任何 spawn（curl/git/taskkill…）都会产出
   if (/\[host-spawn\]/i.test(message)) return 'hostCliSpawn'
@@ -324,7 +336,7 @@ export function classifyFailure(message: string): FailureKind {
 /** 「特征指向本机环境但说不清具体哪一类」的兜底判据：系统调用错误码（权限/路径过长/设备异常）、
  *  证书与代理校验失败、本地配置文件（~/.npmrc、profile 的 package.json）损坏。
  *  只做排除用：命中它表示「不是插件侧问题」，不代表我们已经定位到原因。 */
-const LOCAL_ENV_RE = /os error \d{1,3}\b|ERROR_[A-Z_]{4,}|\bE(?:ACCES|PERM|NOENT|NAMETOOLONG|INVAL|PROTO|ISDIR|NOTDIR|EXIST|BADF|NOTEMPTY|JSONPARSE)\b|Unexpected token .{0,60}in JSON|SELF_SIGNED_CERT_IN_CHAIN|UNABLE_TO_VERIFY_LEAF_SIGNATURE|ERR_TLS_CERT_ALTNAME_INVALID|unable to verify the first certificate|self[- ]signed certificate|ERR_INVALID_URL|invalid registry|proxy authentication|407 Proxy/i
+const LOCAL_ENV_RE = /os error \d{1,3}\b|ERROR_[A-Z_]{4,}|\bE(?:ACCES|PERM|NOENT|NAMETOOLONG|INVAL|PROTO|ISDIR|NOTDIR|EXIST|BADF|NOTEMPTY|JSONPARSE|NOMEM)\b|JavaScript heap out of memory|Unexpected token .{0,60}in JSON|SELF_SIGNED_CERT_IN_CHAIN|UNABLE_TO_VERIFY_LEAF_SIGNATURE|ERR_TLS_CERT_ALTNAME_INVALID|unable to verify the first certificate|self[- ]signed certificate|ERR_INVALID_URL|invalid registry|proxy authentication|407 Proxy/i
 
 /** 从服务端 `[npm-too-low]` 标记行提取本机 npm 版本（如 `[npm-too-low] npm@11.3.0` → "11.3.0"）；
  *  历史记录无标记时返回 null，前端据此决定提示文案是否带具体版本。 */
@@ -344,7 +356,7 @@ const PEER_WARN_RE = /missing peer|issues with peer dependencies|peer dependenci
 /** 安装器自己打的诊断标记行：它们本身就是「为什么没有日志 / 卡在哪一步」的证据，
  *  不含 CORE_LINE_RE 的关键词，必须无条件保留 —— 否则上报正文会退回成只剩宿主那句摘要，
  *  我们又拿不到任何可排查的信息（#382/#393 就是这样）。 */
-const MARKER_LINE_RE = /^\[(?:pnpm log|no-output|desktop-cli-fallback|dsh-too-old|host-spawn|npm-too-low|git-missing|npm-missing|pnpm-missing|dsh-missing|network|packaging|registry-missing|registry-mirror-lag|internal|exit\b|timed out)/i
+const MARKER_LINE_RE = /^\[(?:pnpm log|no-output|desktop-cli-fallback|dsh-too-old|host-spawn|npm-too-low|git-missing|npm-missing|pnpm-missing|dsh-missing|network|packaging|registry-missing|registry-mirror-lag|registry-fallback|allow build|stale pipe|install-channel|internal|exit\b|timed out)/i
 /** 提交 issue 时正文里错误摘要的上限字符数。GitHub 请求行上限 8192 字节，
  * 固定模板与 URL 编码开销约 1~2K，核心错误（以 ASCII 日志为主）可安全带到 ~5K；
  * 仍超长时 pluginIssueUrl 会逐档缩小核心预算，最终 URL 不会超限。 */
@@ -504,6 +516,17 @@ export function desktopCliFallbackOf(message: string): boolean {
 export function dshTooOldInfoOf(message: string): { pkg: string; floor: string; current: string } | null {
   const m = /\[dsh-too-old\]\s*(\S+)\s+requires DSH >= (\S+).*?runs (\S+)/i.exec(message)
   return m === null ? null : { pkg: m[1]!, floor: m[2]!, current: m[3]! }
+}
+
+/**
+ * `cannot resolve profile bundle "<pkg>" from the dsh installation or <profileDir>` 里的
+ * 缺失包名与 profile 目录；只取到包名也算成功（profile 目录可能被换行截断）。
+ */
+export function unresolvedBundleOf(message: string): { pkg: string; profileDir: string } | null {
+  const m = /cannot resolve profile bundle\s+"([^"]+)"\s+from the dsh installation or\s+(.+?)\s*(?:;|$)/im.exec(message)
+  if (m !== null) return { pkg: m[1]!, profileDir: m[2]!.trim() }
+  const only = /cannot resolve profile bundle\s+"([^"]+)"/i.exec(message)
+  return only === null ? null : { pkg: only[1]!, profileDir: '' }
 }
 
 /**

@@ -89,7 +89,7 @@ export function backfillOperationLog(output: string, profileDir?: string): strin
 export function hasSubstantiveOutput(output: string): boolean {
   return output.split(/\r?\n/).some((raw) => {
     const line = raw.trim()
-    return line !== '' && !/^\[(?:exit\b|timed out\]|install-channel\]|stale pipe\]|error\]|pnpm log\])/.test(line)
+    return line !== '' && !/^\[(?:exit\b|timed out\]|install-channel\]|stale pipe\]|error\]|pnpm log\]|registry-fallback\]|allow build\])/.test(line)
   })
 }
 

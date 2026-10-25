@@ -15,8 +15,8 @@ import type { HubAboutInfo, HubUpdateInfo, HubUpdateState } from '../types.ts'
 import type { SortKey } from '../logic/constants.ts'
 import { fetchCatalog, fetchStats } from '../data/catalog.ts'
 import { fetchHubAbout, fetchHubUpdate } from '../data/hub.ts'
-import { fetchInstalled, fetchNpmReleaseAge } from '../data/host.ts'
-import { isReleaseTooFresh, pickHubUpdate } from '../logic/release-age.ts'
+import { fetchInstalled, fetchNpmReleaseAge, type NpmReleaseInfo } from '../data/host.ts'
+import { isReleaseTooFresh, isUpdateOffered, pickHubUpdate } from '../logic/release-age.ts'
 import {
   hasUpdateOf, installedItemsOf, installedNameOf, installedVersionOf, npmPackageOf,
 } from '../logic/installed.ts'
@@ -25,8 +25,8 @@ import type { InstalledItem, InstalledVersionSignal } from '../logic/installed.t
 /** 插件市场自身仓库：DSH Plugin Hub 不显示在目录里（自己不进自己的插件列表） */
 const SELF_REPO = 'dshplugin/dsh-plugin-hub'
 
-/** 共享的空门禁集合：无暂缓包时复用，避免每次渲染新建 Set。 */
-const EMPTY_PACKAGES: ReadonlySet<string> = new Set<string>()
+/** 共享的空发布信息表：无候选包时复用，避免每次渲染新建对象。 */
+const EMPTY_RELEASES: Record<string, NpmReleaseInfo | null> = {}
 
 /** 市场各排序的默认方向：全部按倒序（Star/Fork 多、更新/收录近的在前） */
 const SORT_DEFAULT_DIR: Record<SortKey, 'asc' | 'desc'> = {
@@ -190,18 +190,18 @@ export function useCatalog(lang: LocaleId) {
   const installedVersion = (p: HubPlugin): string | null => installedVersionOf(p, versions)
 
   /**
-   * 供应链门禁状态：包名集合为当前「暂缓提示」的 npm 包（最新版本发布未满门槛）。
+   * 更新可用性校验状态：npm registry 上每个包的最新可安装版本与发布时间。
    * key 是这批候选包名的指纹，与已查出的 key 一致才算就绪，避免查询未回来时先显示更新。
    */
-  const [releaseAge, setReleaseAge] = useState<{ key: string; held: ReadonlySet<string> }>({ key: '', held: EMPTY_PACKAGES })
+  const [releaseAge, setReleaseAge] = useState<{ key: string; releases: Record<string, NpmReleaseInfo | null> }>({ key: '', releases: EMPTY_RELEASES })
 
-  /** 已安装项原始列表（未套门禁）：先算出来才能收集需要查发布时间的候选包名。 */
+  /** 已安装项原始列表（未套校验）：先算出来才能收集需要查发布信息的候选包名。 */
   const rawInstalledItems = useMemo<InstalledItem[]>(
     () => installedItemsOf(plugins, installed, versions, installPaths, loadedNames, dshCapableNames),
     [plugins, installed, versions, installPaths, loadedNames, dshCapableNames],
   )
 
-  /** 门禁候选：有更新、且有 npm 包名（更新走 npm registry）的已安装插件包名。 */
+  /** 校验候选：有更新、且有 npm 包名（更新走 npm registry）的已安装插件包名。 */
   const releaseAgeCandidates = useMemo(() => {
     const names = new Set<string>()
     for (const item of rawInstalledItems) {
@@ -212,53 +212,73 @@ export function useCatalog(lang: LocaleId) {
     return [...names].sort()
   }, [rawInstalledItems, versions])
   const releaseAgeKey = releaseAgeCandidates.join('\n')
+  /** 包名 → 已装版本：判断 npm 上最新版是否真的比已装版本新。 */
+  const installedByPackage = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const item of rawInstalledItems) {
+      if (!item.plugin) continue
+      const pkg = npmPackageOf(item.plugin, versions)
+      const version = installedVersionOf(item.plugin, versions)
+      if (pkg !== null && version !== null) map.set(pkg, version)
+    }
+    return map
+  }, [rawInstalledItems, versions])
 
   useEffect(() => {
     if (releaseAgeKey === releaseAge.key) return
     if (releaseAgeCandidates.length === 0) {
-      setReleaseAge({ key: '', held: EMPTY_PACKAGES })
+      setReleaseAge({ key: '', releases: EMPTY_RELEASES })
       return
     }
     let cancelled = false
-    // 批量一次查询；失败/返回 null 时 held 为空 → 按原逻辑照常提示，网络问题不吃掉真实更新
+    // 批量一次查询；失败/返回 null 时按原逻辑照常提示，网络问题不吃掉真实更新
     void fetchNpmReleaseAge(releaseAgeCandidates).then((result) => {
       if (cancelled) return
-      const now = Date.now()
-      const held = new Set<string>()
-      for (const name of releaseAgeCandidates) {
-        const info = result?.[name]
-        if (info && isReleaseTooFresh(info.publishedAt, now)) held.add(name)
-      }
-      setReleaseAge({ key: releaseAgeKey, held })
+      setReleaseAge({ key: releaseAgeKey, releases: result ?? EMPTY_RELEASES })
     })
     return () => { cancelled = true }
   }, [releaseAgeKey, releaseAge.key])
 
-  /** 门禁结果是否已就绪（候选为空也算就绪）：未就绪时不写更新提醒，等查询回来再定。 */
+  /** 校验结果是否已就绪（候选为空也算就绪）：未就绪时不写更新提醒，等查询回来再定。 */
   const releaseAgeReady = releaseAgeKey === releaseAge.key
-  const heldPackages = releaseAgeReady ? releaseAge.held : EMPTY_PACKAGES
+
+  /**
+   * 不能提示更新的包：
+   *  - npm 上最新版还没过供应链门禁（发布不满 24h，pnpm 会静默回退，点了也装不上）；
+   *  - npm 上最新版并不高于已装版本 —— 更新走的是 `pkg@latest`，此时无论目录标到哪个 tag，
+   *    都不可能装上（作者可能只打了 GitHub release 没发 npm），提示只会变成永远点不掉的循环。
+   */
+  const updateBlocked = useMemo(() => {
+    const blocked = new Set<string>()
+    if (!releaseAgeReady) return blocked
+    const now = Date.now()
+    for (const pkg of releaseAgeCandidates) {
+      if (!isUpdateOffered(releaseAge.releases[pkg] ?? null, installedByPackage.get(pkg) ?? null, now)) blocked.add(pkg)
+    }
+    return blocked
+  }, [releaseAgeReady, releaseAgeCandidates, releaseAge.releases, installedByPackage])
 
   /**
    * 是否有更新：仅对已安装插件有意义。
    * 双信号判定——有 release 版本的比版本；无版本（repo 不打 tag）的比仓库最近更新时间
    * （repoUpdatedAt，ISO 字符串字典序 = 时间序），更新时间变新说明有新提交。
-   * 另加供应链门禁：npm 包最新版本发布未满门槛时视为暂缓，不打更新标记。
+   * 再用 npm registry 的实际最新版本复核：装不上的（太新 / 不比已装新）不打更新标记。
    */
   const hasUpdate = (p: HubPlugin): boolean => {
     if (!hasUpdateOf(p, installed, versions)) return false
     const pkg = npmPackageOf(p, versions)
-    return pkg === null || !heldPackages.has(pkg)
+    return pkg === null || !updateBlocked.has(pkg)
   }
 
-  /** 已安装项统一列表（目录元数据 + 运行时信息合并）：门禁命中的去掉更新标记，驱动「已安装」tab。 */
+  /** 已安装项统一列表（目录元数据 + 运行时信息合并）：被拦下的去掉更新标记，驱动「已安装」tab。 */
   const installedItems = useMemo<InstalledItem[]>(() => {
-    if (heldPackages.size === 0) return rawInstalledItems
+    if (updateBlocked.size === 0) return rawInstalledItems
     return rawInstalledItems.map((item) => {
       if (!item.hasUpdate || !item.plugin) return item
       const pkg = npmPackageOf(item.plugin, versions)
-      return pkg !== null && heldPackages.has(pkg) ? { ...item, hasUpdate: false } : item
+      return pkg !== null && updateBlocked.has(pkg) ? { ...item, hasUpdate: false } : item
     })
-  }, [rawInstalledItems, heldPackages, versions])
+  }, [rawInstalledItems, updateBlocked, versions])
 
   /**
    * Hub 自身更新状态：Hub 就是当前运行的应用（始终已安装，无需 installedName 命中）。

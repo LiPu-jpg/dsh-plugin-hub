@@ -657,6 +657,11 @@ function spawnMutation(options: {
         task.status = result.timedOut || result.exitCode !== 0 ? 'failed' : 'done'
         if (task.status === 'done') {
           task.progress = 100
+          // 实际装上的版本：目录版本可能滞后，客户端账本必须记这个值，否则「有更新」永久失真
+          if (!isGlobalNpm && action !== 'remove') {
+            const installed = installedVersionOf(profile, target)
+            if (installed !== null) task.installedVersion = installed
+          }
           // 市场自更新：若 bundle 已被取消勾选，重启后市场不会出现，结果页要明确提示
           if ((action === 'add' || action === 'update') && (target === 'dsh-plugin' || target.startsWith('dsh-plugin@'))
             && !bundleIncludes(profile, 'dsh-plugin')) {
@@ -699,8 +704,36 @@ function spawnMutation(options: {
         pushLine(task, result.timedOut ? '[timed out]' : `[exit ${result.exitCode ?? '?'}]${printedNothing ? ' (no output captured)' : ''}`)
       }
     }
-    return result
+    // 带上最终生效的源：后续注解（如 [dsh-too-old]）读元数据必须与安装同源，
+    // 否则换过源之后会去另一个源查，查不到就静默漏报
+    return activeRegistry === undefined ? result : { ...result, registry: activeRegistry }
   })()
+}
+
+/**
+ * 安装成功后从 profile 的 `node_modules/<pkg>/package.json` 读**实际**版本；
+ * 定位不到包名或读不到返回 null。客户端拿它写版本账本 —— 目录里的版本可能滞后。
+ */
+export function installedVersionOf(profile: string, target: string): string | null {
+  const profileDir = profileDirectory(profile)
+  let deps: Record<string, string> = {}
+  try {
+    const pkg = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as { dependencies?: Record<string, string> }
+    deps = pkg.dependencies ?? {}
+  } catch {
+    return null
+  }
+  const targetRepo = githubRepoOf(target)?.toLowerCase()
+  const name = targetRepo !== undefined
+    ? Object.keys(deps).find((k) => githubRepoOf(deps[k])?.toLowerCase() === targetRepo)
+    : deps[target] !== undefined ? target : Object.keys(deps).find((k) => deps[k] === target)
+  if (!name) return null
+  try {
+    const meta = JSON.parse(readFileSync(join(profileDir, 'node_modules', name, 'package.json'), 'utf8')) as { version?: unknown }
+    return typeof meta.version === 'string' && meta.version !== '' ? meta.version : null
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -805,8 +838,9 @@ async function annotateDshTooOld(result: InstallResult, options: {
   if (options.action === 'remove' || result.exitCode === 0) return result
   // 全局 npm 装的是本机 CLI 工具，不进 profile，没有宿主版本要求
   if ((options.globalNpm ?? []).length > 0) return result
-  // 用安装实际使用的源读元数据：私有源/镜像里也能读到同一个包的声明
-  const line = await dshTooOldMarker(options.target, { registry: options.registries?.[0] })
+  // 用安装**实际**使用的源读元数据：换源重试后候选表首位可能并不是真正生效的那个，
+  // 用错源会读不到包而静默漏报；私有源/镜像里同样能读到包声明的 engines
+  const line = await dshTooOldMarker(options.target, { registry: result.registry ?? options.registries?.[0] })
   if (line === null) return result
   if (options.task && options.task.status !== 'cancelled') pushLine(options.task, line)
   return { ...result, stderr: `${result.stderr}\n${line}`, error: result.error ? `${result.error}\n${line}` : line }

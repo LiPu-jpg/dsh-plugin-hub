@@ -75,6 +75,16 @@ test('isTransportFailure: 404 / 版本不存在 / 鉴权失败不换源', () => 
   }
 })
 
+test('isTransportFailure: 证书链不被信任时不换源（换哪个镜像都会同样失败）', () => {
+  for (const log of [
+    'ERR_PNPM_META_FETCH_FAIL GET https://registry.npmjs.org/x: request to https://registry.npmjs.org/x failed, reason: unable to verify the first certificate',
+    'SELF_SIGNED_CERT_IN_CHAIN: self signed certificate in certificate chain',
+    'CERT_HAS_EXPIRED: certificate has expired',
+  ]) {
+    assert.equal(isTransportFailure(log), false, log)
+  }
+})
+
 test('registryHost: 只取主机名用于日志', () => {
   assert.equal(registryHost('https://registry.npmmirror.com/'), 'registry.npmmirror.com')
   assert.equal(registryHost('not a url'), 'not a url')

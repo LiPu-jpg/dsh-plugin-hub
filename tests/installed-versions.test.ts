@@ -8,7 +8,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -16,6 +16,7 @@ import {
   recordInstalledVersion,
   recordResolvedNpmPackage,
   removeInstalledVersion,
+  versionsFilePath,
 } from '../src/server/services/profile/installed-versions.ts'
 
 /** 每个测试用独立临时 DSH_HOME，互不污染、也不碰真实 ~/.dsh */
@@ -50,5 +51,17 @@ test('卸载移除整条记录，npmPackage 映射一并清除', () => {
     removeInstalledVersion('web', 'ccch1mneyyy/dsh-tui')
     const rec = readInstalledVersions('web')['ccch1mneyyy/dsh-tui']
     assert.equal(rec, undefined)
+  })
+})
+
+test('写入是原子的：不留临时文件，内容完整可读', () => {
+  withTempHome(() => {
+    recordInstalledVersion('web', 'owner/repo', '1.2.3', '2026-10-25T00:00:00.000Z')
+    const file = versionsFilePath('web')
+    // 先写 tmp 再 rename：成功后不能残留 .tmp，否则下次 rename 前的半成品可能被误读
+    assert.equal(existsSync(`${file}.tmp`), false)
+    // 文件本身必须是完整 JSON（截断会让整份账本失效、更新检测静默停摆）
+    const parsed = JSON.parse(readFileSync(file, 'utf8')) as Record<string, { version?: string }>
+    assert.equal(parsed['owner/repo']?.version, '1.2.3')
   })
 })
