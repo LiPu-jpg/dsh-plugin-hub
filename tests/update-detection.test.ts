@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { hasUpdateOf } from '../src/client/logic/installed.ts'
+import { hasUpdateOf, installedItemsOf } from '../src/client/logic/installed.ts'
 import { compareVersions, isUpdateOffered, MIN_RELEASE_AGE_MS } from '../src/client/logic/release-age.ts'
 import type { HubPlugin } from '../src/client/types.ts'
 import type { InstalledVersionSignal } from '../src/client/logic/installed.ts'
@@ -71,6 +71,16 @@ test('hasUpdateOf: a ledger record without a version does not throw', () => {
   // 有目录更新时间时退回按更新时间判定
   const dated = { ...plugin('v1.1.11'), dates: { repoUpdatedAt: '2026-10-25T00:00:00Z' } } as HubPlugin
   assert.equal(hasUpdateOf(dated, installed, { [REPO.toLowerCase()]: { npmPackage: PKG, updatedAt: '2026-10-24T00:00:00Z' } as unknown as InstalledVersionSignal }), true)
+})
+
+test('installedItemsOf: a partial ledger record cannot break the list render', () => {
+  // 复现白屏现场：账本里只有 npm 包名映射（安装刚开始就被写入），目录有版本。
+  // 这条渲染链路必须完整跑通，任何异常都会被宿主按区块隔离 → 设置区白屏
+  const partial = { [REPO.toLowerCase()]: { npmPackage: PKG } as unknown as InstalledVersionSignal }
+  const items = installedItemsOf([plugin('v1.1.11')], installed, partial, null, null, null)
+  assert.equal(items.length, 1)
+  assert.equal(items[0]?.installedVersion, null)
+  assert.equal(items[0]?.hasUpdate, false)
 })
 
 test('isUpdateOffered: only offer an update npm can actually install', () => {
