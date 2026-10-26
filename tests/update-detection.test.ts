@@ -52,6 +52,27 @@ test('compareVersions: a prerelease ranks below the matching release', () => {
   assert.equal(compareVersions('v1.1.10', '1.1.10'), 0)
 })
 
+test('compareVersions: missing values never throw (runtime data can be dirty)', () => {
+  assert.doesNotThrow(() => compareVersions(undefined, '1.0.0'))
+  assert.doesNotThrow(() => compareVersions('1.0.0', undefined))
+  assert.equal(compareVersions(undefined, undefined), 0)
+  assert.equal(compareVersions('', ''), 0)
+  // 缺值按 0.0.0 处理
+  assert.ok(compareVersions(undefined, '1.0.0') < 0)
+})
+
+test('hasUpdateOf: a ledger record without a version does not throw', () => {
+  // /install 一开始只写 npm 包名映射（版本要等任务结束才知道）：
+  // 这种残缺记录曾让整个「插件市场」设置区白屏，必须退化成「无版本信号」
+  const partial = { [REPO.toLowerCase()]: { npmPackage: PKG } as unknown as InstalledVersionSignal }
+  assert.doesNotThrow(() => hasUpdateOf(plugin('v1.1.11'), installed, partial))
+  // 无版本 + 无目录更新时间信号 → 不判为有更新
+  assert.equal(hasUpdateOf(plugin('v1.1.11'), installed, partial), false)
+  // 有目录更新时间时退回按更新时间判定
+  const dated = { ...plugin('v1.1.11'), dates: { repoUpdatedAt: '2026-10-25T00:00:00Z' } } as HubPlugin
+  assert.equal(hasUpdateOf(dated, installed, { [REPO.toLowerCase()]: { npmPackage: PKG, updatedAt: '2026-10-24T00:00:00Z' } as unknown as InstalledVersionSignal }), true)
+})
+
 test('isUpdateOffered: only offer an update npm can actually install', () => {
   const now = Date.parse('2026-10-25T00:00:00Z')
   const matured = new Date(now - MIN_RELEASE_AGE_MS - 60_000).toISOString()

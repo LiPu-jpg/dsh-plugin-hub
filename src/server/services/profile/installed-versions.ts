@@ -38,10 +38,25 @@ export function versionsFilePath(profile: string): string {
   return join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'profiles', profile, 'gro.ngilp-hsd-versions.json')
 }
 
+/** 读取某 profile 的版本账本；缺失/损坏/字段不全一律归一化成完整形状。
+ *  安装一开始只会写入 npm 包名映射（版本要等任务结束才知道），所以磁盘上可能存在
+ *  只有 npmPackage 的记录 —— 原样下发会让客户端的版本比较拿到 undefined 直接抛错。 */
 export function readInstalledVersions(profile: string): InstalledVersionTable {
   try {
     const raw = JSON.parse(readFileSync(versionsFilePath(profile), 'utf8')) as unknown
-    return raw !== null && typeof raw === 'object' ? raw as InstalledVersionTable : {}
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return {}
+    const table: InstalledVersionTable = {}
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (value === null || typeof value !== 'object') continue
+      const rec = value as Partial<InstalledVersionRecord>
+      table[key] = {
+        version: typeof rec.version === 'string' ? rec.version : '',
+        updatedAt: typeof rec.updatedAt === 'string' ? rec.updatedAt : '',
+        installedAt: typeof rec.installedAt === 'string' ? rec.installedAt : '',
+        ...(typeof rec.npmPackage === 'string' && rec.npmPackage !== '' ? { npmPackage: rec.npmPackage } : {}),
+      }
+    }
+    return table
   } catch {
     return {}
   }
@@ -64,7 +79,14 @@ export function recordInstalledVersion(profile: string, repo: string, version: s
 export function recordResolvedNpmPackage(profile: string, repo: string, npmPackage: string): void {
   const table = readInstalledVersions(profile)
   const key = repo.toLowerCase()
-  table[key] = { ...table[key], npmPackage }
+  // 显式写全字段：这一步发生在安装开始时，版本还不知道 —— 但落盘记录必须是完整形状，
+  // 否则只带 npmPackage 的残缺记录会在客户端版本比较时崩掉整块界面
+  table[key] = {
+    version: table[key]?.version ?? '',
+    updatedAt: table[key]?.updatedAt ?? '',
+    installedAt: table[key]?.installedAt ?? '',
+    npmPackage,
+  }
   writeVersions(profile, table)
 }
 

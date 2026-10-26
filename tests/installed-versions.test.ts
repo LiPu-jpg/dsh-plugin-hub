@@ -8,9 +8,9 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import {
   readInstalledVersions,
   recordInstalledVersion,
@@ -63,5 +63,18 @@ test('写入是原子的：不留临时文件，内容完整可读', () => {
     // 文件本身必须是完整 JSON（截断会让整份账本失效、更新检测静默停摆）
     const parsed = JSON.parse(readFileSync(file, 'utf8')) as Record<string, { version?: string }>
     assert.equal(parsed['owner/repo']?.version, '1.2.3')
+  })
+})
+
+test('读取时归一化：只带 npmPackage 的残缺记录补成完整形状', () => {
+  withTempHome(() => {
+    const file = versionsFilePath('web')
+    mkdirSync(dirname(file), { recursive: true })
+    // 复现真实盘上形态：安装开始时就写了包名映射，任务还没结束（没有版本字段）
+    writeFileSync(file, JSON.stringify({ 'owner/repo': { npmPackage: '@scope/pkg' } }))
+    const rec = readInstalledVersions('web')['owner/repo']
+    assert.equal(rec?.version, '')
+    assert.equal(rec?.updatedAt, '')
+    assert.equal(rec?.npmPackage, '@scope/pkg')
   })
 })

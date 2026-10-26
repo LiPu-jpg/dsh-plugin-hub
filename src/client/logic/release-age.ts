@@ -23,14 +23,14 @@ export function isReleaseTooFresh(publishedAt: string | null | undefined, now: n
  *  兼容目录里的 `v1.1.8` 与 npm 的 `1.1.8`：每段先剥掉前导非数字，再取整。
  *  预发布后缀单独处理：`1.0.0` 高于 `1.0.0-beta.1`，两个预发布版按标识符比较
  *  （纯数字段按数值，数字段低于字母段）。 */
-export function compareVersions(a: string, b: string): number {
-  const core = (v: string): number[] =>
-    (v.split('+')[0] ?? '').split('-')[0]!
+export function compareVersions(a: string | null | undefined, b: string | null | undefined): number {
+  const core = (v: string | null | undefined): number[] =>
+    (v ?? '').split('+')[0]!.split('-')[0]!
       .split('.')
       .map((part) => Number.parseInt(part.replace(/^[^\d]+/, ''), 10))
       .filter((n) => !Number.isNaN(n))
-  const pre = (v: string): string[] => {
-    const rest = (v.split('+')[0] ?? '').split('-').slice(1)
+  const pre = (v: string | null | undefined): string[] => {
+    const rest = (v ?? '').split('+')[0]!.split('-').slice(1)
     return rest.length === 0 ? [] : rest.join('-').split('.')
   }
   const va = core(a)

@@ -91,7 +91,7 @@ export function installedNameOf(
 export function installedVersionOf(plugin: HubPlugin, versions: Record<string, InstalledVersionSignal>): string | null {
   const repo = plugin.source?.repo
   if (!repo) return null
-  return versions[repo.toLowerCase()]?.version ?? null
+  return signalOf(repo, versions)?.version || null
 }
 
 /** 该插件对应的 npm 包名（目录下发，或安装时持久化的映射）；无则 null。决定更新是否走 npm registry。 */
@@ -118,9 +118,13 @@ export function hasUpdateOf(
   if (!repo) return false
   const rec = versions[repo.toLowerCase()]
   if (!rec) return false
-  if (plugin.version) return compareVersions(plugin.version, rec.version) > 0
+  // 账本记录可能是残缺的：安装一开始就会先写入 npm 包名映射，版本要等任务结束才知道。
+  // 缺版本的记录按「无版本信号」处理、退回更新时间比较 —— 直接拿去比版本会让整个插件区块崩掉
+  const recorded = typeof rec.version === 'string' ? rec.version : ''
+  if (plugin.version && recorded !== '') return compareVersions(plugin.version, recorded) > 0
   const current = plugin.dates?.repoUpdatedAt
-  return Boolean(current && rec.updatedAt && current > rec.updatedAt)
+  const seen = typeof rec.updatedAt === 'string' ? rec.updatedAt : ''
+  return Boolean(current && seen && current > seen)
 }
 
 /** 依赖 spec 能否解析出仓库身份（owner/repo 形态才算）。 */
@@ -222,7 +226,7 @@ export function installedItemsOf(
       plugin: p,
       repo,
       installPath: paths?.[name] ?? null,
-      installedVersion: rec?.version ?? null,
+      installedVersion: rec?.version || null,
       installedAt: rec?.installedAt ?? null,
       catalogVersion: p.version ?? null,
       hasUpdate: hasUpdateOf(p, installed, versions),
@@ -245,7 +249,7 @@ export function installedItemsOf(
       plugin: null,
       repo,
       installPath: paths?.[name] ?? null,
-      installedVersion: rec?.version ?? null,
+      installedVersion: rec?.version || null,
       installedAt: rec?.installedAt ?? null,
       catalogVersion: null,
       // 目录外没有目录信号可比，无法判断是否有更新
