@@ -6,7 +6,7 @@
  * Hub 元数据仓库：自我更新检查与「关注我们」内容背后的 Cloudflare Worker 接口。
  * 失败降级为 null —— 由调用方决定如何兜底（不显示徽标、占位文案），绝不抛错。
  */
-import type { HubAboutInfo, HubUpdateInfo } from '../types.ts'
+import type { HubAboutInfo, HubUpdateInfo, HubUpdateVersion } from '../types.ts'
 import { HUB_ABOUT_URL, HUB_UPDATE_URL } from '../logic/constants.ts'
 
 /** 版本接口是 Pages 静态文件，默认带 CDN 缓存（Cache-Control: public, max-age=43200，
@@ -18,7 +18,26 @@ function busted(url: string): string {
   return `${url}${sep}_t=${Date.now()}`
 }
 
-/** Worker 版本控制中心：最新版本 + Markdown 变更记录；不可用返回 null。 */
+/** 归一化接口下发的 recentVersions：只保留带版本号的条目，其余字段按类型补。
+ *  这条数据是「最新版还在 24.5h 门禁内时回退到更早的已过门槛版本」的唯一依据；
+ *  入口处漏传会让候选只剩最新版，整体变成 pending —— 用户就永远看不到更新入口。 */
+function recentVersionsOf(value: unknown): HubUpdateVersion[] {
+  if (!Array.isArray(value)) return []
+  const list: HubUpdateVersion[] = []
+  for (const item of value) {
+    if (item === null || typeof item !== 'object') continue
+    const entry = item as { version?: unknown; publishedAt?: unknown; notes?: unknown }
+    if (typeof entry.version !== 'string' || entry.version === '') continue
+    list.push({
+      version: entry.version,
+      ...(typeof entry.publishedAt === 'string' ? { publishedAt: entry.publishedAt } : {}),
+      ...(entry.notes === undefined ? {} : { notes: entry.notes as HubUpdateVersion['notes'] }),
+    })
+  }
+  return list
+}
+
+/** 版本控制中心：最新版本 + Markdown 变更记录 + 最近发版（门禁回退用）；不可用返回 null。 */
 export async function fetchHubUpdate(): Promise<HubUpdateInfo | null> {
   try {
     const res = await fetch(busted(HUB_UPDATE_URL), { cache: 'no-store' })
@@ -27,7 +46,12 @@ export async function fetchHubUpdate(): Promise<HubUpdateInfo | null> {
     if (!data) return null
     const version = typeof data.version === 'string' && data.version.length > 0 ? data.version : null
     if (version === null) return null
-    return { version, publishedAt: data.publishedAt ?? null, notes: data.notes ?? null }
+    return {
+      version,
+      publishedAt: data.publishedAt ?? null,
+      notes: data.notes ?? null,
+      recentVersions: recentVersionsOf(data.recentVersions),
+    }
   } catch {
     return null
   }
